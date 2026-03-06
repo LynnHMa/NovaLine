@@ -56,7 +56,10 @@ namespace NovaLine.Element
             }
             await conditionAfterInvoke.waiting();
         }
-
+        public override string getType()
+        {
+            return "[Node]";
+        }
         public override void onGraphConnect(INovaSwitcher graphEdge)
         {
             if(graphEdge is NodeSwitcher nodeSwitcher && parent is Flowchart parentFlowchart)

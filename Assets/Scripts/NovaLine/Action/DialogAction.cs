@@ -20,12 +20,8 @@ namespace NovaLine.Action
 
         public override string getType()
         {
-            return "Dialog";
+            return "[Dialog Action]";
         }
 
-        public override string getDescribation()
-        {
-            return "Generate dialogue.";
-        }
     }
 }

@@ -30,20 +30,22 @@ namespace NovaLine.Editor.Graph.View
         }
         public override ActionGraphNode summonNewGraphNode(Vector2 pos)
         {
-            return new ActionGraphNode(new NovaAction(), pos);
+            var newActionGraphNode = new ActionGraphNode(new NovaAction(), pos);
+            newActionGraphNode.targetObject.name = UnityEngine.Random.Range(0, 88888).ToString();
+            return newActionGraphNode;
         }
         public ActionGraphNode summonNewGraphNode(string title, Vector2 pos)
         {
-            var newGraphNode = summonNewGraphNode(pos);
-            newGraphNode.title = title;
-            return newGraphNode;
+            var newActionGraphNode = summonNewGraphNode(pos);
+            newActionGraphNode.targetObject.name = title;
+            return newActionGraphNode;
         }
-        public override void addGraphNode(ActionGraphNode graphNode, bool isInit = false)
+        public override void addGraphNode(ActionGraphNode graphNode, bool isInit = false,bool autoSave = true)
         {
             base.addGraphNode(graphNode);
             if(!isInit) root.actions.Add((NovaAction)graphNode.targetObject);
         }
-        public override void removeGraphNode(ActionGraphNode graphNode)
+        public override void removeGraphNode(ActionGraphNode graphNode, bool isSave = true)
         {
             base.addGraphNode(graphNode);
             root.actions.Remove((NovaAction)graphNode.targetObject);

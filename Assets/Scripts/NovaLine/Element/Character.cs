@@ -7,5 +7,9 @@ namespace NovaLine.Element
     public class Character : NovaElement
     {
         public Sprite avator;
+        public override string getType()
+        {
+            return "[Character]";
+        }
     }
 }

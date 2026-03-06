@@ -12,6 +12,8 @@ namespace NovaLine.Editor.Graph.View
     using System;
     using NovaLine.Editor.Graph.Node;
     using NovaLine.Element;
+    using NovaLine.Editor.File;
+    using UnityEditor;
 
     [Serializable]
     public class NovaGraphView<N,PE,EE> : GraphView, INovaGraphView where N : GraphNode
@@ -51,17 +53,19 @@ namespace NovaLine.Editor.Graph.View
         {
             return default;
         }
-        public virtual void addGraphNode(N graphNode,bool isInit = false)
+        public virtual void addGraphNode(N graphNode,bool isInit = false,bool autoSave = true)
         {
-            var graphNodeObj = graphNode.targetObject as NovaElement;
-            graphNodeObj.parent = root;
+            var graphNodeElement = graphNode.targetObject;
+            graphNodeElement.parent = root;
             graphNodes?.Add(graphNode);
             AddElement(graphNode);
+            if(autoSave) NovaFileManager.saveGraphWindowData();
         }
-        public virtual void removeGraphNode(N graphNode)
+        public virtual void removeGraphNode(N graphNode,bool autoSave = true)
         {
             graphNodes?.Remove(graphNode);
             RemoveElement(graphNode);
+            if(autoSave) NovaFileManager.saveGraphWindowData();
         }
         public virtual N getExistingGraphNode(string guid)
         {
@@ -84,10 +88,11 @@ namespace NovaLine.Editor.Graph.View
                 {
                     if(element is N graphNode)
                     {
-                        removeGraphNode(graphNode);
+                        removeGraphNode(graphNode,false);
                     }
                 }
             }
+            NovaFileManager.saveGraphWindowData();
             return change;
         }
         protected virtual string OnSerializeGraphElements(IEnumerable<GraphElement> elements)
@@ -120,10 +125,11 @@ namespace NovaLine.Editor.Graph.View
                 if (nodeData is N graphNode)
                 {
                     var n = summonNewGraphNode(pasteData.pastePos);
-                    addGraphNode(n);
+                    addGraphNode(n,false,false);
                     AddToSelection(n);
                 }
             }
+            NovaFileManager.saveGraphWindowData();
         }
         protected virtual bool OnCanPaste(string data)
         {

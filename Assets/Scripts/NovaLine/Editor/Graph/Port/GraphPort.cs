@@ -9,6 +9,7 @@ namespace NovaLine.Editor.Graph.Port
     using NovaLine.Editor.Graph.Edge;
     using NovaLine.Switcher;
     using UnityEditor.Experimental.GraphView;
+
     public class GraphPort<PE,EE> : Port where EE : NovaSwitcher where PE : NovaElement
     {
         public PE ownerElement { get; set; }
@@ -16,13 +17,23 @@ namespace NovaLine.Editor.Graph.Port
         {
             this.ownerElement = ownerElement;
         }
-        public static GraphPort<PE,EE> Create<ED>(Orientation orientation, Direction direction, Capacity capacity, Type type, PE ownerElement) where ED : GraphEdge<PE,EE>, new()
+        public static GraphPort<PE,EE> Create<ED>(Orientation orientation, Direction direction, Capacity capacity, Type type, PE ownerElement,Color color) where ED : GraphEdge<PE,EE>, new()
         {
             CustomEdgeConnectorListener<PE,EE,ED> listener = new();
             var port = new GraphPort<PE,EE>(orientation, direction, capacity, type, ownerElement)
             {
                 m_EdgeConnector = new EdgeConnector<ED>(listener)
             };
+            port.portColor = Color.white;
+
+            var inputPortLabel = port.Q<Label>();
+            if (inputPortLabel != null)
+            {
+                inputPortLabel.style.fontSize = 13;
+                inputPortLabel.style.color = Color.white;
+                inputPortLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            }
+
             port.ownerElement = ownerElement;
             port.AddManipulator(port.m_EdgeConnector);
             return port;

@@ -1,5 +1,4 @@
 ﻿using NovaLine.Event;
-using NovaLine.Interface;
 using NovaLine.Switcher;
 using System;
 using System.Collections.Generic;
@@ -35,6 +34,10 @@ namespace NovaLine.Element
             this.type = type;
             this.novaEvents = novaEvents;
             this.guid = guid;
+        }
+        public override string getType()
+        {
+            return "[Condition]";
         }
         public async Task waiting()
         {

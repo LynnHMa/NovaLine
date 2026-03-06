@@ -27,7 +27,10 @@ namespace NovaLine.Element
             }
             this.guid = guid;
         }
-
+        public override string getType()
+        {
+            return "[Flowchart]";
+        }
         public async Task play()
         {
             for (var i = 0; i < nodes.Count; i++)

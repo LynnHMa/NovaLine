@@ -6,17 +6,93 @@ namespace NovaLine.Editor.Graph.Edge
     using NovaLine.Editor.Graph.Port;
     using NovaLine.Element;
     using NovaLine.Switcher;
+    using UnityEngine;
+    using NovaLine.Editor.Utils;
+    using UnityEngine.UIElements;
 
-    public class GraphEdge<PE,EE> : Edge where PE : NovaElement where EE : NovaSwitcher
+    public class GraphEdge<PE, EE> : Edge, IGraphEdge where PE : NovaElement where EE : NovaSwitcher
     {
+        protected virtual Color themedColor => Color.white;
         public string guid { get; set; }
 
         public EE linkedElement { get; set; }
 
-        public virtual event Action<GraphEdge<PE,EE>, bool> OnPortConnectionChanged;
+        protected ObjectInspectorWrapper wrapper;
 
-        public virtual void generateNewLinkedElement()
+        private VisualElement arrowElement;
+
+        private float arrowWidth = 32f; 
+        private float arrowHeightHalf = 8f; 
+
+        public GraphEdge()
         {
+            arrowElement = new VisualElement();
+            arrowElement.style.width = 0;
+            arrowElement.style.height = 0;
+
+            arrowElement.style.borderTopWidth = arrowHeightHalf;
+            arrowElement.style.borderBottomWidth = arrowHeightHalf;
+            arrowElement.style.borderLeftWidth = arrowWidth;
+            arrowElement.style.borderRightWidth = 0;
+
+            arrowElement.style.borderTopColor = new StyleColor(Color.clear);
+            arrowElement.style.borderBottomColor = new StyleColor(Color.clear);
+            arrowElement.style.borderLeftColor = new StyleColor(themedColor);
+
+            arrowElement.style.position = Position.Absolute;
+
+            arrowElement.pickingMode = PickingMode.Ignore;
+
+            Add(arrowElement);
+        }
+
+        public override bool UpdateEdgeControl()
+        {
+            if (edgeControl == null || edgeControl.controlPoints == null || edgeControl.controlPoints.Length < 4)
+                return false;
+
+            Vector2 p0 = edgeControl.controlPoints[0];
+            Vector2 p1 = edgeControl.controlPoints[1];
+            Vector2 p2 = edgeControl.controlPoints[2];
+            Vector2 p3 = edgeControl.controlPoints[3];
+            float t = 0.5f;
+            Vector2 position = GetBezierPoint(t, p0, p1, p2, p3);
+            Vector2 tangent = GetBezierTangent(t, p0, p1, p2, p3);
+            float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
+            arrowElement.style.left = position.x - (arrowWidth / 2f);
+            arrowElement.style.top = position.y - arrowHeightHalf;
+
+            arrowElement.transform.rotation = Quaternion.Euler(0, 0, angle);
+            arrowElement.style.borderLeftColor = new StyleColor(themedColor);
+
+            return base.UpdateEdgeControl();
+        }
+
+        private Vector2 GetBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            float u = 1 - t;
+            float tt = t * t;
+            float uu = u * u;
+            float uuu = uu * u;
+            float ttt = tt * t;
+
+            Vector2 p = uuu * p0;
+            p += 3 * uu * t * p1;
+            p += 3 * u * tt * p2;
+            p += ttt * p3;
+            return p;
+        }
+        private Vector2 GetBezierTangent(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            float u = 1 - t;
+            Vector2 tangent = 3 * u * u * (p1 - p0) + 6 * u * t * (p2 - p1) + 3 * t * t * (p3 - p2);
+            return tangent.normalized;
+        }
+        public virtual event Action<GraphEdge<PE, EE>, bool> OnPortConnectionChanged;
+
+        public virtual EE generateNewLinkedElement()
+        {
+            return default;
         }
 
         public new GraphPort<PE, EE> input
@@ -44,5 +120,9 @@ namespace NovaLine.Editor.Graph.Edge
                 }
             }
         }
+    }
+    public interface IGraphEdge
+    {
+
     }
 }

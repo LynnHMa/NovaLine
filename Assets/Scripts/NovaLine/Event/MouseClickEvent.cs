@@ -26,7 +26,7 @@ namespace NovaLine.Event
         }
         public override string getType()
         {
-            return "Get Mouse Click Event";
+            return "[Mouse Click Event]";
         }
     }
 }

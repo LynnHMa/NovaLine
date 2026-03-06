@@ -1,8 +1,8 @@
-ï»¿using NovaLine.Element;
+using NovaLine.Element;
 using NovaLine.Editor.Graph.View;
-using NovaLine.Interface;
 using System;
 using System.Collections.Generic;
+using static NovaGraphWindow;
 using UnityEngine;
 
 namespace NovaLine.Editor.Graph.Data
@@ -19,42 +19,51 @@ namespace NovaLine.Editor.Graph.Data
             guid = Guid.NewGuid().ToString();
             name = "New Flowchart";
         }
-        public FlowchartGraphViewData(FlowchartGraphView flowchartGraphView) : this(flowchartGraphView.root)
+        public FlowchartGraphViewData(List<OpenedNovaGraphView> openeds)
         {
-            foreach(var graphNode in flowchartGraphView.graphNodes)
+            if(openeds == null || openeds.Count == 0) return;
+            var flowchartGraphView = (FlowchartGraphView)openeds[openeds.Count - 1]?.graphView;
+            var nodeGraphView = openeds.Count > 1 ? (NodeGraphView)openeds[openeds.Count - 2]?.graphView : null;
+            if (flowchartGraphView == null) return;
+            foreach (var graphNode in flowchartGraphView.graphNodes)
             {
+                if (graphNode == null || graphNode.pos == null) continue;
                 var node = (Element.Node)graphNode.targetObject;
-                nodeGraphViewDatas.Add(new NodeGraphViewData(node,graphNode.pos));
+                if (node == null) continue;
+
+                if(nodeGraphView == null)
+                {
+                    nodeGraphViewDatas?.Add(new NodeGraphViewData(node, graphNode.pos));
+                }
+                else
+                {
+                    nodeGraphViewDatas?.Add(new NodeGraphViewData(nodeGraphView, graphNode.pos));
+                }
+
                 foreach (var nodeSwitcher in node.nextNodes)
                 {
                     nodeEdgeGraphViewData.Add(new NodeEdgeGraphViewData(nodeSwitcher));
                 }
             }
         }
-        public FlowchartGraphViewData(Flowchart flowchart)
-        {
-            guid = flowchart.guid;
-            name = flowchart.name;
-            describtion = flowchart.describtion;
-        }
         public override Flowchart to()
         {
             var nodes = new List<Element.Node>();
 
-            //å¯¼å…¥å…¨éƒ¨Nodeåˆ°Flowchart
+            //µ¼ÈëÈ«²¿Nodeµ½Flowchart
             foreach (var nodeData in nodeGraphViewDatas)
             {
                 var node = nodeData.to();
                 nodes.Add(node);
 
-                //æ·»åŠ Nodeçš„åˆ†æ”¯
+                //Ìí¼ÓNodeµÄ·ÖÖ§
                 for (int i = nodeEdgeGraphViewData.Count - 1; i >= 0; i--)
                 {
                     var nodeSwitcherData = nodeEdgeGraphViewData[i];
                     var nodeSwitcher = nodeSwitcherData.to(this);
-                    if (nodeSwitcher.outputElement.guid == node.guid)
+                    if (nodeSwitcher?.outputElement?.guid == node?.guid)
                     {
-                        node.nextNodes.Add(nodeSwitcher);
+                        node?.nextNodes?.Add(nodeSwitcher);
                     }
                 }
             }
@@ -62,18 +71,29 @@ namespace NovaLine.Editor.Graph.Data
         }
         public override void draw(INovaGraphView graphView)
         {
-            //ç»˜åˆ¶NodeèŠ‚ç‚¹
+            //»æÖÆNode½Úµã
             foreach(var nodeData in nodeGraphViewDatas)
             {
                 nodeData.draw(graphView);
             }
 
-            //ç»˜åˆ¶NodeèŠ‚ç‚¹çš„è¿žçº¿
+            //»æÖÆNode½ÚµãµÄÁ¬Ïß
             for (int i = nodeEdgeGraphViewData.Count - 1; i >= 0; i--)
             {
                 var nodeSwitcherData = nodeEdgeGraphViewData[i];
                 nodeSwitcherData.draw(this,graphView);
             }
+        }
+    }
+    public class FlowchartGraphViewDataAsset : ScriptableObject
+    {
+        public FlowchartGraphViewData data { get; set; }
+
+        public static FlowchartGraphViewDataAsset CreateInstance(FlowchartGraphViewData data = null)
+        {
+            var result = CreateInstance<FlowchartGraphViewDataAsset>();
+            result.data = data == null ? new FlowchartGraphViewData() : data;
+            return result;
         }
     }
 }

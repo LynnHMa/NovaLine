@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 
 namespace NovaLine.Editor.Graph.Data
 {
@@ -12,30 +12,28 @@ namespace NovaLine.Editor.Graph.Data
     {
         public NovaAction action;
 
-        public override string name => action == null ? "Action" : action.getType() + " Action";
+        //public override string name => action == null ? "Action" : action.getType() + " Action";
 
-        public override string describtion => action == null ? "Action is null." : action.getDescribation();
+        //public override string describtion => action == null ? "Action is null." : action.getDescribation();
         public ActionGraphViewData(NovaAction action,Vector2 pos)
         {
             this.action = action;
+            this.name = action.name;
+            this.describtion = action.describtion;
             this.pos = pos;
             guid = action?.guid;
         }
-        public override NovaAction to()
-        {
-            return base.to();
-        }
         public override void draw(INovaGraphView graphView)
         {
-            //åœ¨Nodeç¼–è¾‘ç•Œé¢ä¸­ç»˜åˆ¶æœ¬ä½“ï¼ˆActionï¼‰èŠ‚ç‚¹
+            //ÔÚNode±à¼­½çÃæÖĞ»æÖÆ±¾Ìå£¨Action£©½Úµã
             if (graphView != null && graphView is NodeGraphView nodeGraphView)
             {
                 var graphNode = new ActionGraphNode(action,pos);
-                Debug.Log("pos in" + pos);
+                Debug.Log("loaded pos in" + pos);
                 nodeGraphView.addGraphNode(graphNode,true);
             }
 
-            //ç”±äºæ²¡æœ‰Actionç¼–è¾‘ç•Œé¢ï¼Œæ‰€ä»¥ä¸åœ¨å…¶ä»–ç•Œé¢ä¸­ç»˜åˆ¶ActionèŠ‚ç‚¹
+            //ÓÉÓÚÃ»ÓĞAction±à¼­½çÃæ£¬ËùÒÔ²»ÔÚÆäËû½çÃæÖĞ»æÖÆAction½Úµã
         }
     }
 }

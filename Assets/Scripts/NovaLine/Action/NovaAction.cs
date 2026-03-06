@@ -22,14 +22,9 @@ namespace NovaLine.Action
             guid = Guid.NewGuid().ToString();
         }
 
-        public virtual string getType()
+        public override string getType()
         {
-            return "Default";
-        }
-
-        public virtual string getDescribation()
-        {
-            return "Nothing.";
+            return "[Default Action]";
         }
 
         public virtual async Task invoke()

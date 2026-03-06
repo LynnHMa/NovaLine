@@ -19,7 +19,7 @@ namespace NovaLine.Event
 
         public override string getType()
         {
-            return "Waiting Event";
+            return "[Waiting Event]";
         }
     }
 }

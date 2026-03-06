@@ -16,9 +16,9 @@ namespace NovaLine.Event
             await Task.CompletedTask;
         }
 
-        public virtual string getType()
+        public override string getType()
         {
-            return "Empty Event";
+            return "[Default Event]";
         }
 
         public override void onGraphConnect(INovaSwitcher graphEdge)

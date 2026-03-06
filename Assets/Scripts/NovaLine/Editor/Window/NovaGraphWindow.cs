@@ -1,5 +1,7 @@
 ﻿using NovaLine.Editor.File;
 using NovaLine.Editor.Graph.Data;
+using NovaLine.Editor.Graph.Edge;
+using NovaLine.Editor.Graph.Node;
 using NovaLine.Editor.Graph.View;
 using System.Collections.Generic;
 using UnityEditor;
@@ -9,11 +11,31 @@ using UnityEngine.UIElements;
 public class NovaGraphWindow : EditorWindow
 {
     private static NovaGraphWindow Instance;
+    public static GraphNode nodeInInspector { get; set; }
+
+    public static IGraphEdge edgeInInspector { get; set; }
 
     public OpenedNovaGraphView currentOpenedGraphView => openedGraphViews?[0];
     public OpenedNovaGraphView lastOpenedGraphView => openedGraphViews.Count < 2 ? null : openedGraphViews?[1];
     public OpenedNovaGraphView rootOpenedGraphView => openedGraphViews.Count == 0 ? null : openedGraphViews?[openedGraphViews.Count - 1];
     public List<OpenedNovaGraphView> openedGraphViews { get; set; } = new();
+
+    private void OnEnable()
+    {
+        Undo.willFlushUndoRecord += onInspectorObjValueChange;
+        Undo.undoRedoPerformed += onInspectorObjValueChange;
+    }
+    private void OnDisable()
+    {
+        Undo.willFlushUndoRecord -= onInspectorObjValueChange;
+        Undo.undoRedoPerformed -= onInspectorObjValueChange;
+    }
+    private void onInspectorObjValueChange()
+    {
+        var editingElement = nodeInInspector?.targetObject;
+        if (editingElement == null) return;
+        nodeInInspector.title = editingElement.name;
+    }
 
     [MenuItem("NovaLine/Open Flowchart Editor")]
     public static void createGraphWindow()
@@ -23,21 +45,18 @@ public class NovaGraphWindow : EditorWindow
     [MenuItem("NovaLine/New Flowchart")]
     public static void newFlowchartInWindow()
     {
-        var newData = NovaFileManager.createAndLoadNewFlowchartDataFile();
-        if (newData == null) return;
+        var newDataAsset = NovaFileManager.createAndLoadNewFlowchartDataFile();
+        if (newDataAsset == null) return;
+        var newData = newDataAsset.data;
         var newFlowchart = newData.to();
-        loadFlowchartInWindow(newData,new FlowchartGraphView(newFlowchart));
+        loadFlowchartInWindow(newData, new FlowchartGraphView(newFlowchart));
     }
     [MenuItem("NovaLine/Exit Child Graph View")]
     public static void exitChildGraphView()
     {
-        NovaFileManager.saveGraphWindowData();
-        EditorApplication.delayCall += () =>
-        {
-            var currentWindow = getMainWindowInstance();
-            if (currentWindow.currentOpenedGraphView == null || currentWindow.lastOpenedGraphView == null) return;
-            loadFlowchartInWindow(currentWindow.lastOpenedGraphView,true);
-        };
+        var currentWindow = getMainWindowInstance();
+        if (currentWindow.currentOpenedGraphView == null || currentWindow.lastOpenedGraphView == null) return;
+        loadFlowchartInWindow(currentWindow.lastOpenedGraphView, true);
     }
 
     public static void loadFlowchartInWindow(IGraphViewNodeData data, INovaGraphView iGraphView, bool isExiting = false)

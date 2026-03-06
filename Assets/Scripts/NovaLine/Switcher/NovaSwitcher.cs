@@ -7,8 +7,8 @@ namespace NovaLine.Switcher
     [Serializable]
     public class NovaSwitcher : INovaSwitcher
     {
-        public NovaElement inputElement;
-        public NovaElement outputElement;
+        public NovaElement inputElement { get; set; }
+        public NovaElement outputElement { get; set; }
         public string guid { get; set; }
         public NovaSwitcher()
         {

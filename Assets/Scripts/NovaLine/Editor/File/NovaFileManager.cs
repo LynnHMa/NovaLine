@@ -18,10 +18,11 @@ namespace NovaLine.Editor.File
         {
             var obj = EditorUtility.InstanceIDToObject(instanceID);
             currentPath = AssetDatabase.GetAssetOrScenePath(obj);
-            if (obj is FlowchartGraphViewData flowchartData)
+            if (obj is FlowchartGraphViewDataAsset flowchartDataAsset)
             {
                 getMainWindowInstance().openedGraphViews.Clear();
 
+                var flowchartData = flowchartDataAsset.data;
                 var currentFlowchart = flowchartData.to();
                 Debug.Log($"Loaded {currentFlowchart.nodes.Count} nodes , {flowchartData.nodeEdgeGraphViewData.Count} edges!");
                 flowchartData.name = obj.name;
@@ -30,9 +31,9 @@ namespace NovaLine.Editor.File
             }
             return false;
         }
-        public static FlowchartGraphViewData createAndLoadNewFlowchartDataFile()
+        public static FlowchartGraphViewDataAsset createAndLoadNewFlowchartDataFile()
         {
-            var data = ScriptableObject.CreateInstance<FlowchartGraphViewData>();
+            var dataAsset = FlowchartGraphViewDataAsset.CreateInstance();
 
             currentPath = EditorUtility.SaveFilePanelInProject(
                 "Save New Flowchart",
@@ -43,10 +44,10 @@ namespace NovaLine.Editor.File
 
             if (string.IsNullOrEmpty(currentPath)) return null;
 
-            AssetDatabase.CreateAsset(data, currentPath);
+            AssetDatabase.CreateAsset(dataAsset, currentPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            return data;
+            return dataAsset;
         }
         [Shortcut("NovaLine/Save", typeof(NovaGraphWindow),KeyCode.S, ShortcutModifiers.Action)]
         public static void saveGraphWindowData()
@@ -54,22 +55,22 @@ namespace NovaLine.Editor.File
             EditorApplication.delayCall += () =>
             {
                 var opened = getMainWindowInstance()?.currentOpenedGraphView;
-                var rootData = getUpdatedFlowchartGraphViewData(opened?.graphView?.root);
+                var newRootData = getUpdatedFlowchartGraphViewData(opened?.graphView?.root);
 
-                if (rootData == null) return;
+                if (newRootData == null) return;
 
                 if (string.IsNullOrEmpty(currentPath))
                 {
-                    currentPath = EditorUtility.SaveFilePanelInProject("Save Flowchart", rootData?.name, "asset", "Save Flowchart");
+                    currentPath = EditorUtility.SaveFilePanelInProject("Save Flowchart", newRootData?.name, "asset", "Save Flowchart");
                 }
 
                 Debug.Log("Successfully Saved!");
-                AssetDatabase.CreateAsset(rootData, currentPath);
-                EditorUtility.SetDirty(rootData);
+                AssetDatabase.CreateAsset(newRootData, currentPath);
+                EditorUtility.SetDirty(newRootData);
                 AssetDatabase.SaveAssets();
             };
         }
-        private static FlowchartGraphViewData getUpdatedFlowchartGraphViewData(INovaElement newRoot)
+        private static FlowchartGraphViewDataAsset getUpdatedFlowchartGraphViewData(INovaElement newRoot)
         {
             var openeds = getMainWindowInstance()?.openedGraphViews;
             if (openeds?.Count == 0)
@@ -78,8 +79,7 @@ namespace NovaLine.Editor.File
             }
 
             var root = getMainWindowInstance()?.rootOpenedGraphView;
-            var current = getMainWindowInstance()?.currentOpenedGraphView;
-            var result = (FlowchartGraphViewData)root?.linkedData;
+            var resultData = (FlowchartGraphViewData)root?.linkedData;
 
             var iOpened = root;
             if (openeds.Count >= 2)
@@ -101,16 +101,17 @@ namespace NovaLine.Editor.File
                 }
             }
 
-            result = new FlowchartGraphViewData((FlowchartGraphView)root?.graphView);
-            root.linkedData = result;
-            return result;
+            resultData = new FlowchartGraphViewData(openeds);
+            root.linkedData = resultData;
+            return FlowchartGraphViewDataAsset.CreateInstance(resultData);
         }
         private static IGraphViewNodeData getUpdatedChildData(IGraphViewNodeData old, INovaElement newRoot)
         {
             var opened = getMainWindowInstance()?.currentOpenedGraphView;
             if (newRoot is Node node)
             {
-                return new NodeGraphViewData((NodeGraphView)opened.graphView, old.pos);
+                var nodeGraphViewData = new NodeGraphViewData((NodeGraphView)opened.graphView, old.pos);
+                return nodeGraphViewData;
             }
             else return null;
         }

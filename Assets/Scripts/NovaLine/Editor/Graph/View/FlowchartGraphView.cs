@@ -7,6 +7,8 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Element;
     using NovaLine.Editor.Graph.Node;
     using NovaLine.Switcher;
+    using NovaLine.Editor.Graph.Data;
+    using Unity.VisualScripting;
 
     [Serializable]
     public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Node,NodeSwitcher>
@@ -35,15 +37,16 @@ namespace NovaLine.Editor.Graph.View
         public NodeGraphNode summonNewGraphNode(string title, Vector2 pos)
         {
             var newGraphNode = summonNewGraphNode(pos);
-            newGraphNode.title = title;
+            newGraphNode.name = title;
+            newGraphNode.title = getType() + title;
             return newGraphNode;
         }
-        public override void addGraphNode(NodeGraphNode graphNode, bool isInit = false)
+        public override void addGraphNode(NodeGraphNode graphNode, bool isInit = false, bool autoSave = true)
         {
             base.addGraphNode(graphNode);
             if(!isInit) root.nodes.Add((Node)graphNode.targetObject);
         }
-        public override void removeGraphNode(NodeGraphNode graphNode)
+        public override void removeGraphNode(NodeGraphNode graphNode, bool isSave = true)
         {
             base.addGraphNode(graphNode);
             root.nodes.Remove((Node)graphNode.targetObject);

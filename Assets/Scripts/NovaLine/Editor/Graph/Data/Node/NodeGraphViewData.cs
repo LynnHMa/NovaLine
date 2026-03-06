@@ -32,7 +32,7 @@ namespace NovaLine.Editor.Graph.Data
                 var action = node.actions?[i];
 
                 //这里不生成Action节点，所以位置默认为0
-                var actionData = new ActionGraphViewData(action,Vector2.zero);
+                var actionData = new ActionGraphViewData(action, Vector2.one * 2);
                 actions.Add(actionData);
             }
         }
@@ -48,6 +48,7 @@ namespace NovaLine.Editor.Graph.Data
             for (var i = 0; i < nodeGraphView.graphNodes?.Count; i++)
             {
                 var actionGraphNode = nodeGraphView.graphNodes?[i];
+                Debug.Log("saved : pos:" + actionGraphNode.pos);
                 var actionData = new ActionGraphViewData((NovaAction)actionGraphNode.targetObject, actionGraphNode.pos);
                 actions.Add(actionData);
             }

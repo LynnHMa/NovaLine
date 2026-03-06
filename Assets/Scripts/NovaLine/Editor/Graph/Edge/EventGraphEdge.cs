@@ -2,14 +2,16 @@
 namespace NovaLine.Editor.Graph.Edge
 {
     using NovaLine.Event;
-    using NovaLine.Interface;
     using NovaLine.Switcher;
+    using UnityEngine;
 
     public class EventGraphEdge : GraphEdge<NovaEvent, EventSwitcher>
     {
-        public override void generateNewLinkedElement()
+        protected override Color themedColor => Color.yellow;
+        public override EventSwitcher generateNewLinkedElement()
         {
             linkedElement = new EventSwitcher();
+            return linkedElement;
         }
     }
 }

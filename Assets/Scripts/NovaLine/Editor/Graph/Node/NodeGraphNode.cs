@@ -11,10 +11,12 @@ namespace NovaLine.Editor.Graph.Node
     using NovaLine.Editor.Graph.View;
     using NovaLine.Editor.Graph.Data;
     using NovaLine.Element;
+    using NovaLine.Editor.Utils;
 
     [Serializable]
     public class NodeGraphNode : GraphNode
     {
+        protected override Color themedColor => ColorExt.red;
         public NodeGraphNode(Element.Node node, Vector2 pos) : base(node, pos)
         {
         }
@@ -64,11 +66,11 @@ namespace NovaLine.Editor.Graph.Node
         {
             if (element is not Element.Node node) return;
 
-            var input = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(float), node);
+            var input = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(float), node, themedColor);
 
             input.portName = "In";
 
-            var output = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, typeof(float), node);
+            var output = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Output, Port.Capacity.Multi, typeof(float), node, themedColor);
 
             output.portName = "Out";
 

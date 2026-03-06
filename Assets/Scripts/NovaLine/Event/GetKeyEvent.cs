@@ -22,7 +22,7 @@ namespace NovaLine.Event
         }
         public override string getType()
         {
-            return "Get Key Event";
+            return "[Get Key Event]";
         }
     }
 }
