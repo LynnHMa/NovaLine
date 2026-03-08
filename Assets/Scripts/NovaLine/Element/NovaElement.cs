@@ -7,6 +7,11 @@ namespace NovaLine.Element
     [Serializable]
     public class NovaElement : INovaElement
     {
+        //Ignore it,just for unity bug fixing.
+        //傻逼unity你妈要死啊
+        [SerializeField, HideInInspector]
+        private bool fuckUnity;
+
         public string name;
         [TextArea]
         public string describtion;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NovaLine.Action;
 using NovaLine.Switcher;
-using NovaLine.Interface;
 using UnityEngine;
 
 namespace NovaLine.Element
@@ -15,9 +14,11 @@ namespace NovaLine.Element
 
         public Condition conditionAfterInvoke;
 
-        public List<NodeSwitcher> nextNodes { get; set; } = new();
+        public List<NodeSwitcher> nextNodes  = new();
 
         public List<NovaAction> actions = new();
+
+        public NovaAction firstAction { get; set; }
 
         public Node() {
             guid = Guid.NewGuid().ToString();
@@ -50,10 +51,11 @@ namespace NovaLine.Element
         public async Task run()
         {
             await conditionBeforeInvoke.waiting();
-            for (int i = 0; i < actions.Count; i++)
+            foreach (var action in actions)
             {
-                await actions[i]?.invoke();
+                if(action.type == ActionType.Meanwhile) action.invoke();
             }
+            await (firstAction == null ? Task.CompletedTask : firstAction.invoke());
             await conditionAfterInvoke.waiting();
         }
         public override string getType()
@@ -62,47 +64,34 @@ namespace NovaLine.Element
         }
         public override void onGraphConnect(INovaSwitcher graphEdge)
         {
-            if(graphEdge is NodeSwitcher nodeSwitcher && parent is Flowchart parentFlowchart)
+            if (graphEdge is NodeSwitcher nodeSwitcher)
             {
-                if (nextNodes == null)
+                if (nextNodes == null) nextNodes = new();
+                if (!nextNodes.Exists(s => s.guid == nodeSwitcher.guid))
                 {
-                    nextNodes = new List<NodeSwitcher>();
-                }
-                nextNodes.Add(nodeSwitcher);
-                var outputNode = nodeSwitcher.outputElement as Node;
-                var inputNode = nodeSwitcher.inputElement as Node;
-                if (outputNode != null && inputNode != null)
-                {
-                    var oIndex = parentFlowchart.nodes.FindIndex(e => e.guid == outputNode.guid);
-                    var iIndex = oIndex + 1;
-                    if (iIndex >= 0)
-                    {
-                        parentFlowchart?.nodes?.Insert(iIndex, inputNode);
-                    }
+                    nextNodes.Add(nodeSwitcher);
                 }
             }
         }
         public override void onGraphDisconnect(INovaSwitcher graphEdge)
         {
-            if (graphEdge is NodeSwitcher nodeSwitcher && parent is Flowchart parentFlowchart)
+            if (graphEdge is NodeSwitcher nodeSwitcher)
             {
                 if (nextNodes == null)
                 {
-                    nextNodes = new List<NodeSwitcher>();
+                    nextNodes = new();
                 }
                 nextNodes.Remove(nodeSwitcher);
-                var outputNode = nodeSwitcher.outputElement as Node;
-                var inputNode = nodeSwitcher.inputElement as Node;
-                if (outputNode != null && inputNode != null)
-                {
-                    var oIndex = parentFlowchart.nodes.FindIndex(e => e.guid == outputNode.guid);
-                    var iIndex = oIndex + 1;
-                    if (iIndex >= 0)
-                    {
-                        parentFlowchart?.nodes?.RemoveAt(iIndex);
-                    }
-                }
             }
+        }
+        private List<Task> getNextNodeConditionTasks()
+        {
+            var result = new List<Task>();
+            foreach (var switcher in nextNodes)
+            {
+                result.Add(switcher.switchCondition?.waiting());
+            }
+            return result;
         }
     }
 }

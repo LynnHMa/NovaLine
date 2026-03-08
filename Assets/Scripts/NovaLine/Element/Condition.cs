@@ -1,5 +1,6 @@
 ﻿using NovaLine.Event;
 using NovaLine.Switcher;
+using NovaLine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -44,12 +45,13 @@ namespace NovaLine.Element
             switch (type)
             {
                 case ConditionType.All:
-                    await Task.WhenAll(waitingTasks);
+                    await waitingTasks.RunAll();
                     break;
                 case ConditionType.Any:
-                    await Task.WhenAny(waitingTasks);
+                    await waitingTasks.RunAny();
                     break;
                 case ConditionType.Sort:
+                    //todo next Event
                     foreach (var novaEvent in novaEvents)
                     {
                         await novaEvent?.onEvent();

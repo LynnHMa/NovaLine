@@ -9,9 +9,9 @@ namespace NovaLine.Editor.Graph.Node
 {
     using NovaLine.Editor.Utils;
     using NovaLine.Editor.Graph.Port;
-    using NovaLine.Element;
     using NovaLine.Switcher;
-    using UnityEngine.UIElements;
+    using NovaLine.Editor.Graph.View;
+    using System.Linq;
 
     [Serializable]
     public class ActionGraphNode : GraphNode
@@ -24,9 +24,11 @@ namespace NovaLine.Editor.Graph.Node
         {
             return "[Action]";
         }
-        protected override void addPort(INovaElement element)
+        public override void addPort()
         {
-            if (element is not NovaAction action) return;
+            if (linkedElement is not NovaAction action) return;
+
+            if (action.type == ActionType.Meanwhile) return;
 
             var input = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, themedColor);
 
@@ -41,6 +43,43 @@ namespace NovaLine.Editor.Graph.Node
 
             RefreshExpandedState();
             RefreshPorts();
+        }
+        public override void removePort()
+        {
+            if (inputContainer.childCount > 0 && outputContainer.childCount > 0)
+            {
+                var input = inputContainer[0] as GraphPort<NovaAction, ActionSwitcher>;
+                var output = outputContainer[0] as GraphPort<NovaAction, ActionSwitcher>;
+                var currentGraphView = NovaGraphWindow.getMainWindowInstance()?.currentOpenedGraphView?.graphView as NodeGraphView;
+                if (currentGraphView != null)
+                {
+                    var inputConnections = input.connections.ToList();
+                    for (var i = inputConnections.Count() - 1; i >= 0; i--)
+                    {
+                        var ei = inputConnections[i];
+                        if (ei != null)
+                        {
+                            ei.input.DisconnectAll();
+                            ei.output.DisconnectAll();
+                            currentGraphView.RemoveElement(ei);
+                        }
+                    }
+
+                    var outputConnections = output.connections.ToList();
+                    for (var i = outputConnections.Count() - 1; i >= 0; i--)
+                    {
+                        var eo = outputConnections[i];
+                        if (eo != null)
+                        {
+                            eo.input.DisconnectAll();
+                            eo.output.DisconnectAll();
+                            currentGraphView.RemoveElement(eo);
+                        }
+                    }
+                }
+
+                base.removePort();
+            }
         }
     }
 }

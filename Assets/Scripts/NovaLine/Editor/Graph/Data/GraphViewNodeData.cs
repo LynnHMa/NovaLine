@@ -1,14 +1,20 @@
 ﻿using NovaLine.Editor.Graph.View;
+using NovaLine.Element;
 using System;
 
 namespace NovaLine.Editor.Graph.Data
 {
     [Serializable]
-    public class GraphViewNodeData<T> : GraphViewData,IGraphViewNodeData
+    public abstract class GraphViewNodeData<T> : GraphViewData,IGraphViewNodeData where T : NovaElement
     {
+        public override string name => linkedElement?.name;
+
+        public override string describtion => linkedElement?.describtion;
+        public override string guid => linkedElement?.guid;
+
+        public virtual string startGraphNodeGuid { get; set; }
+        public virtual T linkedElement { get; set; }
         public virtual void draw(INovaGraphView graphView) { }
-        public virtual T to() { return default; }
-        public virtual void update(T element) { }
     }
     public interface IGraphViewNodeData : IGraphViewData
     {

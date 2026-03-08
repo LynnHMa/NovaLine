@@ -10,70 +10,86 @@ namespace NovaLine.Editor.Graph.Data
     [Serializable]
     public class FlowchartGraphViewData : GraphViewNodeData<Flowchart>
     {
+        //Node节点信息
         public List<NodeGraphViewData> nodeGraphViewDatas { get; set; } = new ();
 
+        //连接Node节点的连线信息
         public List<NodeEdgeGraphViewData> nodeEdgeGraphViewData { get; set; } = new();
-
         public FlowchartGraphViewData()
         {
             guid = Guid.NewGuid().ToString();
-            name = "New Flowchart";
+            linkedElement = new Flowchart("New Flowchart");
         }
         public FlowchartGraphViewData(List<OpenedNovaGraphView> openeds)
         {
-            if(openeds == null || openeds.Count == 0) return;
-            var flowchartGraphView = (FlowchartGraphView)openeds[openeds.Count - 1]?.graphView;
-            var nodeGraphView = openeds.Count > 1 ? (NodeGraphView)openeds[openeds.Count - 2]?.graphView : null;
-            if (flowchartGraphView == null) return;
-            foreach (var graphNode in flowchartGraphView.graphNodes)
+            try
             {
-                if (graphNode == null || graphNode.pos == null) continue;
-                var node = (Element.Node)graphNode.targetObject;
-                if (node == null) continue;
-
-                if(nodeGraphView == null)
-                {
-                    nodeGraphViewDatas?.Add(new NodeGraphViewData(node, graphNode.pos));
-                }
-                else
-                {
-                    nodeGraphViewDatas?.Add(new NodeGraphViewData(nodeGraphView, graphNode.pos));
-                }
-
-                foreach (var nodeSwitcher in node.nextNodes)
-                {
-                    nodeEdgeGraphViewData.Add(new NodeEdgeGraphViewData(nodeSwitcher));
-                }
+                updateChildData(openeds,true);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("Error in storing flowchart data!" + e.Message);
             }
         }
-        public override Flowchart to()
+        public void updateChildData(List<OpenedNovaGraphView> openeds,bool isInit = false)
         {
-            var nodes = new List<Element.Node>();
-
-            //导入全部Node到Flowchart
-            foreach (var nodeData in nodeGraphViewDatas)
+            try
             {
-                var node = nodeData.to();
-                nodes.Add(node);
+                if (openeds == null || openeds.Count == 0) return;
+                var root = openeds[openeds.Count - 1];
+                linkedElement = (Flowchart)root.graphView.root;
+                startGraphNodeGuid = linkedElement.firstNode?.guid;
 
-                //添加Node的分支
-                for (int i = nodeEdgeGraphViewData.Count - 1; i >= 0; i--)
+                var flowchartGraphView = (FlowchartGraphView)root.graphView;
+                var editingNodeGraphView = openeds.Count > 1 ? (NodeGraphView)openeds[openeds.Count - 2]?.graphView : null;
+                if (flowchartGraphView == null) return;
+                foreach (var graphNode in flowchartGraphView.graphNodes)
                 {
-                    var nodeSwitcherData = nodeEdgeGraphViewData[i];
-                    var nodeSwitcher = nodeSwitcherData.to(this);
-                    if (nodeSwitcher?.outputElement?.guid == node?.guid)
+                    if (graphNode == null || graphNode.linkedElement is not Element.Node node || node == null)
                     {
-                        node?.nextNodes?.Add(nodeSwitcher);
+                        continue;
                     }
+
+                    NodeGraphViewData newNodeData = null;
+
+                    if (!isInit)
+                    {
+                        if (editingNodeGraphView != null && editingNodeGraphView.root.guid == node.guid)
+                        {
+                            newNodeData = new NodeGraphViewData(editingNodeGraphView, graphNode.pos);
+                        }
+                        else
+                        {
+                            newNodeData = new NodeGraphViewData(node, graphNode.pos);
+                        }
+                    }
+                    else
+                    {
+                        newNodeData = new NodeGraphViewData(node, graphNode.pos);
+
+                    }
+
+                    nodeEdgeGraphViewData.Clear();
+                    foreach (var nodeSwitcher in node.nextNodes)
+                    {
+                        //Debug.Log("Saved a edge");
+                        nodeEdgeGraphViewData.Add(new NodeEdgeGraphViewData(nodeSwitcher));
+                    }
+
+                    if (newNodeData != null) updateSingleNodeData(newNodeData);
                 }
             }
-            return new Flowchart(name, describtion, nodes, guid);
+            catch (Exception e)
+            {
+                Debug.LogError("Error in storing flowchart data!" + e.Message);
+            }
         }
         public override void draw(INovaGraphView graphView)
         {
             //绘制Node节点
-            foreach(var nodeData in nodeGraphViewDatas)
+            for (int i = nodeGraphViewDatas.Count - 1; i >= 0; i--)
             {
+                var nodeData = nodeGraphViewDatas[i];
                 nodeData.draw(graphView);
             }
 
@@ -83,11 +99,28 @@ namespace NovaLine.Editor.Graph.Data
                 var nodeSwitcherData = nodeEdgeGraphViewData[i];
                 nodeSwitcherData.draw(this,graphView);
             }
+
+            graphView.updateAllGraphElements();
+        }
+
+        private void updateSingleNodeData(NodeGraphViewData newData)
+        {
+            for (var i = 0; i < nodeGraphViewDatas.Count; i++)
+            {
+                var nodeGraphViewData = nodeGraphViewDatas[i];
+                if (nodeGraphViewData.guid.Equals(newData.guid))
+                {
+                    nodeGraphViewDatas[i] = newData;
+                    return;
+                }
+            }
+            nodeGraphViewDatas.Add(newData);
         }
     }
+    [CreateAssetMenu]
     public class FlowchartGraphViewDataAsset : ScriptableObject
     {
-        public FlowchartGraphViewData data { get; set; }
+        public FlowchartGraphViewData data;
 
         public static FlowchartGraphViewDataAsset CreateInstance(FlowchartGraphViewData data = null)
         {

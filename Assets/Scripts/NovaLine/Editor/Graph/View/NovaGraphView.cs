@@ -13,13 +13,17 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Editor.Graph.Node;
     using NovaLine.Element;
     using NovaLine.Editor.File;
-    using UnityEditor;
+    using NovaLine.Editor.Graph.Edge;
+    using NovaLine.Switcher;
 
     [Serializable]
-    public class NovaGraphView<N,PE,EE> : GraphView, INovaGraphView where N : GraphNode
+    public class NovaGraphView<N,PE,EE> : GraphView, INovaGraphView where N : GraphNode where PE : NovaElement where EE : NovaSwitcher
     {
         public virtual INovaElement root { get; set; }
         public List<N> graphNodes { get; set; } = new();
+        public List<GraphEdge<PE,EE>> graphEdges { get; set; } = new();
+
+        public virtual N firstNode { get; set; }
         protected NovaGraphView(INovaElement root,string name)
         {
             Insert(0, new GridBackground());
@@ -55,17 +59,15 @@ namespace NovaLine.Editor.Graph.View
         }
         public virtual void addGraphNode(N graphNode,bool isInit = false,bool autoSave = true)
         {
-            var graphNodeElement = graphNode.targetObject;
+            var graphNodeElement = graphNode.linkedElement;
             graphNodeElement.parent = root;
             graphNodes?.Add(graphNode);
             AddElement(graphNode);
-            if(autoSave) NovaFileManager.saveGraphWindowData();
         }
         public virtual void removeGraphNode(N graphNode,bool autoSave = true)
         {
             graphNodes?.Remove(graphNode);
             RemoveElement(graphNode);
-            if(autoSave) NovaFileManager.saveGraphWindowData();
         }
         public virtual N getExistingGraphNode(string guid)
         {
@@ -92,6 +94,7 @@ namespace NovaLine.Editor.Graph.View
                     }
                 }
             }
+            updateAllGraphElements();
             NovaFileManager.saveGraphWindowData();
             return change;
         }
@@ -134,6 +137,13 @@ namespace NovaLine.Editor.Graph.View
         protected virtual bool OnCanPaste(string data)
         {
             return !string.IsNullOrEmpty(data);
+        }
+        public virtual void updateAllGraphElements()
+        {
+            foreach(var graphNode in graphNodes)
+            {
+                graphNode.title = graphNode.linkedElement?.getActualName();
+            }
         }
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -178,6 +188,7 @@ namespace NovaLine.Editor.Graph.View
     {
         public INovaElement root { get; set; }
         string getName();
+        void updateAllGraphElements();
     }
 }
 [Serializable]

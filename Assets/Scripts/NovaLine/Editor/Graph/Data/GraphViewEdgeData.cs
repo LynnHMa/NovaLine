@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace NovaLine.Editor.Graph.Data
 {
@@ -18,25 +18,44 @@ namespace NovaLine.Editor.Graph.Data
         where PVDE : NovaElement
         where N : GraphNode 
     {
-        public GraphViewEdgeData(EE switcher)
+        public EE linkedSwitcher { get; set; }
+        public GraphViewEdgeData(EE linkedSwitcher)
         {
-            guid = switcher.guid;
+            this.linkedSwitcher = linkedSwitcher;
+            guid = linkedSwitcher.guid;
         }
 
         public virtual void draw(PVD parentData ,INovaGraphView graphView) {
             if (graphView == null || graphView is not NovaGraphView<N, PE, EE> novaGraphView)
             {
-                Debug.Log("unsupported");
+                Debug.Log("Not in suitable graph view!");
                 return;
             }
-            var switcher = to(parentData);
-            var input = novaGraphView?.graphNodes?.Find(x => x.guid.Equals(switcher?.outputElement?.guid))?.inputContainer?[0] as GraphPort<PE, EE>;
-            var output = novaGraphView?.graphNodes?.Find(x => x.guid.Equals(switcher?.inputElement?.guid))?.outputContainer?[0] as GraphPort<PE, EE>;
-            if (input == null || output == null) return; 
-            var edge = output.ConnectTo<GraphEdge<PE,EE>>(input, switcher);
+
+            var inputGraphNode = novaGraphView?.graphNodes?.Find(x => x.guid.Equals(linkedSwitcher?.inputElement?.guid));
+            var outputGraphNode = novaGraphView?.graphNodes?.Find(x => x.guid.Equals(linkedSwitcher?.outputElement?.guid));
+
+            if (inputGraphNode == null || outputGraphNode == null
+                || inputGraphNode.inputContainer.childCount == 0 || inputGraphNode.outputContainer.childCount == 0
+                || outputGraphNode.inputContainer.childCount == 0 || outputGraphNode.outputContainer.childCount == 0)
+            {
+                Debug.Log("cant find input or output node!");
+                return;
+            }
+
+            var inputPort = inputGraphNode.inputContainer?[0] as GraphPort<PE, EE>;
+            var outputPort = outputGraphNode.outputContainer?[0] as GraphPort<PE, EE>;
+
+            if (inputPort == null || outputPort == null)
+            {
+                Debug.Log("cant find port!");
+                return;
+            }
+
+
+            var edge = outputPort.ConnectTo<GraphEdge<PE,EE>>(inputPort, linkedSwitcher);
             edge.guid = guid;
             novaGraphView.AddElement(edge);
         }
-        public virtual EE to(PVD parent) { return default; }
     }
 }

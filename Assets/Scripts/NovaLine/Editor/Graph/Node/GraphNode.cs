@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using NovaLine.Element;
 using NovaLine.Editor.Utils;
-using UnityEditor.Experimental.GraphView;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -13,22 +12,20 @@ namespace NovaLine.Editor.Graph.Node
     {
         protected virtual Color themedColor => Color.white;
 
-        public NovaElement targetObject { get; set; }
+        public virtual string guid => linkedElement.guid;
 
-        public string guid { get; set; }
-
-        public override string title
+        private NovaElement _linkedElement;
+        public virtual NovaElement linkedElement
         {
-            get
-            {
-                return base.title;
-            }
+            get => _linkedElement;
             set
             {
-                targetObject.name = value;
-                base.title = targetObject.getActualName();
+                _linkedElement = value;
+                base.title = value?.getActualName();
             }
         }
+
+        public override string title => linkedElement?.getActualName();
 
         public virtual Vector2 pos => new Vector2(base.GetPosition().x, base.GetPosition().y);
 
@@ -36,7 +33,8 @@ namespace NovaLine.Editor.Graph.Node
 
         public GraphNode()
         {
-            guid = Guid.NewGuid().ToString();
+            removePort();
+
             RegisterCallback<MouseDownEvent>(onDoubleClick);
 
             var titleLabel = this.Q<Label>("title-label");
@@ -110,10 +108,7 @@ namespace NovaLine.Editor.Graph.Node
         public GraphNode(NovaElement element, Vector2 pos) : this()
         {
             SetPosition(new Rect(pos.x, pos.y, 200, 150));
-            targetObject = element;
-            title = element.name;
-            guid = element.guid;
-            addPort(element);
+            linkedElement = element;
         }
         public void SetPosition(Vector2 pos)
         {
@@ -124,9 +119,9 @@ namespace NovaLine.Editor.Graph.Node
             base.OnSelected();
             NovaGraphWindow.nodeInInspector = this;
 
-            if (targetObject == null) return;
+            if (linkedElement == null) return;
 
-            wrapper = ObjectInspectorWrapper.CreateInstance(targetObject);
+            wrapper = ObjectInspectorWrapper.CreateInstance(linkedElement);
 
             wrapper.hideFlags = HideFlags.DontSave;
 
@@ -151,14 +146,47 @@ namespace NovaLine.Editor.Graph.Node
 
             Selection.activeObject = wrapper;
         }
-        protected virtual void onDoubleClick(MouseDownEvent evt)
-        {
-        }
         public virtual string getType()
         {
             return "[Default]";
         }
-        protected virtual void addPort(INovaElement element)
+        public virtual void addPort()
+        {
+        }
+        public virtual void removePort()
+        {
+            inputContainer.Clear();
+            outputContainer.Clear();
+            RefreshExpandedState();
+            RefreshPorts();
+        }
+        public virtual void markedAsStartNode()
+        {
+            Label startBadge = new Label("Start");
+            startBadge.name = "StartBadgeNode";
+            startBadge.style.backgroundColor = Color.white;
+            startBadge.style.color = themedColor;
+            startBadge.style.paddingLeft = 10;
+            startBadge.style.paddingRight = 10;
+            startBadge.style.borderBottomLeftRadius = 5;
+            startBadge.style.borderBottomRightRadius = 5;
+            startBadge.style.borderTopLeftRadius = 5;
+            startBadge.style.borderTopRightRadius = 5;
+            startBadge.style.alignSelf = Align.Center;
+            startBadge.style.fontSize = 14;
+            startBadge.style.marginLeft = 10;
+            titleContainer.Insert(0, startBadge);
+        }
+        public virtual void unmarkStartNode()
+        {
+            var badgeToRemove = titleContainer.Q<Label>("StartBadgeNode");
+
+            if (badgeToRemove != null)
+            {
+                badgeToRemove.RemoveFromHierarchy();
+            }
+        }
+        protected virtual void onDoubleClick(MouseDownEvent evt)
         {
         }
     }

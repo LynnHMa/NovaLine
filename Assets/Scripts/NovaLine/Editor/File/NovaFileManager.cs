@@ -1,4 +1,4 @@
-﻿using NovaLine.Element;
+using NovaLine.Element;
 using NovaLine.Editor.Graph.Data;
 using NovaLine.Editor.Graph.View;
 using UnityEditor;
@@ -6,6 +6,7 @@ using UnityEditor.Callbacks;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using static NovaGraphWindow;
+using System;
 
 namespace NovaLine.Editor.File
 {
@@ -16,105 +17,104 @@ namespace NovaLine.Editor.File
         [OnOpenAsset]
         public static bool loadGraphWindowData(int instanceID, int line)
         {
-            var obj = EditorUtility.InstanceIDToObject(instanceID);
-            currentPath = AssetDatabase.GetAssetOrScenePath(obj);
-            if (obj is FlowchartGraphViewDataAsset flowchartDataAsset)
+            try
             {
-                getMainWindowInstance().openedGraphViews.Clear();
+                var obj = EditorUtility.InstanceIDToObject(instanceID);
+                currentPath = AssetDatabase.GetAssetOrScenePath(obj);
+                if (obj is FlowchartGraphViewDataAsset flowchartDataAsset)
+                {
+                    createGraphWindow();
+                    getMainWindowInstance().openedGraphViews.Clear();
 
-                var flowchartData = flowchartDataAsset.data;
-                var currentFlowchart = flowchartData.to();
-                Debug.Log($"Loaded {currentFlowchart.nodes.Count} nodes , {flowchartData.nodeEdgeGraphViewData.Count} edges!");
-                flowchartData.name = obj.name;
-                loadFlowchartInWindow(flowchartData,new FlowchartGraphView(currentFlowchart));
-                return true;
+                    var flowchartData = flowchartDataAsset.data;
+                    var currentFlowchart = flowchartData.linkedElement;
+                    Debug.Log($"Loaded {currentFlowchart.nodes.Count} nodes , {flowchartData.nodeEdgeGraphViewData.Count} edges!");
+                    flowchartData.name = obj.name;
+                    EditorApplication.delayCall += () =>
+                    {
+                        loadFlowchartInWindow(flowchartData, new FlowchartGraphView(currentFlowchart));
+                    };
+                    return true;
+                }
+                return false;
             }
-            return false;
+            catch(Exception e)
+            {
+                Debug.LogError("Error in loading flowchart data! " + e.Message);
+                return false;
+            }
         }
         public static FlowchartGraphViewDataAsset createAndLoadNewFlowchartDataFile()
         {
-            var dataAsset = FlowchartGraphViewDataAsset.CreateInstance();
+            try
+            {
+                var dataAsset = FlowchartGraphViewDataAsset.CreateInstance();
 
-            currentPath = EditorUtility.SaveFilePanelInProject(
-                "Save New Flowchart",
-                "New Flowchart",
-                "asset",
-                "Save New Flowchart"
-            );
+                currentPath = EditorUtility.SaveFilePanelInProject(
+                    "Save New Flowchart",
+                    "New Flowchart",
+                    "asset",
+                    "Save New Flowchart"
+                );
 
-            if (string.IsNullOrEmpty(currentPath)) return null;
+                if (string.IsNullOrEmpty(currentPath)) return null;
 
-            AssetDatabase.CreateAsset(dataAsset, currentPath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            return dataAsset;
+                AssetDatabase.CreateAsset(dataAsset, currentPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                return dataAsset;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Error in creating new flowchart data! " + e.Message);
+                return null;
+            }  
         }
         [Shortcut("NovaLine/Save", typeof(NovaGraphWindow),KeyCode.S, ShortcutModifiers.Action)]
         public static void saveGraphWindowData()
         {
-            EditorApplication.delayCall += () =>
+            try
             {
-                var opened = getMainWindowInstance()?.currentOpenedGraphView;
-                var newRootData = getUpdatedFlowchartGraphViewData(opened?.graphView?.root);
-
-                if (newRootData == null) return;
-
-                if (string.IsNullOrEmpty(currentPath))
+                var root = getMainWindowInstance().rootOpenedGraphView;
+                var opened = getMainWindowInstance().currentOpenedGraphView;
+                var openeds = getMainWindowInstance().openedGraphViews;
+                if (root == null || root.linkedData == null || root.graphView == null || opened == null || openeds == null || openeds.Count == 0)
                 {
-                    currentPath = EditorUtility.SaveFilePanelInProject("Save Flowchart", newRootData?.name, "asset", "Save Flowchart");
+                    return;
                 }
 
-                Debug.Log("Successfully Saved!");
-                AssetDatabase.CreateAsset(newRootData, currentPath);
-                EditorUtility.SetDirty(newRootData);
-                AssetDatabase.SaveAssets();
-            };
-        }
-        private static FlowchartGraphViewDataAsset getUpdatedFlowchartGraphViewData(INovaElement newRoot)
-        {
-            var openeds = getMainWindowInstance()?.openedGraphViews;
-            if (openeds?.Count == 0)
-            {
-                return null;
-            }
-
-            var root = getMainWindowInstance()?.rootOpenedGraphView;
-            var resultData = (FlowchartGraphViewData)root?.linkedData;
-
-            var iOpened = root;
-            if (openeds.Count >= 2)
-            {
-                for (var i = openeds.Count - 2; i >= 0; i--)
+                //Save child to root
+                if (opened.linkedData is NodeGraphViewData)
                 {
-                    var opened = openeds?[i];
-                    if (opened.linkedData is NodeGraphViewData nodeGraphViewData)
+                    opened.linkedData = new NodeGraphViewData((NodeGraphView)opened?.graphView, opened.linkedData.pos);
+                }
+
+                // Save root asset
+                if (root.linkedData is FlowchartGraphViewData flowchartGraphViewData)
+                {
+                    flowchartGraphViewData.updateChildData(openeds);
+
+                    if (string.IsNullOrEmpty(currentPath))
                     {
-                        ((FlowchartGraphViewData)iOpened.linkedData)?.nodeGraphViewDatas?.ForEach((nodeData) =>
-                        {
-                            if (nodeData.guid.Equals(nodeGraphViewData.guid))
-                            {
-                                nodeData = (NodeGraphViewData)getUpdatedChildData(opened.linkedData, newRoot);
-                                iOpened = opened;
-                            }
-                        });
+                        currentPath = EditorUtility.SaveFilePanelInProject("Save Flowchart", root.linkedData?.name, "asset", "Save Flowchart");
                     }
+
+                    var toSave = FlowchartGraphViewDataAsset.CreateInstance((FlowchartGraphViewData)root.linkedData);
+
+                    if (toSave == null) return;
+
+                    //Debug.Log("Successfully Saved!");
+
+                    AssetDatabase.CreateAsset(toSave, currentPath);
+                    EditorUtility.SetDirty(toSave);
+                    AssetDatabase.SaveAssets();
                 }
-            }
 
-            resultData = new FlowchartGraphViewData(openeds);
-            root.linkedData = resultData;
-            return FlowchartGraphViewDataAsset.CreateInstance(resultData);
-        }
-        private static IGraphViewNodeData getUpdatedChildData(IGraphViewNodeData old, INovaElement newRoot)
-        {
-            var opened = getMainWindowInstance()?.currentOpenedGraphView;
-            if (newRoot is Node node)
+            }
+            catch (Exception e)
             {
-                var nodeGraphViewData = new NodeGraphViewData((NodeGraphView)opened.graphView, old.pos);
-                return nodeGraphViewData;
+                Debug.LogError("Error in saving flowchart data! " + e.Message);
             }
-            else return null;
         }
-
     }
 }

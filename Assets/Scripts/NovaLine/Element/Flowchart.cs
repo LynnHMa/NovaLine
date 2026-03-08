@@ -7,7 +7,8 @@ namespace NovaLine.Element
     [Serializable]
     public class Flowchart : NovaElement
     {
-        public List<Node> nodes { get; set; } = new List<Node>();
+        public List<Node> nodes = new List<Node>();
+        public Node firstNode { get; set; }
 
         public Flowchart() { 
             guid = Guid.NewGuid().ToString();
@@ -33,10 +34,15 @@ namespace NovaLine.Element
         }
         public async Task play()
         {
-            for (var i = 0; i < nodes.Count; i++)
+            if(firstNode == null)
             {
-                await nodes[i]?.run();
+                await Task.CompletedTask;
             }
+            else
+            {
+                await firstNode.run();
+            }
+
         }
     }
 }

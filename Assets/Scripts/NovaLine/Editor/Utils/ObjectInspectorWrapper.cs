@@ -4,6 +4,7 @@ namespace NovaLine.Editor.Utils
 {
     using System.Collections.Generic;
     using UnityEngine;
+    using UnityEngine.UI;
 
     public class ObjectInspectorWrapper : ScriptableObject
     {
@@ -12,6 +13,9 @@ namespace NovaLine.Editor.Utils
 
         [SerializeReference]
         public object selectedNodeInfo;
+
+        [SerializeReference]
+        public Toggle setToStart;
 
         public static ObjectInspectorWrapper CreateInstance(object selectedNodeInfo)
         {

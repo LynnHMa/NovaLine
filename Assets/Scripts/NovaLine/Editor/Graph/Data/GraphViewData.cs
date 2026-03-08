@@ -5,7 +5,7 @@ namespace NovaLine.Editor.Graph.Data
     using UnityEngine;
 
     [Serializable]
-    public class GraphViewData : IGraphViewData
+    public abstract class GraphViewData : IGraphViewData
     {
         public virtual string name { get; set; }
 

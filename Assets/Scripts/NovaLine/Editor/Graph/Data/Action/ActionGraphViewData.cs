@@ -10,27 +10,23 @@ namespace NovaLine.Editor.Graph.Data
     [Serializable]
     public class ActionGraphViewData : GraphViewNodeData<NovaAction>
     {
-        public NovaAction action;
-
-        //public override string name => action == null ? "Action" : action.getType() + " Action";
-
-        //public override string describtion => action == null ? "Action is null." : action.getDescribation();
-        public ActionGraphViewData(NovaAction action,Vector2 pos)
+        public ActionGraphViewData(NovaAction linkedAction, Vector2 pos)
         {
-            this.action = action;
-            this.name = action.name;
-            this.describtion = action.describtion;
             this.pos = pos;
-            guid = action?.guid;
+            linkedElement = linkedAction;
         }
         public override void draw(INovaGraphView graphView)
         {
             //在Node编辑界面中绘制本体（Action）节点
             if (graphView != null && graphView is NodeGraphView nodeGraphView)
             {
-                var graphNode = new ActionGraphNode(action,pos);
-                Debug.Log("loaded pos in" + pos);
-                nodeGraphView.addGraphNode(graphNode,true);
+                var graphNode = new ActionGraphNode(linkedElement, pos);
+                nodeGraphView.addGraphNode(graphNode,true,false);
+
+                if (graphNode.guid.Equals(startGraphNodeGuid))
+                {
+                    nodeGraphView.firstNode = graphNode;
+                }
             }
 
             //由于没有Action编辑界面，所以不在其他界面中绘制Action节点

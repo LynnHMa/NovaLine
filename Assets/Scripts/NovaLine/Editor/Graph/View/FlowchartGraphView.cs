@@ -7,8 +7,7 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Element;
     using NovaLine.Editor.Graph.Node;
     using NovaLine.Switcher;
-    using NovaLine.Editor.Graph.Data;
-    using Unity.VisualScripting;
+    using NovaLine.Editor.File;
 
     [Serializable]
     public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Node,NodeSwitcher>
@@ -24,6 +23,21 @@ namespace NovaLine.Editor.Graph.View
                 base.root = value;
             }
         }
+        public override NodeGraphNode firstNode
+        {
+            get
+            {
+                return base.firstNode;
+            }
+            set
+            {
+                base.firstNode?.unmarkStartNode();
+                base.firstNode = value;
+                root.firstNode = (Node)value.linkedElement;
+                base.firstNode.markedAsStartNode();
+                NovaFileManager.saveGraphWindowData();
+            }
+        }
         public FlowchartGraphView(Flowchart root) : base(root,root.name) {
         }
         protected override string getType()
@@ -32,7 +46,7 @@ namespace NovaLine.Editor.Graph.View
         }
         public override NodeGraphNode summonNewGraphNode(Vector2 pos)
         {
-            return new NodeGraphNode("" + graphNodes.Count, pos);
+            return new NodeGraphNode(new Node(root.nodes.Count.ToString()), pos);
         }
         public NodeGraphNode summonNewGraphNode(string title, Vector2 pos)
         {
@@ -43,13 +57,25 @@ namespace NovaLine.Editor.Graph.View
         }
         public override void addGraphNode(NodeGraphNode graphNode, bool isInit = false, bool autoSave = true)
         {
-            base.addGraphNode(graphNode);
-            if(!isInit) root.nodes.Add((Node)graphNode.targetObject);
+            base.addGraphNode(graphNode, isInit, autoSave);
+
+            if (!isInit) root.nodes.Add((Node)graphNode.linkedElement);
+
+            if (autoSave)
+            {
+                NovaFileManager.saveGraphWindowData();
+            }
         }
-        public override void removeGraphNode(NodeGraphNode graphNode, bool isSave = true)
+        public override void removeGraphNode(NodeGraphNode graphNode, bool autoSave = true)
         {
-            base.addGraphNode(graphNode);
-            root.nodes.Remove((Node)graphNode.targetObject);
+            base.removeGraphNode(graphNode, autoSave);
+
+            root.nodes.Remove((Node)graphNode.linkedElement);
+
+            if (autoSave)
+            {
+                NovaFileManager.saveGraphWindowData();
+            }
         }
     }
 }
