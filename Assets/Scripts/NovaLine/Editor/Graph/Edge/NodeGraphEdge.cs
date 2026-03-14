@@ -10,6 +10,9 @@ namespace NovaLine.Editor.Graph.Edge
     public class NodeGraphEdge : GraphEdge<Node,NodeSwitcher>
     {
         protected override Color themedColor => ColorExt.red;
+        public NodeGraphEdge() : base()
+        {
+        }
         public override NodeSwitcher generateNewLinkedElement()
         {
             linkedElement = new NodeSwitcher();
@@ -19,7 +22,7 @@ namespace NovaLine.Editor.Graph.Edge
         {
             base.OnSelected();
 
-            NovaGraphWindow.edgeInInspector = this;
+            NovaWindow.SelectedGraphEdge = this;
 
             wrapper = ObjectInspectorWrapper.CreateInstance(linkedElement);
 
@@ -29,7 +32,7 @@ namespace NovaLine.Editor.Graph.Edge
             var parentSwitcher = linkedElement;
             linkedElement = parentSwitcher == null ? generateNewLinkedElement() : parentSwitcher;
 
-            var activeRoot = NovaGraphWindow.getMainWindowInstance()?.currentOpenedGraphView?.graphView?.root;
+            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
             if (activeRoot != null && activeRoot is NovaElement currentElement)
             {
                 var p = currentElement.parent;
@@ -42,17 +45,15 @@ namespace NovaLine.Editor.Graph.Edge
             }
             wrapper.parentNodes.Add(activeRoot);
 
-            guid = linkedElement.guid;
-
             Selection.activeObject = wrapper;
         }
         public override void OnUnselected()
         {
             base.OnUnselected();
 
-            NovaGraphWindow.edgeInInspector = null;
+            NovaWindow.SelectedGraphEdge = null;
 
-            var activeRoot = NovaGraphWindow.getMainWindowInstance()?.currentOpenedGraphView?.graphView?.root;
+            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
 
             if (activeRoot == null) return;
 

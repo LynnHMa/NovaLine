@@ -7,7 +7,10 @@ namespace NovaLine.Editor.Graph.Edge
 
     public class EventGraphEdge : GraphEdge<NovaEvent, EventSwitcher>
     {
-        protected override Color themedColor => Color.yellow;
+        protected override Color themedColor => Color.blue;
+        public EventGraphEdge() : base()
+        {
+        }
         public override EventSwitcher generateNewLinkedElement()
         {
             linkedElement = new EventSwitcher();

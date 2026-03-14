@@ -1,5 +1,4 @@
 ﻿using NovaLine.Element;
-using NovaLine.Interface;
 using NovaLine.Switcher;
 using System;
 using System.Threading.Tasks;
@@ -7,10 +6,22 @@ using System.Threading.Tasks;
 namespace NovaLine.Event
 {
     [Serializable]
-    public abstract class NovaEvent : NovaElement
+    public class NovaEvent : NovaElement,INovaEvent
     {
-        public new string name => getType();
+        public NovaEvent()
+        {
+            guid = Guid.NewGuid().ToString();
+        }
 
+        public NovaEvent(string name) : this()
+        {
+            this.name = name;
+        }
+
+        public NovaEvent(string name, string guid) : this(name)
+        {
+            this.guid = guid;
+        }
         public virtual async Task onEvent()
         {
             await Task.CompletedTask;
@@ -38,5 +49,9 @@ namespace NovaLine.Event
                 }
             }
         }
+    }
+    public interface INovaEvent
+    {
+
     }
 }

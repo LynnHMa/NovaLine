@@ -5,8 +5,8 @@ namespace NovaLine.Editor.Utils
     using NovaLine.Element;
     using NovaLine.Switcher;
     using NovaLine.Action;
-    using NovaLine.Editor.Graph.View;
-    using NovaLine.Editor.Graph.Node;
+    using NovaLine.Editor.File;
+    using NovaLine.Event;
 
     [CustomEditor(typeof(ObjectInspectorWrapper))]
     public class ObjectInspectorWrapperEditor : Editor
@@ -25,7 +25,6 @@ namespace NovaLine.Editor.Utils
             {
                 var parentsProp = serializedObject.FindProperty("parentNodes");
                 var selectedProp = serializedObject.FindProperty("selectedNodeInfo");
-
                 var currentStyle = new GUIStyle()
                 {
                     fontSize = 20,
@@ -79,33 +78,58 @@ namespace NovaLine.Editor.Utils
 
                 if (selectedProp != null && selectedProp.managedReferenceValue is NovaElement selectedElement)
                 {
-
                     EditorGUILayout.LabelField(selectedElement?.getActualName(), currentStyle);
 
-                    if(selectedElement is NovaAction novaAction)
+                    // 绘制多态下拉框
+                    if (selectedElement is NovaAction)
                     {
                         SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
+                    }
+                    else if (selectedElement is NovaEvent)
+                    {
+                        SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
                     }
 
                     selectedProp.isExpanded = true;
 
-                    EditorGUILayout.PropertyField(selectedProp, GUIContent.none, true);
+                    SerializedProperty iterator = selectedProp.Copy();
+                    SerializedProperty endProperty = iterator.GetEndProperty();
+
+                    if (iterator.NextVisible(true))
+                    {
+                        do
+                        {
+                            EditorGUILayout.Space(30);
+                            if (SerializedProperty.EqualContents(iterator, endProperty))
+                                break;
+
+                            if (iterator.name == "conditionBeforeInvoke" || iterator.name == "conditionAfterInvoke")
+                            {
+                                EditorGUILayout.PropertyField(iterator, false);
+                                if (GUILayout.Button("Edit", GUILayout.Height(30)))
+                                {
+                                    loadConditionContext(iterator);
+                                }
+                            }
+                            else
+                            {
+                                // 默认画出来
+                                EditorGUILayout.PropertyField(iterator, true);
+                            }
+
+                        }
+                        while (iterator.NextVisible(false));
+                    }
 
                     EditorGUILayout.Space(30);
 
-                    if (GUILayout.Button("Set To Start", GUILayout.Height(30)) && NovaGraphWindow.nodeInInspector != null)
+                    if (GUILayout.Button("Set To Start", GUILayout.Height(30)) && NovaWindow.SelectedGraphNode != null)
                     {
-                        var currentGraphView = NovaGraphWindow.getMainWindowInstance()?.currentOpenedGraphView?.graphView;
+                        var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
                         if (currentGraphView != null)
                         {
-                            if (currentGraphView is FlowchartGraphView flowchartGraphView)
-                            {
-                                flowchartGraphView.firstNode = (NodeGraphNode)NovaGraphWindow.nodeInInspector;
-                            }
-                            else if (currentGraphView is NodeGraphView nodeGraphView)
-                            {
-                                nodeGraphView.firstNode = (ActionGraphNode)NovaGraphWindow.nodeInInspector;
-                            }
+                            currentGraphView.firstNode = NovaWindow.SelectedGraphNode;
+                            NovaFileManager.SaveGraphWindowData();
                         }
                     }
 
@@ -122,6 +146,19 @@ namespace NovaLine.Editor.Utils
             }
             catch
             {
+            }
+        }
+        private void loadConditionContext(SerializedProperty conditionPropery)
+        {
+            var targetCondition = conditionPropery.boxedValue as Condition;
+            if (targetCondition != null)
+            {
+                Debug.Log("guid: " + targetCondition.guid);
+                var conditionContext = NovaWindow.GetContext(targetCondition.guid);
+                if (conditionContext != null)
+                {
+                    NovaWindow.LoadContextInWindow(conditionContext);
+                }
             }
         }
 

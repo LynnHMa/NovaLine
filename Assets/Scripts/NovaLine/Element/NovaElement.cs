@@ -1,4 +1,5 @@
 ﻿using NovaLine.Switcher;
+using NovaLine.Utils.Interface;
 using System;
 using UnityEngine;
 
@@ -8,15 +9,19 @@ namespace NovaLine.Element
     public class NovaElement : INovaElement
     {
         //Ignore it,just for unity bug fixing.
-        //傻逼unity你妈要死啊
         [SerializeField, HideInInspector]
         private bool fuckUnity;
 
         public string name;
         [TextArea]
         public string describtion;
-        public virtual string guid { get; set; }
-        public virtual INovaElement parent { get; set;}
+
+        [SerializeField, HideInInspector] private string _guid;
+        public virtual string guid { get => _guid; set => _guid = value; }
+
+        [HideInInspector]
+        public INovaElement parent;
+        INovaElement INovaElement.parent { get => parent; set => parent = value; }
         public virtual void onGraphConnect(INovaSwitcher graphEdge) { }
         public virtual void onGraphDisconnect(INovaSwitcher graphEdge) { }
 
@@ -35,9 +40,8 @@ namespace NovaLine.Element
             return getType() + " " + name;
         }
     }
-    public interface INovaElement
+    public interface INovaElement : IGUID
     {
-        public string guid { get; set; }
         public INovaElement parent { get; set; }
     }
 }

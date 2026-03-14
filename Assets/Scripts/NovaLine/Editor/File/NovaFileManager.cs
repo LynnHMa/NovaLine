@@ -1,119 +1,178 @@
-using NovaLine.Element;
-using NovaLine.Editor.Graph.Data;
-using NovaLine.Editor.Graph.View;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
-using static NovaGraphWindow;
+using static NovaWindow;
 using System;
+using NovaLine.Editor.Graph.Data.NodeGraphView;
+using NovaLine.Editor.Window.Context;
 
 namespace NovaLine.Editor.File
 {
     public class NovaFileManager
     {
-        private static string currentPath;
+        private static readonly string CURRENT_PATH_SESSION_PATH_KEY = "NOVA_CURRENT_PATH";
+        private static readonly string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
+        private static string currentPath
+        {
+            get => SessionState.GetString(CURRENT_PATH_SESSION_PATH_KEY, string.Empty);
+            set => SessionState.SetString(CURRENT_PATH_SESSION_PATH_KEY, value);
+        }
+        public static string CurrentContextGuid
+        {
+            get => SessionState.GetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, string.Empty);
+            set => SessionState.SetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, value);
+        }
+
+        private static FlowchartDataAsset _currentAsset;
+        private static FlowchartDataAsset currentAsset
+        {
+            get
+            {
+                if (_currentAsset == null && !string.IsNullOrEmpty(currentPath))
+                    _currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(currentPath);
+                return _currentAsset;
+            }
+            set => _currentAsset = value;
+        }
 
         [OnOpenAsset]
-        public static bool loadGraphWindowData(int instanceID, int line)
+        public static bool LoadFlowchartDataAsset(int instanceID, int line)
         {
-            try
-            {
-                var obj = EditorUtility.InstanceIDToObject(instanceID);
-                currentPath = AssetDatabase.GetAssetOrScenePath(obj);
-                if (obj is FlowchartGraphViewDataAsset flowchartDataAsset)
-                {
-                    createGraphWindow();
-                    getMainWindowInstance().openedGraphViews.Clear();
+            var obj = EditorUtility.InstanceIDToObject(instanceID);
 
-                    var flowchartData = flowchartDataAsset.data;
-                    var currentFlowchart = flowchartData.linkedElement;
-                    Debug.Log($"Loaded {currentFlowchart.nodes.Count} nodes , {flowchartData.nodeEdgeGraphViewData.Count} edges!");
-                    flowchartData.name = obj.name;
-                    EditorApplication.delayCall += () =>
-                    {
-                        loadFlowchartInWindow(flowchartData, new FlowchartGraphView(currentFlowchart));
-                    };
-                    return true;
-                }
-                return false;
-            }
-            catch(Exception e)
+            if (obj is FlowchartDataAsset flowchartDataAsset)
             {
-                Debug.LogError("Error in loading flowchart data! " + e.Message);
-                return false;
+                currentAsset = flowchartDataAsset;
+                currentPath = AssetDatabase.GetAssetPath(flowchartDataAsset);
+
+                CreateGraphWindow();
+
+                var window = GetMainWindowInstance();
+
+                if (window == null)
+                {
+                    Debug.LogError("Failed to create new window!");
+                    return false;
+                }
+
+                var flowchartData = flowchartDataAsset.data;
+                var flowchartContext = new FlowchartContext(flowchartData);
+
+                LoadContextInWindow(flowchartContext);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        [Shortcut("NovaLine/Save", typeof(NovaWindow), KeyCode.S, ShortcutModifiers.Action)]
+        public static void SaveGraphWindowData()
+        {
+            var window = GetMainWindowInstance();
+
+            if (window == null)
+                return;
+
+            var flowchartContext = window.registeredFlowchartContext;
+            var currentContext = window.currentGraphViewContext;
+
+            if (flowchartContext == null || flowchartContext.linkedData == null || currentContext == null || currentContext.linkedData == null)
+                return;
+
+            if (string.IsNullOrEmpty(currentPath))
+            {
+                currentPath = EditorUtility.SaveFilePanelInProject(
+                    "Save Flowchart",
+                    flowchartContext.linkedData.name,
+                    "asset",
+                    "Save Flowchart"
+                );
+
+                if (string.IsNullOrEmpty(currentPath))
+                    return;
+            }
+
+            if (!currentPath.EndsWith(".asset"))
+            {
+                Debug.LogError("Invalid save path! Only .asset allowed: " + currentPath);
+                return;
+            }
+
+            if (!currentContext.guid.Equals(flowchartContext.guid)) currentContext.save();
+            flowchartContext.save();
+
+            if (currentAsset == null)
+            {
+                currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(currentPath);
+
+                if (currentAsset == null)
+                {
+                    currentAsset = FlowchartDataAsset.CreateInstance(flowchartContext.linkedData);
+                    AssetDatabase.CreateAsset(currentAsset, currentPath);
+                }
+            }
+
+            currentAsset.data = flowchartContext.linkedData;
+
+            EditorUtility.SetDirty(currentAsset);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        public static void RestoreAfterDomainReload()
+        {
+            var path = currentPath;
+            if (string.IsNullOrEmpty(path)) return;
+            var asset = currentAsset;
+            if (asset == null) return;
+
+            var flowchartData = asset.data;
+            flowchartData.linkedElement.name = asset.name;
+            var flowchartContext = new FlowchartContext(flowchartData);
+
+            //Re-register all contexts
+            var storedCurrentContextGuid = CurrentContextGuid;
+            LoadContextInWindow(flowchartContext);
+
+            if (!flowchartContext.guid.Equals(storedCurrentContextGuid))
+            {
+                var toOpenContext = GetContext(storedCurrentContextGuid);
+                if (toOpenContext == null) return;
+                LoadContextInWindow(toOpenContext);
             }
         }
-        public static FlowchartGraphViewDataAsset createAndLoadNewFlowchartDataFile()
+
+        public static FlowchartDataAsset CreateNewFlowchartAsset()
         {
             try
             {
-                var dataAsset = FlowchartGraphViewDataAsset.CreateInstance();
+                var dataAsset = FlowchartDataAsset.CreateInstance();
 
-                currentPath = EditorUtility.SaveFilePanelInProject(
+                var path = EditorUtility.SaveFilePanelInProject(
                     "Save New Flowchart",
                     "New Flowchart",
                     "asset",
                     "Save New Flowchart"
                 );
 
-                if (string.IsNullOrEmpty(currentPath)) return null;
+                if (string.IsNullOrEmpty(path))
+                    return null;
 
-                AssetDatabase.CreateAsset(dataAsset, currentPath);
+                AssetDatabase.CreateAsset(dataAsset, path);
                 AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+
+                currentAsset = dataAsset;
+                currentPath = path;
+
                 return dataAsset;
             }
             catch (Exception e)
             {
-                Debug.LogError("Error in creating new flowchart data! " + e.Message);
+                Debug.LogError("Error in creating new flowchart data! " + e);
                 return null;
-            }  
-        }
-        [Shortcut("NovaLine/Save", typeof(NovaGraphWindow),KeyCode.S, ShortcutModifiers.Action)]
-        public static void saveGraphWindowData()
-        {
-            try
-            {
-                var root = getMainWindowInstance().rootOpenedGraphView;
-                var opened = getMainWindowInstance().currentOpenedGraphView;
-                var openeds = getMainWindowInstance().openedGraphViews;
-                if (root == null || root.linkedData == null || root.graphView == null || opened == null || openeds == null || openeds.Count == 0)
-                {
-                    return;
-                }
-
-                //Save child to root
-                if (opened.linkedData is NodeGraphViewData)
-                {
-                    opened.linkedData = new NodeGraphViewData((NodeGraphView)opened?.graphView, opened.linkedData.pos);
-                }
-
-                // Save root asset
-                if (root.linkedData is FlowchartGraphViewData flowchartGraphViewData)
-                {
-                    flowchartGraphViewData.updateChildData(openeds);
-
-                    if (string.IsNullOrEmpty(currentPath))
-                    {
-                        currentPath = EditorUtility.SaveFilePanelInProject("Save Flowchart", root.linkedData?.name, "asset", "Save Flowchart");
-                    }
-
-                    var toSave = FlowchartGraphViewDataAsset.CreateInstance((FlowchartGraphViewData)root.linkedData);
-
-                    if (toSave == null) return;
-
-                    //Debug.Log("Successfully Saved!");
-
-                    AssetDatabase.CreateAsset(toSave, currentPath);
-                    EditorUtility.SetDirty(toSave);
-                    AssetDatabase.SaveAssets();
-                }
-
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("Error in saving flowchart data! " + e.Message);
             }
         }
     }

@@ -1,14 +1,19 @@
+using NovaLine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace NovaLine.Element
 {
     [Serializable]
     public class Flowchart : NovaElement
     {
-        public List<Node> nodes = new List<Node>();
-        public Node firstNode { get; set; }
+        [HideInInspector]
+        public EList<Node> nodes = new();
+
+        [HideInInspector]
+        public Node firstNode;
 
         public Flowchart() { 
             guid = Guid.NewGuid().ToString();
@@ -17,7 +22,7 @@ namespace NovaLine.Element
         {
             this.name = name;
         }
-        public Flowchart(string name, string describtion, List<Node> nodes,string guid)
+        public Flowchart(string name, string describtion, EList<Node> nodes,string guid)
         {
             this.name = name;
             this.describtion = describtion;

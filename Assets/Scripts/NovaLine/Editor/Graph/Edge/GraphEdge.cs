@@ -9,20 +9,46 @@ namespace NovaLine.Editor.Graph.Edge
     using UnityEngine;
     using NovaLine.Editor.Utils;
     using UnityEngine.UIElements;
+    using NovaLine.Utils.Interface;
 
     public class GraphEdge<PE, EE> : Edge, IGraphEdge where PE : NovaElement where EE : NovaSwitcher
     {
-        protected virtual Color themedColor => Color.white;
-        public string guid { get; set; }
-
-        public EE linkedElement { get; set; }
+        protected virtual Color themedColor => Color.green;
+        public virtual EE linkedElement { get; set; }
+        public virtual string guid => linkedElement?.guid;
 
         protected ObjectInspectorWrapper wrapper;
 
         private VisualElement arrowElement;
 
         private float arrowWidth = 32f; 
-        private float arrowHeightHalf = 8f; 
+        private float arrowHeightHalf = 8f;
+
+        NovaSwitcher IGraphEdge.linkedElement { get => linkedElement; set => linkedElement = value as EE; }
+        string IGUID.guid { get => guid; set { } }
+        public new GraphPort<PE, EE> input
+        {
+            get => base.input as GraphPort<PE, EE>;
+            set
+            {
+                if (base.input != value)
+                {
+                    base.input = value;
+                }
+            }
+        }
+
+        public new GraphPort<PE, EE> output
+        {
+            get => base.output as GraphPort<PE, EE>;
+            set
+            {
+                if (base.output != value)
+                {
+                    base.output = value;
+                }
+            }
+        }
 
         public GraphEdge()
         {
@@ -48,26 +74,35 @@ namespace NovaLine.Editor.Graph.Edge
 
         public override bool UpdateEdgeControl()
         {
-            if (edgeControl == null || edgeControl.controlPoints == null || edgeControl.controlPoints.Length < 4)
-                return false;
+            var result = base.UpdateEdgeControl();
+            updateArrow();
+            return result;
+        }
 
-            Vector2 p0 = edgeControl.controlPoints[0];
-            Vector2 p1 = edgeControl.controlPoints[1];
-            Vector2 p2 = edgeControl.controlPoints[2];
-            Vector2 p3 = edgeControl.controlPoints[3];
+        public virtual void updateArrow()
+        {
+            if (edgeControl == null || edgeControl.controlPoints == null || edgeControl.controlPoints.Length < 4) return;
+
+            var p0 = edgeControl.controlPoints[0];
+            var p1 = edgeControl.controlPoints[1];
+            var p2 = edgeControl.controlPoints[2];
+            var p3 = edgeControl.controlPoints[3];
+
             float t = 0.5f;
-            Vector2 position = GetBezierPoint(t, p0, p1, p2, p3);
-            Vector2 tangent = GetBezierTangent(t, p0, p1, p2, p3);
+            var position = GetBezierPoint(t, p0, p1, p2, p3);
+            var tangent = GetBezierTangent(t, p0, p1, p2, p3);
             float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
             arrowElement.style.left = position.x - (arrowWidth / 2f);
             arrowElement.style.top = position.y - arrowHeightHalf;
 
             arrowElement.transform.rotation = Quaternion.Euler(0, 0, angle);
             arrowElement.style.borderLeftColor = new StyleColor(themedColor);
-
-            return base.UpdateEdgeControl();
         }
 
+        public virtual EE generateNewLinkedElement()
+        {
+            return default;
+        }
         private Vector2 GetBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
         {
             float u = 1 - t;
@@ -88,41 +123,10 @@ namespace NovaLine.Editor.Graph.Edge
             Vector2 tangent = 3 * u * u * (p1 - p0) + 6 * u * t * (p2 - p1) + 3 * t * t * (p3 - p2);
             return tangent.normalized;
         }
-        public virtual event Action<GraphEdge<PE, EE>, bool> OnPortConnectionChanged;
-
-        public virtual EE generateNewLinkedElement()
-        {
-            return default;
-        }
-
-        public new GraphPort<PE, EE> input
-        {
-            get => base.input as GraphPort<PE, EE>;
-            set
-            {
-                if (base.input != value)
-                {
-                    base.input = value;
-                    OnPortConnectionChanged?.Invoke(this, true);
-                }
-            }
-        }
-
-        public new GraphPort<PE, EE> output
-        {
-            get => base.output as GraphPort<PE, EE>;
-            set
-            {
-                if (base.output != value)
-                {
-                    base.output = value;
-                    OnPortConnectionChanged?.Invoke(this, false);
-                }
-            }
-        }
     }
-    public interface IGraphEdge
+    public interface IGraphEdge : IGUID
     {
-
+        public NovaSwitcher linkedElement { get; set; }
+        public new string guid => linkedElement?.guid;
     }
 }

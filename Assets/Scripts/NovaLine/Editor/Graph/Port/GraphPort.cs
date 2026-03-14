@@ -17,7 +17,7 @@ namespace NovaLine.Editor.Graph.Port
         {
             this.ownerElement = ownerElement;
         }
-        public static GraphPort<PE,EE> Create<ED>(Orientation orientation, Direction direction, Capacity capacity, Type type, PE ownerElement,Color color) where ED : GraphEdge<PE,EE>, new()
+        public static GraphPort<PE,EE> Create<ED>(Orientation orientation, Direction direction, Capacity capacity, Type type, PE ownerElement,Color color,string portName) where ED : GraphEdge<PE,EE>, new()
         {
             CustomEdgeConnectorListener<PE,EE,ED> listener = new();
             var port = new GraphPort<PE,EE>(orientation, direction, capacity, type, ownerElement)
@@ -25,6 +25,7 @@ namespace NovaLine.Editor.Graph.Port
                 m_EdgeConnector = new EdgeConnector<ED>(listener)
             };
             port.portColor = Color.white;
+            port.portName = portName;
 
             var inputPortLabel = port.Q<Label>();
             if (inputPortLabel != null)
@@ -74,7 +75,13 @@ namespace NovaLine.Editor.Graph.Port
                 if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 graphEdge.linkedElement.outputElement = ownerElement;
                 graphEdge.linkedElement.inputElement = graphEdge.input.ownerElement;
+
+                var window = NovaWindow.GetMainWindowInstance();
+                if (window == null) return;
+
                 ownerElement.onGraphConnect(graphEdge.linkedElement);
+
+                window.currentGraphViewContext.graphView.addGraphEdge(graphEdge, false,false);
             }
         }
         public override void Disconnect(Edge edge)
@@ -84,6 +91,11 @@ namespace NovaLine.Editor.Graph.Port
             {
                 if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 ownerElement.onGraphDisconnect(graphEdge.linkedElement);
+
+                var window = NovaWindow.GetMainWindowInstance();
+                if (window == null) return;
+                window.currentGraphViewContext.graphView.removeGraphEdge(graphEdge,false);
+
                 edge.RemoveFromHierarchy();
             }
         }

@@ -1,17 +1,20 @@
-﻿namespace NovaLine.Editor.Graph.View
+﻿using UnityEngine;
+using System;
+
+namespace NovaLine.Editor.Graph.View
 {
-    using UnityEngine;
     using NovaLine.Element;
     using NovaLine.Editor.Graph.Node;
     using NovaLine.Switcher;
+    using System.Linq;
     using NovaLine.Editor.File;
     using NovaLine.Editor.Graph.Edge;
+    using NovaLine.Event;
     using NovaLine.Editor.Window.Context;
     using NovaLine.Editor.Graph.Data.NodeGraphView;
-
-    public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Flowchart,Node,NodeSwitcher>
+    public class ConditionGraphView : NovaGraphView<EventGraphNode,Condition,NovaEvent,EventSwitcher>
     {
-        public override NodeGraphNode firstNode
+        public override EventGraphNode firstNode
         {
             get
             {
@@ -20,31 +23,31 @@
             set
             {
                 base.firstNode = value;
-                root.firstNode = (Node)value.linkedElement;
+                root.firstEvent = (NovaEvent)value.linkedElement;
             }
         }
-        public FlowchartGraphView(Flowchart root) : base(root,root.name) {
-        }
+        public ConditionGraphView(Condition root) : base(root,root.name) { }
         protected override string getType()
         {
-            return "[Flowchart]";
+            return "[Condition]";
         }
-        public override NodeGraphNode summonNewGraphNode(Vector2 pos)
+        public override EventGraphNode summonNewGraphNode(Vector2 pos)
         {
-            return new NodeGraphNode(new Node(root.nodes.Count.ToString()), pos);
+            var actualName = graphElements.Count().ToString();
+            var newActionGraphNode = new EventGraphNode(new NovaEvent(actualName), pos);
+            return newActionGraphNode;
         }
-        public override NodeGraphNode summonNewGraphNode(Node node, Vector2 pos)
+        public override EventGraphNode summonNewGraphNode(NovaEvent novaEvent, Vector2 pos)
         {
-            return new NodeGraphNode(node, pos);
+            return new EventGraphNode(novaEvent, pos);
         }
-        public override IGraphViewContext summonNewChildGraphContext(Node node,Vector2 pos)
+        public override IGraphViewContext summonNewChildGraphContext(NovaEvent novaEvent, Vector2 pos)
         {
-            var newGraphView = new NodeGraphView(node);
-            return new NodeContext(new NodeData(newGraphView,pos));
+            return new EventContext(new EventData(novaEvent, pos));
         }
         public override IGraphEdge summonNewGraphEdge(INovaSwitcher switcher)
         {
-            return summonAndConnectEdge<NodeGraphEdge>((NodeSwitcher)switcher);
+            return summonAndConnectEdge<EventGraphEdge>((EventSwitcher)switcher);
         }
         public override void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true)
         {
@@ -70,7 +73,8 @@
 
             if (!isLoading)
             {
-                root.nodes.Add((Node)graphNode.linkedElement);
+                root.novaEvents.Add((NovaEvent)graphNode.linkedElement);
+                
             }
 
             if (autoSave)
@@ -82,7 +86,7 @@
         {
             base.removeGraphNode(graphNode, autoSave);
 
-            root.nodes.Remove((Node)graphNode.linkedElement);
+            root.novaEvents.Remove((NovaEvent)graphNode.linkedElement);
 
             if (autoSave)
             {

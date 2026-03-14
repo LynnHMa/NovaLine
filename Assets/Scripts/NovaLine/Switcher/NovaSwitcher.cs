@@ -1,5 +1,5 @@
 ﻿using NovaLine.Element;
-using NovaLine.Interface;
+using NovaLine.Utils.Interface;
 using System;
 using UnityEngine;
 
@@ -11,9 +11,14 @@ namespace NovaLine.Switcher
         //Ignore it,just for unity bug fixing.
         [SerializeField, HideInInspector]
         private bool fuckUnity;
-        public NovaElement inputElement { get; set; }
-        public NovaElement outputElement { get; set; }
-        public string guid { get; set; }
+
+        [SerializeReference] private NovaElement _inputElement;
+        [SerializeReference] private NovaElement _outputElement;
+        [SerializeField]     private string _guid;
+
+        public NovaElement inputElement  { get => _inputElement;  set => _inputElement  = value; }
+        public NovaElement outputElement { get => _outputElement; set => _outputElement = value; }
+        public string guid               { get => _guid;          set => _guid          = value; }
         public NovaSwitcher()
         {
             guid = Guid.NewGuid().ToString();
@@ -25,8 +30,7 @@ namespace NovaLine.Switcher
             this.guid = guid;
         }
     }
-    public interface INovaSwitcher
+    public interface INovaSwitcher : IGUID
     {
-
     }
 }

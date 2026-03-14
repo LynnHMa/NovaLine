@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NovaLine.Action;
 using NovaLine.Switcher;
+using NovaLine.Utils;
 using UnityEngine;
 
 namespace NovaLine.Element
@@ -14,11 +15,14 @@ namespace NovaLine.Element
 
         public Condition conditionAfterInvoke;
 
-        public List<NodeSwitcher> nextNodes  = new();
+        [HideInInspector]
+        public EList<NodeSwitcher> nextNodes  = new();
 
-        public List<NovaAction> actions = new();
+        [HideInInspector]
+        public EList<NovaAction> actions = new();
 
-        public NovaAction firstAction { get; set; }
+        [HideInInspector]
+        public NovaAction firstAction;
 
         public Node() {
             guid = Guid.NewGuid().ToString();
@@ -30,6 +34,8 @@ namespace NovaLine.Element
             describtion = node.describtion;
             conditionAfterInvoke = node.conditionAfterInvoke;
             conditionBeforeInvoke = node.conditionBeforeInvoke;
+            conditionBeforeInvoke.parent = this;
+            conditionAfterInvoke.parent = this;
             actions = node.actions;
             guid = node.guid;
         }
@@ -37,13 +43,17 @@ namespace NovaLine.Element
         public Node(string name) : this()
         {
             this.name = name;
+            conditionBeforeInvoke = new(this);
+            conditionAfterInvoke = new(this);
         }
-        public Node(string name, string describtion, Condition conditionBeforeInvoke, Condition conditionAfterInvoke, List<NovaAction> actions,string guid)
+        public Node(string name, string describtion, Condition conditionBeforeInvoke, Condition conditionAfterInvoke, EList<NovaAction> actions,string guid)
         {
             this.name = name;
             this.describtion = describtion;
             this.conditionBeforeInvoke = conditionBeforeInvoke;
             this.conditionAfterInvoke = conditionAfterInvoke;
+            this.conditionBeforeInvoke.parent = this;
+            this.conditionAfterInvoke.parent = this;
             this.actions = actions;
             this.guid = guid;
         }

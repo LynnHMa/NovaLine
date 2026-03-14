@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 namespace NovaLine.Editor.Graph.View
@@ -10,21 +9,12 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Switcher;
     using System.Linq;
     using NovaLine.Editor.File;
+    using NovaLine.Editor.Graph.Edge;
+    using NovaLine.Editor.Window.Context;
+    using NovaLine.Editor.Graph.Data.NodeGraphView;
 
-    [Serializable]
-    public class NodeGraphView : NovaGraphView<ActionGraphNode,NovaAction,ActionSwitcher>
+    public class NodeGraphView : NovaGraphView<ActionGraphNode,Node,NovaAction,ActionSwitcher>
     {
-        public new Node root
-        {
-            get
-            {
-                return (Node)base.root;
-            }
-            set
-            {
-                base.root = value;
-            }
-        }
         public override ActionGraphNode firstNode
         {
             get
@@ -33,10 +23,8 @@ namespace NovaLine.Editor.Graph.View
             }
             set
             {
-                if(base.firstNode != null) base.firstNode.unmarkStartNode();
                 base.firstNode = value;
                 root.firstAction = (NovaAction)value.linkedElement;
-                base.firstNode.markedAsStartNode();
             }
         }
         public NodeGraphView(Node root) : base(root,root.name) { }
@@ -50,37 +38,52 @@ namespace NovaLine.Editor.Graph.View
             var newActionGraphNode = new ActionGraphNode(new NovaAction(actualName), pos);
             return newActionGraphNode;
         }
-        public override void updateAllGraphElements()
+        public override ActionGraphNode summonNewGraphNode(NovaAction novaAction, Vector2 pos)
         {
-            for (var i = graphNodes.Count - 1; i >= 0; i--)
-            {
-                var actionGraphNode = graphNodes[i];
-                if(actionGraphNode.linkedElement is NovaAction novaAction)
-                {
-                    if(novaAction.type == ActionType.Meanwhile && actionGraphNode.inputContainer.childCount > 0)
-                    {
-                        actionGraphNode.removePort();
-                    }
-                    else if(novaAction.type == ActionType.Sort && actionGraphNode.inputContainer.childCount == 0)
-                    {
-                        actionGraphNode.addPort();
-                    }
-                }
-                actionGraphNode.title = actionGraphNode.linkedElement?.getActualName();
-            }
+            return new ActionGraphNode(novaAction, pos);
         }
-        public override void addGraphNode(ActionGraphNode graphNode, bool isInit = false, bool autoSave = true)
+        public override IGraphViewContext summonNewChildGraphContext(NovaAction action, Vector2 pos)
         {
-            base.addGraphNode(graphNode, isInit, autoSave);
-
-            if (!isInit) root.actions.Add((NovaAction)graphNode.linkedElement);
+            return new ActionContext(new ActionData(action, pos));
+        }
+        public override IGraphEdge summonNewGraphEdge(INovaSwitcher switcher)
+        {
+            return summonAndConnectEdge<ActionGraphEdge>((ActionSwitcher)switcher);
+        }
+        public override void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true)
+        {
+            base.addGraphEdge(graphEdge, isLoading, autoSave);
 
             if (autoSave)
             {
-                NovaFileManager.saveGraphWindowData();
+                NovaFileManager.SaveGraphWindowData();
             }
         }
-        public override void removeGraphNode(ActionGraphNode graphNode, bool autoSave = true)
+        public override void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
+        {
+            base.removeGraphEdge(graphEdge, autoSave);
+
+            if (autoSave)
+            {
+                NovaFileManager.SaveGraphWindowData();
+            }
+        }
+        public override void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true)
+        {
+            base.addGraphNode(graphNode, isLoading, autoSave);
+
+            if (!isLoading)
+            {
+                root.actions.Add((NovaAction)graphNode.linkedElement);
+                
+            }
+
+            if (autoSave)
+            {
+                NovaFileManager.SaveGraphWindowData();
+            }
+        }
+        public override void removeGraphNode(GraphNode graphNode, bool autoSave = true)
         {
             base.removeGraphNode(graphNode, autoSave);
 
@@ -88,7 +91,7 @@ namespace NovaLine.Editor.Graph.View
 
             if (autoSave)
             {
-                NovaFileManager.saveGraphWindowData();
+                NovaFileManager.SaveGraphWindowData();
             }
         }
     }

@@ -9,6 +9,9 @@ namespace NovaLine.Editor.Graph.Edge
     public class ActionGraphEdge : GraphEdge<NovaAction, ActionSwitcher>
     {
         protected override Color themedColor => ColorExt.orange;
+        public ActionGraphEdge() : base()
+        {
+        }
         public override ActionSwitcher generateNewLinkedElement()
         {
             linkedElement = new ActionSwitcher();

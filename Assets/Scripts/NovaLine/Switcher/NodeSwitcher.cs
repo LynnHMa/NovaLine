@@ -6,10 +6,11 @@ namespace NovaLine.Switcher
     [Serializable]
     public class NodeSwitcher : NovaSwitcher
     {
-        public Condition switchCondition = Condition.DEFAULT_CONDITION;
+        public Condition switchCondition;
 
         public NodeSwitcher() { 
             guid = Guid.NewGuid().ToString();
+            switchCondition = new(outputElement);
         }
         public NodeSwitcher(Condition switchCondition, Node inputNode,Node outputNode,string guid)
         {

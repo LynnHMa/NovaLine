@@ -53,7 +53,7 @@ namespace NovaLine.Editor.Utils
                         newElement.name = oldElement.name;
                         newElement.guid = oldElement.guid;
                         newElement.describtion = oldElement.describtion;
-                        NovaGraphWindow.nodeInInspector.linkedElement = newElement;
+                        NovaWindow.SelectedGraphNode.linkedElement = newElement;
 
                         if (oldElement is NovaAction oldAction && newElement is NovaAction newAction)
                         {

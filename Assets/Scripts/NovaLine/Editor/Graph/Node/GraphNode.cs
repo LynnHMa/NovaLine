@@ -4,15 +4,18 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using NovaLine.Element;
 using NovaLine.Editor.Utils;
+using System.Linq;
+using NovaLine.Editor.Graph.Edge;
+using NovaLine.Utils.Interface;
 
 namespace NovaLine.Editor.Graph.Node
 {
-    [Serializable]
-    public class GraphNode : UnityEditor.Experimental.GraphView.Node
+    public abstract class GraphNode : UnityEditor.Experimental.GraphView.Node,IGraphNode
     {
         protected virtual Color themedColor => Color.white;
-
-        public virtual string guid => linkedElement.guid;
+        public virtual Vector2 pos => new Vector2(base.GetPosition().x, base.GetPosition().y);
+        public virtual string guid => linkedElement?.guid;
+        public override string title => linkedElement?.getActualName();
 
         private NovaElement _linkedElement;
         public virtual NovaElement linkedElement
@@ -25,9 +28,7 @@ namespace NovaLine.Editor.Graph.Node
             }
         }
 
-        public override string title => linkedElement?.getActualName();
-
-        public virtual Vector2 pos => new Vector2(base.GetPosition().x, base.GetPosition().y);
+        string IGUID.guid { get => guid; set { return; } }
 
         private ObjectInspectorWrapper wrapper;
 
@@ -107,7 +108,7 @@ namespace NovaLine.Editor.Graph.Node
         }
         public GraphNode(NovaElement element, Vector2 pos) : this()
         {
-            SetPosition(new Rect(pos.x, pos.y, 200, 150));
+            SetPosition(pos);
             linkedElement = element;
         }
         public void SetPosition(Vector2 pos)
@@ -117,7 +118,7 @@ namespace NovaLine.Editor.Graph.Node
         public override void OnSelected()
         {
             base.OnSelected();
-            NovaGraphWindow.nodeInInspector = this;
+            NovaWindow.SelectedGraphNode = this;
 
             if (linkedElement == null) return;
 
@@ -132,9 +133,9 @@ namespace NovaLine.Editor.Graph.Node
         public override void OnUnselected()
         {
             base.OnUnselected();
-            NovaGraphWindow.nodeInInspector = null;
+            NovaWindow.SelectedGraphNode = null;
 
-            var activeRoot = NovaGraphWindow.getMainWindowInstance()?.currentOpenedGraphView?.graphView?.root;
+            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
 
             if (activeRoot == null) return;
 
@@ -146,15 +147,50 @@ namespace NovaLine.Editor.Graph.Node
 
             Selection.activeObject = wrapper;
         }
+        public Color getThemedColor()
+        {
+            return Color.green;
+        }
         public virtual string getType()
         {
             return "[Default]";
         }
         public virtual void addPort()
         {
+            RefreshExpandedState();
+            RefreshPorts();
         }
         public virtual void removePort()
         {
+            if (inputContainer.childCount > 0 && outputContainer.childCount > 0)
+            {
+                var input = inputContainer[0] as UnityEditor.Experimental.GraphView.Port;
+                var output = outputContainer[0] as UnityEditor.Experimental.GraphView.Port;
+                var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
+                if (currentGraphView != null)
+                {
+                    var inputConnections = input.connections.ToList();
+                    for (var i = inputConnections.Count() - 1; i >= 0; i--)
+                    {
+                        var ei = inputConnections[i] as IGraphEdge;
+                        if (ei != null)
+                        {
+                            currentGraphView.removeGraphEdge(ei);
+                        }
+                    }
+
+                    var outputConnections = output.connections.ToList();
+                    for (var i = outputConnections.Count() - 1; i >= 0; i--)
+                    {
+                        var eo = outputConnections[i] as IGraphEdge;
+                        if (eo != null)
+                        {
+                            currentGraphView.removeGraphEdge(eo);
+                        }
+                    }
+                }
+            }
+
             inputContainer.Clear();
             outputContainer.Clear();
             RefreshExpandedState();
@@ -186,8 +222,18 @@ namespace NovaLine.Editor.Graph.Node
                 badgeToRemove.RemoveFromHierarchy();
             }
         }
+
+        public virtual void update()
+        {
+            title = linkedElement?.getActualName();
+        }
+
         protected virtual void onDoubleClick(MouseDownEvent evt)
         {
         }
+    }
+    public interface IGraphNode : IGUID
+    {
+        void update();
     }
 }

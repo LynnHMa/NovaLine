@@ -4,21 +4,21 @@ namespace NovaLine.Action
     using System.Threading.Tasks;
     using NovaLine.Element;
     using NovaLine.Switcher;
+    using UnityEngine;
 
     [Serializable]
     public class NovaAction : NovaElement,INovaAction
     {
-        public static NovaAction EMPTY_ACTION = new();
-
         protected Action chainedAction;
+
+        public ActionType type = ActionType.Sort;
 
         public Condition conditionBeforeInvoke;
 
         public Condition conditionAfterInvoke;
 
+        [HideInInspector]
         public ActionSwitcher nextAction;
-
-        public ActionType type = ActionType.Sort;
 
         public NovaAction()
         {
@@ -33,6 +33,8 @@ namespace NovaLine.Action
         public NovaAction(string name,string guid) : this(name)
         {
             this.guid = guid;
+            conditionBeforeInvoke = new(this);
+            conditionAfterInvoke = new(this);
         }
 
         public override string getType()
