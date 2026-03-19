@@ -4,12 +4,13 @@ using UnityEngine;
 namespace NovaLine.Editor.Graph.Edge
 {
     using NovaLine.Editor.Utils;
+    using NovaLine.Editor.Window;
     using NovaLine.Element;
     using NovaLine.Switcher;
 
     public class NodeGraphEdge : GraphEdge<Node,NodeSwitcher>
     {
-        protected override Color themedColor => ColorExt.red;
+        protected override Color themedColor => ColorExt.NODE_THEMED_COLOR;
         public NodeGraphEdge() : base()
         {
         }
@@ -24,28 +25,9 @@ namespace NovaLine.Editor.Graph.Edge
 
             NovaWindow.SelectedGraphEdge = this;
 
-            wrapper = ObjectInspectorWrapper.CreateInstance(linkedElement);
+            if (linkedElement == null) return;
 
-            wrapper.hideFlags = HideFlags.DontSave;
-
-            wrapper.name = "Next Node";
-            var parentSwitcher = linkedElement;
-            linkedElement = parentSwitcher == null ? generateNewLinkedElement() : parentSwitcher;
-
-            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
-            if (activeRoot != null && activeRoot is NovaElement currentElement)
-            {
-                var p = currentElement.parent;
-                while (p != null)
-                {
-                    wrapper.parentNodes.Add(p);
-                    p = p.parent;
-                }
-                wrapper.parentNodes.Reverse();
-            }
-            wrapper.parentNodes.Add(activeRoot);
-
-            Selection.activeObject = wrapper;
+            linkedElement.ShowInInspector();
         }
         public override void OnUnselected()
         {
@@ -53,15 +35,11 @@ namespace NovaLine.Editor.Graph.Edge
 
             NovaWindow.SelectedGraphEdge = null;
 
-            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
+            var activeRoot = (NovaElement)NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.linkedElement;
 
             if (activeRoot == null) return;
 
-            wrapper = ObjectInspectorWrapper.CreateInstance(activeRoot);
-
-            wrapper.hideFlags = HideFlags.DontSave;
-
-            Selection.activeObject = wrapper;
+            activeRoot.ShowInInspector();
         }
     }
 }

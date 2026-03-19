@@ -1,12 +1,10 @@
-﻿using System;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UIElements;
 using NovaLine.Element;
-using NovaLine.Editor.Utils;
 using System.Linq;
 using NovaLine.Editor.Graph.Edge;
 using NovaLine.Utils.Interface;
+using NovaLine.Editor.Window;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -27,10 +25,9 @@ namespace NovaLine.Editor.Graph.Node
                 base.title = value?.getActualName();
             }
         }
+        public bool isPassable = true;
 
         string IGUID.guid { get => guid; set { return; } }
-
-        private ObjectInspectorWrapper wrapper;
 
         public GraphNode()
         {
@@ -122,34 +119,18 @@ namespace NovaLine.Editor.Graph.Node
 
             if (linkedElement == null) return;
 
-            wrapper = ObjectInspectorWrapper.CreateInstance(linkedElement);
-
-            wrapper.hideFlags = HideFlags.DontSave;
-
-            wrapper.name = getType();
-
-            Selection.activeObject = wrapper;
+            linkedElement.ShowInInspector();
         }
         public override void OnUnselected()
         {
             base.OnUnselected();
             NovaWindow.SelectedGraphNode = null;
 
-            var activeRoot = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.root;
+            var rootElement = (NovaElement)NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.linkedElement;
 
-            if (activeRoot == null) return;
+            if (rootElement == null) return;
 
-            wrapper = ObjectInspectorWrapper.CreateInstance(activeRoot);
-
-            wrapper.hideFlags = HideFlags.DontSave;
-
-            wrapper.name = getType();
-
-            Selection.activeObject = wrapper;
-        }
-        public Color getThemedColor()
-        {
-            return Color.green;
+            rootElement.ShowInInspector();
         }
         public virtual string getType()
         {

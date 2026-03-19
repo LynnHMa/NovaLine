@@ -2,12 +2,15 @@
 using NovaLine.Switcher;
 using System;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace NovaLine.Event
 {
     [Serializable]
     public class NovaEvent : NovaElement,INovaEvent
     {
+        [HideInInspector]
+        public EventSwitcher nextEvent;
         public NovaEvent()
         {
             guid = Guid.NewGuid().ToString();
@@ -24,7 +27,12 @@ namespace NovaLine.Event
         }
         public virtual async Task onEvent()
         {
-            await Task.CompletedTask;
+            if (parent != null && parent is Condition parentCondition && parentCondition.type == ConditionType.Sort)
+            {
+                var nextEvent = (NovaEvent)this.nextEvent.inputElement;
+                await nextEvent?.onEvent();
+            }
+            else await Task.CompletedTask;
         }
 
         public override string getType()
@@ -34,20 +42,14 @@ namespace NovaLine.Event
 
         public override void onGraphConnect(INovaSwitcher graphEdge)
         {
-            if (graphEdge is EventSwitcher eventSwitcher && parent is Condition parentCondition)
+            if (graphEdge is EventSwitcher eventSwitcher)
             {
-                var outputEvent = eventSwitcher.outputElement as NovaEvent;
-                var inputEvent = eventSwitcher.inputElement as NovaEvent;
-                if (outputEvent != null && inputEvent != null)
-                {
-                    var oIndex = parentCondition.novaEvents.FindIndex(e => e.guid == outputEvent.guid);
-                    var iIndex = oIndex + 1;
-                    if(iIndex >= 0)
-                    {
-                        parentCondition?.novaEvents?.Insert(iIndex, inputEvent);
-                    }
-                }
+                nextEvent = eventSwitcher;
             }
+        }
+        public override void onGraphDisconnect(INovaSwitcher graphEdge)
+        {
+            nextEvent = null;
         }
     }
     public interface INovaEvent

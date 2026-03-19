@@ -1,13 +1,11 @@
 ﻿
 namespace NovaLine.Editor.Graph.Edge
 {
-    using System;
     using UnityEditor.Experimental.GraphView;
     using NovaLine.Editor.Graph.Port;
     using NovaLine.Element;
     using NovaLine.Switcher;
     using UnityEngine;
-    using NovaLine.Editor.Utils;
     using UnityEngine.UIElements;
     using NovaLine.Utils.Interface;
 
@@ -16,8 +14,6 @@ namespace NovaLine.Editor.Graph.Edge
         protected virtual Color themedColor => Color.green;
         public virtual EE linkedElement { get; set; }
         public virtual string guid => linkedElement?.guid;
-
-        protected ObjectInspectorWrapper wrapper;
 
         private VisualElement arrowElement;
 

@@ -1,9 +1,8 @@
 using NovaLine.Element;
-using NovaLine.Editor.Graph.View;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using NovaLine.Utils;
+using NovaLine.Utils.Ext;
 using NovaLine.Editor.Graph.Data.Edge;
 
 namespace NovaLine.Editor.Graph.Data.NodeGraphView
@@ -21,12 +20,12 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
             get => _linkedElement;
             set => _linkedElement = value;
         }
-        public override EList<NodeData> nodeDatas
+        public override List<NodeData> nodeDatas
         {
             get => _nodeDatas != null ? new(_nodeDatas) : new();
             set => _nodeDatas = value != null ? new(value) : new();
         }
-        public override EList<NodeEdgeData> edgeDatas
+        public override List<NodeEdgeData> edgeDatas
         {
             get => _edgeDatas != null ? new(_edgeDatas) : new();
             set => _edgeDatas = value != null ? new(value) : new();
@@ -41,18 +40,6 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
         {
             guid = Guid.NewGuid().ToString();
             linkedElement = new Flowchart("New Flowchart");
-        }
-    }
-    [CreateAssetMenu]
-    public class FlowchartDataAsset : ScriptableObject
-    {
-        public FlowchartData data;
-
-        public static FlowchartDataAsset CreateInstance(FlowchartData data = null)
-        {
-            var result = CreateInstance<FlowchartDataAsset>();
-            result.data = data == null ? new FlowchartData() : data;
-            return result;
         }
     }
 }

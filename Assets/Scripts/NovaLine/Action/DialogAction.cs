@@ -9,13 +9,18 @@ namespace NovaLine.Action
     public class DialogAction : NovaAction
     {
         public Character character;
+
         [TextArea]
         public string content;
 
-        public override Task invoke()
+        public DialogAction() : base()
+        {
+        }
+
+        public override async Task invoke()
         {
             //todo character dialogue.
-            return base.invoke();
+            await base.invoke();
         }
 
         public override string getType()

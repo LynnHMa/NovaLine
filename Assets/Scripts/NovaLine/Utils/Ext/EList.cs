@@ -1,8 +1,7 @@
 ﻿using NovaLine.Utils.Interface;
-using System;
 using System.Collections.Generic;
 
-namespace NovaLine.Utils
+namespace NovaLine.Utils.Ext
 {
     public class EList<T> : List<T> where T : IGUID
     {
@@ -10,7 +9,8 @@ namespace NovaLine.Utils
         public EList(IEnumerable<T> source) : base(source) { }
         public new void Add(T e)
         {
-            if(Find(c => c.guid.Equals(e.guid)) == null) base.Add(e);
+            if (e == null || e.guid == null) return;
+            if (Get(e.guid) == null) base.Add(e);
         }
         public void Remove(string guid)
         {
@@ -18,7 +18,8 @@ namespace NovaLine.Utils
         }
         public T Get(string guid)
         {
-            return Find(c => c.guid.Equals(guid));
+            if (guid == null) return default;
+            return Find(c => c != null && c.guid != null && c.guid.Equals(guid));
         }
     }
     public static class EListUtils

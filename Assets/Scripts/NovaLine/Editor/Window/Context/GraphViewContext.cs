@@ -1,14 +1,14 @@
 ﻿using NovaLine.Editor.Graph.Edge;
 using NovaLine.Editor.Graph.Node;
 using NovaLine.Editor.Graph.View;
-using System;
-using UnityEditor.Experimental.GraphView;
 using static NovaLine.Editor.Window.Context.ContextInfo;
-using System.Linq;
-using NovaLine.Utils.Interface;
-using NovaLine.Utils;
 using NovaLine.Editor.Graph.Data.NodeGraphView;
 using NovaLine.Editor.Graph.Data.Edge;
+using NovaLine.Utils.Interface;
+using System;
+using NovaLine.Utils.Ext;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 
 namespace NovaLine.Editor.Window.Context
 {
@@ -25,7 +25,7 @@ namespace NovaLine.Editor.Window.Context
             this.graphView = graphView;
             this.linkedData = linkedData;
         }
-        public bool hasDrawn { get; set; } = false;
+        public virtual bool hasDrawn { get; set; } = false;
         private GV _graphView;
         public virtual GV graphView
         {
@@ -39,6 +39,7 @@ namespace NovaLine.Editor.Window.Context
                 _graphView = value;
             }
         }
+        public virtual ContextType type { get; set; } = ContextType.NONE;
         public virtual GVND linkedData { get; set; }
         public virtual string title => graphView?.getActualName();
         public virtual string guid => linkedData?.guid;
@@ -53,7 +54,7 @@ namespace NovaLine.Editor.Window.Context
             where C : IGraphViewContext
             where ED : IEdgeData, new()
         {
-            if (linkedData == null || graphView == null || window == null) return;
+            if (linkedData == null || graphView == null || window == null || !hasDrawn) return;
 
             saveNode<N, C>();
             saveEdge<ED>();
@@ -71,7 +72,7 @@ namespace NovaLine.Editor.Window.Context
                 {
                     if (checkingGraphNode == null) continue;
 
-                    var context = NovaWindow.GetContext(checkingGraphNode);
+                    var context = NovaWindow.GetContext(checkingGraphNode, type + 1);
                     if (context == null || context is not C childContext) continue;
 
                     childContext.save();
@@ -106,11 +107,6 @@ namespace NovaLine.Editor.Window.Context
         public virtual void draw()
         {
             if (window == null || hasDrawn) return;
-
-            if (graphView == null)
-            {
-
-            }
 
             drawNode();
             drawEdge();
@@ -156,8 +152,18 @@ namespace NovaLine.Editor.Window.Context
         public string title { get; }
         public INovaGraphView graphView { get; set; }
         public IGraphViewNodeData linkedData { get; set; }
+        public ContextType type { get; set; }
         public void save();
         public void draw();
+    }
+    public enum ContextType
+    {
+        NONE,
+        FLOWCHART,
+        NODE,
+        ACTION,
+        CONDITION,
+        EVENT
     }
     public class ContextInfo : Attribute
     {

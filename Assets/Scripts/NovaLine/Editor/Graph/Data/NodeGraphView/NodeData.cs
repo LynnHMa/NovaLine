@@ -6,7 +6,6 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
     using NovaLine.Element;
     using NovaLine.Editor.Graph.View;
     using UnityEngine;
-    using NovaLine.Utils;
     using NovaLine.Editor.Graph.Data.Edge;
 
     [Serializable]
@@ -23,12 +22,12 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
             get => _linkedElement;
             set => _linkedElement = value;
         }
-        public override EList<ActionData> nodeDatas
+        public override List<ActionData> nodeDatas
         {
             get => _nodeDatas != null ? new(_nodeDatas) : new();
             set => _nodeDatas = value != null ? new(value) : new();
         }
-        public override EList<ActionEdgeData> edgeDatas
+        public override List<ActionEdgeData> edgeDatas
         {
             get => _edgeDatas != null ? new(_edgeDatas) : new();
             set => _edgeDatas = value != null ? new(value) : new();
@@ -52,7 +51,7 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
         public NodeData(NodeGraphView nodeGraphView, Vector2 pos)
         {
             this.pos = pos;
-            linkedElement = nodeGraphView.root;
+            linkedElement = nodeGraphView.linkedElement;
             startGraphNodeGuid = linkedElement.firstAction?.guid;
             conditionBeforeInvokeData = new ConditionData(linkedElement?.conditionBeforeInvoke);
             conditionAfterInvokeData = new ConditionData(linkedElement?.conditionAfterInvoke);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using NovaLine.Action;
 using NovaLine.Switcher;
-using NovaLine.Utils;
+using NovaLine.Utils.Ext;
 using UnityEngine;
 
 namespace NovaLine.Element
@@ -16,10 +16,10 @@ namespace NovaLine.Element
         public Condition conditionAfterInvoke;
 
         [HideInInspector]
-        public EList<NodeSwitcher> nextNodes  = new();
+        public List<NodeSwitcher> nextNodes  = new();
 
         [HideInInspector]
-        public EList<NovaAction> actions = new();
+        public List<NovaAction> actions = new();
 
         [HideInInspector]
         public NovaAction firstAction;

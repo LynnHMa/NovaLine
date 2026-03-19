@@ -23,6 +23,8 @@ namespace NovaLine.Action
         public NovaAction()
         {
             guid = Guid.NewGuid().ToString();
+            conditionBeforeInvoke = new(this);
+            conditionAfterInvoke = new(this);
         }
 
         public NovaAction(string name) : this()
@@ -33,8 +35,6 @@ namespace NovaLine.Action
         public NovaAction(string name,string guid) : this(name)
         {
             this.guid = guid;
-            conditionBeforeInvoke = new(this);
-            conditionAfterInvoke = new(this);
         }
 
         public override string getType()
@@ -45,12 +45,15 @@ namespace NovaLine.Action
         public virtual async Task invoke()
         {
             await conditionBeforeInvoke.waiting();
+
             chainedAction?.Invoke();
+
             await conditionAfterInvoke.waiting();
-            var next = (NovaAction)nextAction?.outputElement;
+
+            var next = (NovaAction)nextAction?.inputElement;
             if (next != null)
             {
-                await next.invoke();
+                await next?.invoke();
             }
             else await Task.CompletedTask;
         }

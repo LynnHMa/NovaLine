@@ -4,16 +4,16 @@ using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using static NovaWindow;
 using System;
-using NovaLine.Editor.Graph.Data.NodeGraphView;
 using NovaLine.Editor.Window.Context;
 
 namespace NovaLine.Editor.File
 {
-    public class NovaFileManager
+    public class EditorFileManager
     {
         private static readonly string CURRENT_PATH_SESSION_PATH_KEY = "NOVA_CURRENT_PATH";
         private static readonly string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
-        private static string currentPath
+        private static readonly string CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT_TYPE";
+        private static string CurrentPath
         {
             get => SessionState.GetString(CURRENT_PATH_SESSION_PATH_KEY, string.Empty);
             set => SessionState.SetString(CURRENT_PATH_SESSION_PATH_KEY, value);
@@ -23,48 +23,68 @@ namespace NovaLine.Editor.File
             get => SessionState.GetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, string.Empty);
             set => SessionState.SetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, value);
         }
+        public static ContextType CurrentContextType
+        {
+            get => (ContextType) Enum.Parse(typeof(ContextType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "NONE"));
+            set => SessionState.SetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, value.ToString());
+        }
 
         private static FlowchartDataAsset _currentAsset;
         private static FlowchartDataAsset currentAsset
         {
             get
             {
-                if (_currentAsset == null && !string.IsNullOrEmpty(currentPath))
-                    _currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(currentPath);
+                if (_currentAsset == null && !string.IsNullOrEmpty(CurrentPath))
+                    _currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
                 return _currentAsset;
             }
             set => _currentAsset = value;
         }
 
+        //Fuck u Unity!
+        //ScriptableObject is depending on runtime assembly,but it's unconvenient to move all of data script to that assembly.
+        //Just force reloading domain after Unity lanughing.....Sorry....I dislike this fucking engine...
+        [InitializeOnLoadMethod]
+        private static void Init()
+        {
+            if (!SessionState.GetBool("Initialized", false))
+            {
+                SessionState.SetBool("Initialized", true);
+
+                EditorApplication.delayCall += () =>
+                {
+                    EditorUtility.RequestScriptReload();
+                };
+            }
+        }
+
         [OnOpenAsset]
         public static bool LoadFlowchartDataAsset(int instanceID, int line)
         {
-            var obj = EditorUtility.InstanceIDToObject(instanceID);
+            var path = AssetDatabase.GetAssetPath(instanceID);
+            if (string.IsNullOrEmpty(path))
+                return false;
 
-            if (obj is FlowchartDataAsset flowchartDataAsset)
+            var asset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(path);
+            if (asset == null)
             {
-                currentAsset = flowchartDataAsset;
-                currentPath = AssetDatabase.GetAssetPath(flowchartDataAsset);
-
-                CreateGraphWindow();
-
-                var window = GetMainWindowInstance();
-
-                if (window == null)
-                {
-                    Debug.LogError("Failed to create new window!");
-                    return false;
-                }
-
-                var flowchartData = flowchartDataAsset.data;
-                var flowchartContext = new FlowchartContext(flowchartData);
-
-                LoadContextInWindow(flowchartContext);
-
-                return true;
+                Debug.LogError($"Failed to load asset at path: {path}");
+                return false;
             }
 
-            return false;
+            if (asset.data == null)
+            {
+                Debug.LogError("FlowchartDataAsset.data is null");
+                return false;
+            }
+
+            currentAsset = asset;
+            CurrentPath = path;
+
+            CreateGraphWindow();
+
+            LoadContextInWindow(new FlowchartContext(asset.data));
+            return true;
         }
 
         [Shortcut("NovaLine/Save", typeof(NovaWindow), KeyCode.S, ShortcutModifiers.Action)]
@@ -81,22 +101,22 @@ namespace NovaLine.Editor.File
             if (flowchartContext == null || flowchartContext.linkedData == null || currentContext == null || currentContext.linkedData == null)
                 return;
 
-            if (string.IsNullOrEmpty(currentPath))
+            if (string.IsNullOrEmpty(CurrentPath))
             {
-                currentPath = EditorUtility.SaveFilePanelInProject(
+                CurrentPath = EditorUtility.SaveFilePanelInProject(
                     "Save Flowchart",
                     flowchartContext.linkedData.name,
                     "asset",
                     "Save Flowchart"
                 );
 
-                if (string.IsNullOrEmpty(currentPath))
+                if (string.IsNullOrEmpty(CurrentPath))
                     return;
             }
 
-            if (!currentPath.EndsWith(".asset"))
+            if (!CurrentPath.EndsWith(".asset"))
             {
-                Debug.LogError("Invalid save path! Only .asset allowed: " + currentPath);
+                Debug.LogError("Invalid save path! Only .asset allowed: " + CurrentPath);
                 return;
             }
 
@@ -105,12 +125,12 @@ namespace NovaLine.Editor.File
 
             if (currentAsset == null)
             {
-                currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(currentPath);
+                currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
 
                 if (currentAsset == null)
                 {
                     currentAsset = FlowchartDataAsset.CreateInstance(flowchartContext.linkedData);
-                    AssetDatabase.CreateAsset(currentAsset, currentPath);
+                    AssetDatabase.CreateAsset(currentAsset, CurrentPath);
                 }
             }
 
@@ -124,7 +144,7 @@ namespace NovaLine.Editor.File
 
         public static void RestoreAfterDomainReload()
         {
-            var path = currentPath;
+            var path = CurrentPath;
             if (string.IsNullOrEmpty(path)) return;
             var asset = currentAsset;
             if (asset == null) return;
@@ -135,11 +155,12 @@ namespace NovaLine.Editor.File
 
             //Re-register all contexts
             var storedCurrentContextGuid = CurrentContextGuid;
+            var storedCurrentContextType = CurrentContextType;
             LoadContextInWindow(flowchartContext);
 
             if (!flowchartContext.guid.Equals(storedCurrentContextGuid))
             {
-                var toOpenContext = GetContext(storedCurrentContextGuid);
+                var toOpenContext = GetContext(storedCurrentContextGuid, storedCurrentContextType);
                 if (toOpenContext == null) return;
                 LoadContextInWindow(toOpenContext);
             }
@@ -165,7 +186,7 @@ namespace NovaLine.Editor.File
                 AssetDatabase.SaveAssets();
 
                 currentAsset = dataAsset;
-                currentPath = path;
+                CurrentPath = path;
 
                 return dataAsset;
             }

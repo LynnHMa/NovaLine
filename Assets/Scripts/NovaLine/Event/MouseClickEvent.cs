@@ -7,12 +7,12 @@ namespace NovaLine.Event
     [Serializable]
     public class MouseClickEvent : NovaEvent
     {
-        public readonly static MouseClickEvent LEFT_CLICK = new MouseClickEvent(0);
-        public readonly static MouseClickEvent RIGHT_CLICK = new MouseClickEvent(1);
-        public readonly static MouseClickEvent MIDDLE_CLICK = new MouseClickEvent(2);
-
         public int mouse;
-        public MouseClickEvent(int mouse)
+        public MouseClickEvent() : base()
+        {
+            mouse = 0;
+        }
+        public MouseClickEvent(int mouse) : base()
         {
             this.mouse = mouse;
         }

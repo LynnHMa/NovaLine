@@ -7,6 +7,7 @@ namespace NovaLine.Editor.Window.Context
     [ContextInfo(AsNode.True, AsGraphView.False)]
     public class EventContext : GraphViewContext<IObject, EventData>
     {
+        public override ContextType type => ContextType.EVENT;
         public EventContext(EventData linkedData) : base(linkedData) { }
         public override void save()
         {

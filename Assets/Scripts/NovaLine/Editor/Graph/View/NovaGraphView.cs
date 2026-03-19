@@ -16,15 +16,15 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Switcher;
     using NovaLine.Editor.Graph.Port;
     using System.Collections;
-    using NovaLine.Utils;
     using NovaLine.Editor.Window.Context;
+    using NovaLine.Utils.Ext;
 
     public abstract class NovaGraphView<N,E,PE,EE> : GraphView, INovaGraphView where N : GraphNode where E : NovaElement where PE : NovaElement where EE : NovaSwitcher
     {
-        public virtual E root { get; set; }
+        public virtual E linkedElement { get; set; }
         public EList<N> graphNodes { get; set; } = new();
         public EList<IGraphEdge> graphEdges { get; set; } = new();
-        public new string name => root?.name;
+        public new string name => linkedElement?.name;
 
         private N _firstNode;
         public virtual N firstNode
@@ -40,9 +40,9 @@ namespace NovaLine.Editor.Graph.View
         IList INovaGraphView.graphNodes { get => graphNodes; set => graphNodes = value as EList<N>; }
         IList INovaGraphView.graphEdges { get => graphEdges; set => graphEdges = value as EList<IGraphEdge>; }
         GraphNode INovaGraphView.firstNode { get => firstNode; set => firstNode = value as N; }
-        INovaElement INovaGraphView.root { get => root; set => root = value as E; }
+        INovaElement INovaGraphView.linkedElement { get => linkedElement; set => linkedElement = value as E; }
 
-        protected NovaGraphView(E root,string name)
+        protected NovaGraphView(E linkedElement,string name)
         {
             Insert(0, new GridBackground());
 
@@ -56,7 +56,7 @@ namespace NovaLine.Editor.Graph.View
             unserializeAndPaste = OnUnserializeAndPaste;
             graphViewChanged += OnGraphViewChanged;
 
-            this.root = root;
+            this.linkedElement = linkedElement;
         }
         protected virtual string getType()
         {
@@ -86,7 +86,7 @@ namespace NovaLine.Editor.Graph.View
                 || inputGraphNode.inputContainer.childCount == 0 || inputGraphNode.outputContainer.childCount == 0
                 || outputGraphNode.inputContainer.childCount == 0 || outputGraphNode.outputContainer.childCount == 0)
             {
-                Debug.LogError("Cant find input or output node!");
+                Debug.LogError("Can't find input or output node!");
                 return default;
             }
 
@@ -95,7 +95,7 @@ namespace NovaLine.Editor.Graph.View
 
             if (inputPort == null || outputPort == null)
             {
-                Debug.LogError("Cant find port!");
+                Debug.LogError("Can't find port!");
                 return default;
             }
 
@@ -120,48 +120,59 @@ namespace NovaLine.Editor.Graph.View
             return summonNewGraphEdge((EE)switcher);
         }
 
-        public virtual void addGraphEdge(IGraphEdge graphEdge,bool isInit = false,bool autoSave = true)
+        public virtual void addGraphEdge(IGraphEdge graphEdge,bool isLoading = false,bool autoSave = true)
         {
             if (graphEdge is not GraphEdge<PE, EE> toAdd) return;
 
             graphEdges?.Add(toAdd);
             AddElement(toAdd);
+            graphEdge.linkedElement.parent = linkedElement;
+
+            if (!isLoading)
+            {
+                update();
+            }
         }
         public virtual void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
         {
             if (graphEdge is not GraphEdge<PE, EE> toRemove) return;
-
             graphEdges?.Remove(toRemove);
             toRemove.input.DisconnectAll();
             toRemove.output.DisconnectAll();
             RemoveElement(toRemove);
+
+            update();
         }
-        public virtual void addGraphNode(GraphNode graphNode,bool isInit = false,bool autoSave = true)
+        public virtual void addGraphNode(GraphNode graphNode,bool isLoading = false,bool autoSave = true)
         {
             if (graphNode is not N toAdd) return;
 
-            toAdd.linkedElement.parent = root;
+            toAdd.linkedElement.parent = linkedElement;
             graphNodes?.Add(toAdd);
             AddElement(toAdd);
+            setNodeUnpassable(toAdd);
             toAdd.update();
 
-            if (!isInit)
+            if (!isLoading)
             {
                 NovaWindow.RegisterContext(summonNewChildGraphContext((PE)toAdd.linkedElement, graphNode.pos));
+                update();
             }
         }
         public virtual void removeGraphNode(GraphNode graphNode,bool autoSave = true)
         {
             if (graphNode is not N toRemove) return;
 
-            var window = NovaWindow.GetMainWindowInstance();
-            if (window != null)
-            {
-                NovaWindow.RegisterContext(NovaWindow.GetContext(graphNode));
-            }
-
             graphNodes?.Remove(toRemove);
             RemoveElement(toRemove);
+
+            update();
+        }
+        public virtual void selectGraphNode(string guid)
+        {
+            var toSelectGraphNode = getExistingGraphNode(guid);
+            if (toSelectGraphNode == null) return;
+            AddToSelection(toSelectGraphNode);
         }
         public virtual N getExistingGraphNode(string guid)
         {
@@ -189,7 +200,7 @@ namespace NovaLine.Editor.Graph.View
                 }
             }
             NovaWindow.UpdateContext();
-            NovaFileManager.SaveGraphWindowData();
+            EditorFileManager.SaveGraphWindowData();
             return change;
         }
         protected virtual string OnSerializeGraphElements(IEnumerable<GraphElement> elements)
@@ -226,7 +237,7 @@ namespace NovaLine.Editor.Graph.View
                     AddToSelection(n);
                 }
             }
-            NovaFileManager.SaveGraphWindowData();
+            EditorFileManager.SaveGraphWindowData();
         }
         protected virtual bool OnCanPaste(string data)
         {
@@ -234,10 +245,58 @@ namespace NovaLine.Editor.Graph.View
         }
         public virtual void update()
         {
-            foreach(var graphNode in graphNodes)
+            updateNodes();
+
+            updateEdges();
+        }
+        protected virtual void updateNodes()
+        {
+            if (firstNode == null && graphNodes.Count != 0)
             {
+                firstNode = graphNodes[0];
+            }
+
+            foreach (var graphNode in graphNodes)
+            {
+                setNodeUnpassable(graphNode);
                 graphNode.update();
             }
+            setNodePassable(firstNode);
+        }
+        protected virtual void updateEdges()
+        {
+            foreach (var graphEdge in graphEdges)
+            {
+                var inputGraphNode = getExistingGraphNode(graphEdge.linkedElement.inputElement.guid);
+                var outputGraphNode = getExistingGraphNode(graphEdge.linkedElement.outputElement.guid);
+
+                if (inputGraphNode == null || outputGraphNode == null) continue;
+
+                if (!inputGraphNode.isPassable || !outputGraphNode.isPassable) setEdgeUnpassable((GraphEdge<PE, EE>)graphEdge);
+                else setEdgePassable((GraphEdge<PE, EE>)graphEdge);
+            }
+        }
+        protected virtual void setNodePassable(N graphNode)
+        {
+            if (graphNode == null) return;
+            graphNode.style.opacity = 1f;
+            graphNode.isPassable = true;
+        }
+        protected virtual void setNodeUnpassable(N graphNode)
+        {
+            if (graphNode == null) return;
+            graphNode.style.opacity = 0.5f;
+            graphNode.isPassable = false;
+        }
+        protected virtual void setEdgePassable(GraphEdge<PE,EE> edge)
+        {
+            if (edge == null) return;
+            edge.style.opacity = 1f;
+        }
+        protected virtual void setEdgeUnpassable(GraphEdge<PE,EE> edge)
+        {
+            if (edge == null) return;
+            edge.style.opacity = 0.5f;
         }
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -280,7 +339,7 @@ namespace NovaLine.Editor.Graph.View
     }
     public interface INovaGraphView
     {
-        public INovaElement root { get; set; }
+        public INovaElement linkedElement { get; set; }
         public IList graphNodes { get; set; }
         public IList graphEdges { get; set; }
         public GraphNode firstNode { get; set; }
@@ -290,6 +349,7 @@ namespace NovaLine.Editor.Graph.View
         public void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true);
         public void addGraphNode(GraphNode graphNode, bool isInit = false, bool autoSave = true);
         public void removeGraphNode(GraphNode graphNode, bool autoSave = true);
+        public void selectGraphNode(string guid);
         string getActualName();
         void update();
     }

@@ -2,6 +2,7 @@
 using NovaLine.Editor.Graph.View;
 using static NovaLine.Editor.Window.Context.ContextInfo;
 using NovaLine.Editor.Graph.Data.NodeGraphView;
+using UnityEngine;
 using NovaLine.Editor.Graph.Data.Edge;
 
 namespace NovaLine.Editor.Window.Context
@@ -9,6 +10,7 @@ namespace NovaLine.Editor.Window.Context
     [ContextInfo(AsNode.False, AsGraphView.True)]
     public class FlowchartContext : GraphViewContext<FlowchartGraphView, FlowchartData>
     {
+        public override ContextType type => ContextType.FLOWCHART;
         public FlowchartContext(FlowchartData linkedData) : base(linkedData) { }
         public FlowchartContext(FlowchartGraphView graphView, FlowchartData linkedData) : base(graphView, linkedData) { }
 

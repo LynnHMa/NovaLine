@@ -4,7 +4,6 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
 {
     using NovaLine.Editor.Graph.Data.Edge;
     using NovaLine.Element;
-    using NovaLine.Utils;
     using System.Collections.Generic;
     using UnityEngine;
 
@@ -14,12 +13,12 @@ namespace NovaLine.Editor.Graph.Data.NodeGraphView
         [SerializeReference] private List<EventData> _nodeDatas = new();
         [SerializeReference] private List<EventEdgeData> _edgeDatas = new();
 
-        public override EList<EventData> nodeDatas
+        public override List<EventData> nodeDatas
         {
             get => _nodeDatas != null ? new (_nodeDatas) : new();
             set => _nodeDatas = value != null ? new(value) : new();
         }
-        public override EList<EventEdgeData> edgeDatas
+        public override List<EventEdgeData> edgeDatas
         {
             get => _edgeDatas != null ? new(_edgeDatas) : new();
             set => _edgeDatas = value != null ? new(value) : new();

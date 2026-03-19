@@ -1,17 +1,17 @@
 ﻿using UnityEngine;
-using System;
 
 namespace NovaLine.Editor.Graph.View
 {
-    using NovaLine.Element;
+    using NovaLine.Editor.File;
+    using NovaLine.Editor.Graph.Data.NodeGraphView;
+    using NovaLine.Editor.Graph.Edge;
     using NovaLine.Editor.Graph.Node;
+    using NovaLine.Editor.Window.Context;
+    using NovaLine.Element;
+    using NovaLine.Event;
     using NovaLine.Switcher;
     using System.Linq;
-    using NovaLine.Editor.File;
-    using NovaLine.Editor.Graph.Edge;
-    using NovaLine.Event;
-    using NovaLine.Editor.Window.Context;
-    using NovaLine.Editor.Graph.Data.NodeGraphView;
+
     public class ConditionGraphView : NovaGraphView<EventGraphNode,Condition,NovaEvent,EventSwitcher>
     {
         public override EventGraphNode firstNode
@@ -23,13 +23,46 @@ namespace NovaLine.Editor.Graph.View
             set
             {
                 base.firstNode = value;
-                root.firstEvent = (NovaEvent)value.linkedElement;
+                linkedElement.firstEvent = (NovaEvent)value.linkedElement;
             }
         }
-        public ConditionGraphView(Condition root) : base(root,root.name) { }
+        public ConditionGraphView(Condition linkedCondition) : base(linkedCondition,linkedCondition?.name) { }
         protected override string getType()
         {
             return "[Condition]";
+        }
+        protected override void setNodePassable(EventGraphNode graphNode)
+        {
+            if (graphNode == null || graphNode.isPassable || graphNode.linkedElement is not NovaEvent novaEvent) return;
+
+            base.setNodePassable(graphNode);
+
+            if (novaEvent.nextEvent == null || linkedElement.type != ConditionType.Sort) return;
+
+            var eventSwitcher = novaEvent.nextEvent;
+
+            if (eventSwitcher.inputElement == null || eventSwitcher.outputElement == null) return;
+
+            setNodePassable(getExistingGraphNode(eventSwitcher.inputElement.guid));
+        }
+        protected override void setNodeUnpassable(EventGraphNode graphNode)
+        {
+            if (graphNode == null || !graphNode.isPassable || graphNode.linkedElement is not NovaEvent novaEvent || linkedElement.type != ConditionType.Sort) return;
+
+            base.setNodeUnpassable(graphNode);
+
+            if (novaEvent.nextEvent == null) return;
+
+            var eventSwitcher = novaEvent.nextEvent;
+
+            if (eventSwitcher.inputElement == null || eventSwitcher.outputElement == null) return;
+
+            setNodeUnpassable(getExistingGraphNode(eventSwitcher.inputElement.guid));
+        }
+        protected override void setEdgeUnpassable(GraphEdge<NovaEvent, EventSwitcher> edge)
+        {
+            if (edge == null) return;
+            edge.style.opacity = 0.2f;
         }
         public override EventGraphNode summonNewGraphNode(Vector2 pos)
         {
@@ -49,13 +82,37 @@ namespace NovaLine.Editor.Graph.View
         {
             return summonAndConnectEdge<EventGraphEdge>((EventSwitcher)switcher);
         }
+        protected override void updateNodes()
+        {
+            if(linkedElement?.type != ConditionType.Sort)
+            {
+                foreach (var eventGraphNode in graphNodes)
+                {
+                    if (eventGraphNode == null) continue;
+                    setNodePassable(eventGraphNode);
+                }
+            }
+            else base.updateNodes();
+        }
+        protected override void updateEdges()
+        {
+            if(linkedElement?.type != ConditionType.Sort)
+            {
+                foreach(var graphEdge in graphEdges)
+                {
+                    if (graphEdge == null || graphEdge is not EventGraphEdge eventEdge) continue;
+                    setEdgeUnpassable(eventEdge);
+                }
+            }
+            else base.updateEdges();
+        }
         public override void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true)
         {
             base.addGraphEdge(graphEdge, isLoading, autoSave);
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
@@ -64,7 +121,7 @@ namespace NovaLine.Editor.Graph.View
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true)
@@ -73,24 +130,24 @@ namespace NovaLine.Editor.Graph.View
 
             if (!isLoading)
             {
-                root.novaEvents.Add((NovaEvent)graphNode.linkedElement);
-                
+                linkedElement.novaEvents.Add((NovaEvent)graphNode.linkedElement);
             }
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void removeGraphNode(GraphNode graphNode, bool autoSave = true)
         {
             base.removeGraphNode(graphNode, autoSave);
 
-            root.novaEvents.Remove((NovaEvent)graphNode.linkedElement);
+            linkedElement.novaEvents.Remove((NovaEvent)graphNode.linkedElement);
+            NovaWindow.UnregisterContext(graphNode.guid,ContextType.EVENT);
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
     }

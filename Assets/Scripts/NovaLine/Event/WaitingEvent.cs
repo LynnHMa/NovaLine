@@ -7,7 +7,11 @@ namespace NovaLine.Event
     public class WaitingEvent : NovaEvent
     {
         public int ms;
-        public WaitingEvent(int ms)
+        public WaitingEvent() : base()
+        {
+            ms = 1000;
+        }
+        public WaitingEvent(int ms) : base()
         {
             this.ms = ms;
         }
@@ -15,6 +19,7 @@ namespace NovaLine.Event
         public override async Task onEvent()
         {
             await Task.Delay(ms);
+            await base.onEvent();
         }
 
         public override string getType()

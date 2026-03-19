@@ -4,40 +4,37 @@ namespace NovaLine.Editor.Utils
 {
     using System.Collections.Generic;
     using UnityEngine;
-    using UnityEngine.UI;
 
     public class ObjectInspectorWrapper : ScriptableObject
     {
         [SerializeReference]
-        public List<object> parentNodes = new();
+        public List<object> parentElements = new();
 
         [SerializeReference]
-        public object selectedNodeInfo;
+        public object selectedElement;
 
-        [SerializeReference]
-        public Toggle setToStart;
-
-        public static ObjectInspectorWrapper CreateInstance(object selectedNodeInfo)
+        public static ObjectInspectorWrapper CreateInstance(object selectObj)
         {
-            var result = CreateInstance<ObjectInspectorWrapper>();
+            var wrapper = CreateInstance<ObjectInspectorWrapper>();
 
-            result.hideFlags = HideFlags.DontSave;
-            result.name = "Selected Node";
+            wrapper.hideFlags = HideFlags.DontSave;
 
-            result.selectedNodeInfo = selectedNodeInfo;
-
-            if (selectedNodeInfo is NovaElement currentElement)
+            if (selectObj is NovaElement selectedElement)
             {
-                var p = currentElement.parent;
+                wrapper.selectedElement = selectedElement;
+
+                var p = selectedElement.parent;
                 while (p != null)
                 {
-                    result.parentNodes.Add(p);
+                    wrapper.parentElements.Add(p);
                     p = p.parent;
                 }
-                result.parentNodes.Reverse();
+                wrapper.parentElements.Reverse();
+
+                wrapper.name = selectedElement.getActualName();
             }
 
-            return result;
+            return wrapper;
         }
     }
 }

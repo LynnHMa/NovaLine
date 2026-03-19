@@ -8,7 +8,11 @@ namespace NovaLine.Event
     public class GetKeyEvent : NovaEvent
     {
         public KeyCode keyCode;
-        public GetKeyEvent(KeyCode keyCode)
+        public GetKeyEvent() : base()
+        {
+            keyCode = KeyCode.None;
+        }
+        public GetKeyEvent(KeyCode keyCode) : base()
         {
             this.keyCode = keyCode;
         }

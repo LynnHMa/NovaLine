@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NovaLine.Utils
+namespace NovaLine.Utils.Ext
 {
     public static class TaskExt
     {

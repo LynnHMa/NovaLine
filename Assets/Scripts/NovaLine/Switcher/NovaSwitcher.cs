@@ -6,19 +6,13 @@ using UnityEngine;
 namespace NovaLine.Switcher
 {
     [Serializable]
-    public class NovaSwitcher : INovaSwitcher
+    public class NovaSwitcher : NovaElement,INovaSwitcher
     {
-        //Ignore it,just for unity bug fixing.
-        [SerializeField, HideInInspector]
-        private bool fuckUnity;
-
-        [SerializeReference] private NovaElement _inputElement;
-        [SerializeReference] private NovaElement _outputElement;
-        [SerializeField]     private string _guid;
+        [SerializeReference,HideInInspector] private NovaElement _inputElement;
+        [SerializeReference, HideInInspector] private NovaElement _outputElement;
 
         public NovaElement inputElement  { get => _inputElement;  set => _inputElement  = value; }
         public NovaElement outputElement { get => _outputElement; set => _outputElement = value; }
-        public string guid               { get => _guid;          set => _guid          = value; }
         public NovaSwitcher()
         {
             guid = Guid.NewGuid().ToString();
@@ -28,6 +22,15 @@ namespace NovaLine.Switcher
             this.inputElement = inputElement;
             this.outputElement = outputElement;
             this.guid = guid;
+        }
+
+        public override string getType()
+        {
+            return "[Edge]";
+        }
+        public override string getActualName()
+        {
+            return getType() + " " + "Next Node";
         }
     }
     public interface INovaSwitcher : IGUID

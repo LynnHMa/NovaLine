@@ -1,5 +1,4 @@
-﻿
-using NovaLine.Action;
+﻿using NovaLine.Action;
 using NovaLine.Editor.Graph.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -11,7 +10,7 @@ namespace NovaLine.Editor.Graph.Node
 {
     public class ActionGraphNode : GraphNode
     {
-        protected override Color themedColor => ColorExt.orange;
+        protected override Color themedColor => ColorExt.ACTION_THEMED_COLOR;
         public ActionGraphNode(NovaAction action, Vector2 pos) : base(action, pos)
         {
         }

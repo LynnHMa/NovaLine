@@ -9,6 +9,7 @@ namespace NovaLine.Editor.Window.Context
     [ContextInfo(AsNode.False, AsGraphView.True)]
     public class ConditionContext : GraphViewContext<ConditionGraphView, ConditionData>
     {
+        public override ContextType type => ContextType.CONDITION;
         public ConditionContext(ConditionData linkedData) : base(linkedData) { }
         public ConditionContext(ConditionGraphView graphView, ConditionData linkedData) : base(graphView, linkedData) { }
 

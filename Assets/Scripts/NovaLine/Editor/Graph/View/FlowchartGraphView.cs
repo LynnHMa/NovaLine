@@ -20,18 +20,44 @@
             set
             {
                 base.firstNode = value;
-                root.firstNode = (Node)value.linkedElement;
+                linkedElement.firstNode = (Node)value.linkedElement;
             }
         }
-        public FlowchartGraphView(Flowchart root) : base(root,root.name) {
+        public FlowchartGraphView(Flowchart linkedFlowchart) : base(linkedFlowchart,linkedFlowchart?.name) {
         }
         protected override string getType()
         {
             return "[Flowchart]";
         }
+        protected override void setNodePassable(NodeGraphNode graphNode)
+        {
+            if (graphNode == null || graphNode.isPassable || graphNode.linkedElement is not Node node || node.nextNodes == null) return;
+
+            base.setNodePassable(graphNode);
+
+            foreach (var nodeSwitcher in node.nextNodes)
+            {
+                if (nodeSwitcher.inputElement == null || nodeSwitcher.outputElement == null) continue;
+                setNodePassable(getExistingGraphNode(nodeSwitcher.inputElement.guid));
+            }
+        }
+        protected override void setNodeUnpassable(NodeGraphNode graphNode)
+        {
+            if (graphNode == null || !graphNode.isPassable) return;
+
+            base.setNodeUnpassable(graphNode);
+
+            if (graphNode == null || graphNode.linkedElement is not Node node || node.nextNodes == null) return;
+
+            foreach (var nodeSwitcher in node.nextNodes)
+            {
+                if (nodeSwitcher.inputElement == null || nodeSwitcher.outputElement == null) continue;
+                setNodeUnpassable(getExistingGraphNode(nodeSwitcher.inputElement.guid));
+            }
+        }
         public override NodeGraphNode summonNewGraphNode(Vector2 pos)
         {
-            return new NodeGraphNode(new Node(root.nodes.Count.ToString()), pos);
+            return new NodeGraphNode(new Node(linkedElement.nodes.Count.ToString()), pos);
         }
         public override NodeGraphNode summonNewGraphNode(Node node, Vector2 pos)
         {
@@ -40,7 +66,7 @@
         public override IGraphViewContext summonNewChildGraphContext(Node node,Vector2 pos)
         {
             var newGraphView = new NodeGraphView(node);
-            return new NodeContext(new NodeData(newGraphView,pos));
+            return new NodeContext(newGraphView,new NodeData(newGraphView,pos));
         }
         public override IGraphEdge summonNewGraphEdge(INovaSwitcher switcher)
         {
@@ -50,18 +76,28 @@
         {
             base.addGraphEdge(graphEdge, isLoading, autoSave);
 
+            if (!isLoading)
+            {
+                if (graphEdge is NodeGraphEdge nodeGraphEdge)
+                {
+                    NovaWindow.RegisterContext(new ConditionContext(new ConditionData(nodeGraphEdge.linkedElement.switchCondition)));
+                }
+            }
+
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
         {
             base.removeGraphEdge(graphEdge, autoSave);
 
+            NovaWindow.UnregisterContext(((NodeSwitcher)graphEdge.linkedElement).switchCondition.guid,ContextType.CONDITION);
+
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true)
@@ -70,23 +106,24 @@
 
             if (!isLoading)
             {
-                root.nodes.Add((Node)graphNode.linkedElement);
+                linkedElement.nodes.Add((Node)graphNode.linkedElement);
             }
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
         public override void removeGraphNode(GraphNode graphNode, bool autoSave = true)
         {
             base.removeGraphNode(graphNode, autoSave);
 
-            root.nodes.Remove((Node)graphNode.linkedElement);
+            linkedElement.nodes.Remove((Node)graphNode.linkedElement);
+            NovaWindow.UnregisterContext(graphNode.guid, ContextType.NODE);
 
             if (autoSave)
             {
-                NovaFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveGraphWindowData();
             }
         }
     }

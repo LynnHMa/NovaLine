@@ -1,9 +1,9 @@
 ﻿using NovaLine.Editor.File;
-using NovaLine.Editor.Graph.Data.NodeGraphView;
 using NovaLine.Editor.Graph.Edge;
 using NovaLine.Editor.Graph.Node;
+using NovaLine.Editor.Window;
 using NovaLine.Editor.Window.Context;
-using NovaLine.Utils;
+using NovaLine.Utils.Ext;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -42,7 +42,7 @@ public class NovaWindow : EditorWindow
 
         if (!EditorApplication.isCompiling)
         {
-            NovaFileManager.SaveGraphWindowData();
+            EditorFileManager.SaveGraphWindowData();
         }
 
         EditorApplication.delayCall += () =>
@@ -55,18 +55,19 @@ public class NovaWindow : EditorWindow
     private void tryRestoreAfterReload()
     {
         if (currentGraphViewContext != null) return;
-        NovaFileManager.RestoreAfterDomainReload();
+        EditorFileManager.RestoreAfterDomainReload();
     }
     private void onBeforeAssemblyReload()
     {
         if (!EditorApplication.isCompiling)
         {
-            NovaFileManager.SaveGraphWindowData();
+            EditorFileManager.SaveGraphWindowData();
         }
     }
     private void onInspectorObjValueChange()
     {
         currentGraphViewContext?.graphView.update();
+        UpdateWindowTitle();
     }
     protected void registerContext(IGraphViewContext graphViewContext)
     {
@@ -131,7 +132,6 @@ public class NovaWindow : EditorWindow
                 var eventContext = new EventContext(eventData);
                 registerContext(eventContext);
             }
-            Debug.Log("registered : " + conditionContext.guid);
             registeredConditionContexts.Add(conditionContext);
         }
         else if(graphViewContext is EventContext eventContext)
@@ -139,9 +139,9 @@ public class NovaWindow : EditorWindow
             registeredEventContexts.Add(eventContext);
         }
     }
-    protected void unregisterContext(string contextGuid)
+    protected void unregisterContext(string contextGuid, NovaLine.Editor.Window.Context.ContextType type)
     {
-        unregisterContext(getContext(contextGuid));
+        unregisterContext(getContext(contextGuid, type));
     }
     protected void unregisterContext(IGraphViewContext graphViewContext)
     {
@@ -149,11 +149,11 @@ public class NovaWindow : EditorWindow
         {
             foreach (var nodeData in flowchartContext.linkedData.nodeDatas)
             {
-                unregisterContext(nodeData.guid);
+                unregisterContext(nodeData.guid, NovaLine.Editor.Window.Context.ContextType.NODE);
             }
             foreach (var nodeEdgeData in flowchartContext.linkedData.edgeDatas)
             {
-                unregisterContext(nodeEdgeData.guid);
+                unregisterContext(nodeEdgeData.guid, NovaLine.Editor.Window.Context.ContextType.CONDITION);
             }
             registeredFlowchartContext = null;
         }
@@ -161,23 +161,23 @@ public class NovaWindow : EditorWindow
         {
             foreach (var actionData in nodeContext.linkedData.nodeDatas)
             {
-                unregisterContext(actionData.guid);
+                unregisterContext(actionData.guid, NovaLine.Editor.Window.Context.ContextType.ACTION);
             }
-            unregisterContext(nodeContext.linkedData?.conditionBeforeInvokeData?.guid);
-            unregisterContext(nodeContext.linkedData?.conditionAfterInvokeData?.guid);
+            unregisterContext(nodeContext.linkedData?.conditionBeforeInvokeData?.guid,NovaLine.Editor.Window.Context.ContextType.CONDITION);
+            unregisterContext(nodeContext.linkedData?.conditionAfterInvokeData?.guid, NovaLine.Editor.Window.Context.ContextType.CONDITION);
             registeredNodeContexts.Remove(nodeContext);
         }
         else if(graphViewContext is ActionContext actionContext)
         {
-            unregisterContext(actionContext.linkedData?.conditionBeforeInvokeData?.guid);
-            unregisterContext(actionContext.linkedData?.conditionAfterInvokeData?.guid);
+            unregisterContext(actionContext.linkedData?.conditionBeforeInvokeData?.guid, NovaLine.Editor.Window.Context.ContextType.CONDITION);
+            unregisterContext(actionContext.linkedData?.conditionAfterInvokeData?.guid, NovaLine.Editor.Window.Context.ContextType.CONDITION);
             registeredActionContexts.Remove(actionContext);
         }
         else if(graphViewContext is ConditionContext conditionContext)
         {
             foreach (var eventData in conditionContext.linkedData.nodeDatas)
             {
-                unregisterContext(eventData.guid);
+                unregisterContext(eventData.guid,NovaLine.Editor.Window.Context.ContextType.EVENT);
             }
             registeredConditionContexts.Remove(conditionContext);
         }
@@ -186,17 +186,18 @@ public class NovaWindow : EditorWindow
             registeredEventContexts.Remove(eventContext);
         }
     }
-    protected IGraphViewContext getContext(GraphNode graphNode)
+    protected IGraphViewContext getContext(GraphNode graphNode, NovaLine.Editor.Window.Context.ContextType type)
     {
-        return getContext(graphNode?.guid);
+        return getContext(graphNode?.guid,type);
     }
-    protected IGraphViewContext getContext(string guid)
+    protected IGraphViewContext getContext(string guid, NovaLine.Editor.Window.Context.ContextType type)
     {
-        if (registeredFlowchartContext.guid.Equals(guid)) return registeredFlowchartContext;
-        else if (registeredNodeContexts.Get(guid) != null) return registeredNodeContexts.Get(guid);
-        else if (registeredActionContexts.Get(guid) != null) return registeredActionContexts.Get(guid);
-        else if(registeredConditionContexts.Get(guid) != null) return registeredConditionContexts.Get(guid);
-        else if(registeredEventContexts.Get(guid) != null) return registeredEventContexts.Get(guid);
+        if (type == NovaLine.Editor.Window.Context.ContextType.NONE) return null;
+        else if (registeredFlowchartContext.guid.Equals(guid) && type.Equals(NovaLine.Editor.Window.Context.ContextType.FLOWCHART)) return registeredFlowchartContext;
+        else if (registeredNodeContexts.Get(guid) != null && type.Equals(NovaLine.Editor.Window.Context.ContextType.NODE)) return registeredNodeContexts.Get(guid);
+        else if (registeredActionContexts.Get(guid) != null && type.Equals(NovaLine.Editor.Window.Context.ContextType.ACTION)) return registeredActionContexts.Get(guid);
+        else if(registeredConditionContexts.Get(guid) != null && type.Equals(NovaLine.Editor.Window.Context.ContextType.CONDITION)) return registeredConditionContexts.Get(guid);
+        else if(registeredEventContexts.Get(guid) != null && type.Equals(NovaLine.Editor.Window.Context.ContextType.EVENT)) return registeredEventContexts.Get(guid);
         else return null;
     }
 
@@ -213,7 +214,7 @@ public class NovaWindow : EditorWindow
     [MenuItem("NovaLine/New Flowchart")]
     public static void NewFlowchartInWindow()
     {
-        var newDataAsset = NovaFileManager.CreateNewFlowchartAsset();
+        var newDataAsset = EditorFileManager.CreateNewFlowchartAsset();
         if (newDataAsset == null) return;
         var newFlowchartData = newDataAsset.data;
         var newContext = new FlowchartContext(newFlowchartData);
@@ -226,7 +227,7 @@ public class NovaWindow : EditorWindow
     [MenuItem("NovaLine/Exit Child Graph View")]
     public static bool ExitChildGraphView()
     {
-        NovaFileManager.SaveGraphWindowData();
+        EditorFileManager.SaveGraphWindowData();
         var currentWindow = GetMainWindowInstance();
         if (currentWindow.currentGraphViewContext == null || currentWindow.lastGraphViewContext == null)
         {
@@ -238,7 +239,10 @@ public class NovaWindow : EditorWindow
 
     public static void LoadContextInWindow(IGraphViewContext context, bool isExiting = false)
     {
-        if(GetMainWindowInstance() == null) CreateGraphWindow();
+        var graphView = (GraphView)context.graphView;
+        if (graphView == null) return;
+
+        if (GetMainWindowInstance() == null) CreateGraphWindow();
         var window = GetMainWindowInstance();
 
         //Register flowchart and its children
@@ -259,22 +263,55 @@ public class NovaWindow : EditorWindow
 
         if (isExiting)
         {
-            window.loadedGraphViewContexts.RemoveAt(0);
+            //Reselect the graph node in parent graph view.
+            var presentContext = window.loadedGraphViewContexts[0];
+            if (presentContext != null)
+            {
+                if(presentContext is ConditionContext conditionContext)
+                {
+                    context.graphView?.selectGraphNode(conditionContext.linkedData?.linkedElement?.parent?.guid);
+                }
+                else
+                {
+                    context.graphView?.selectGraphNode(presentContext.guid);
+                }
+
+                //Remove present context from loaded list.
+                window.loadedGraphViewContexts.RemoveAt(0);
+            }
         }
         else
         {
+            //Multi condition contexts are not allowed,so we need to clean all of other them.
+            if (context is ConditionContext)
+            {
+                window.loadedGraphViewContexts.RemoveAll(context => context.type == NovaLine.Editor.Window.Context.ContextType.CONDITION);
+            }
+
+            //Let's load new context :)
             window.loadedGraphViewContexts.Insert(0, context);
+
+            SelectedGraphEdge = null;
+            SelectedGraphNode = null;
+
+            //Update linked element of current context.
+            var linkedContextElement = context.linkedData.linkedElement;
+            linkedContextElement?.ShowInInspector();
+
+            //Init the context.
             context.draw();
         }
 
-        var graphView = (GraphView)context.graphView;
-        if (graphView == null) return;
+        //Update all of graph elements.
+        context.graphView.update();
 
+        //Add this graph view to opened window,make sure u can see it.
         window.rootVisualElement.Add(graphView);
         graphView.StretchToParentSize();
 
         UpdateWindowTitle();
-        NovaFileManager.CurrentContextGuid = context.guid;
+        EditorFileManager.CurrentContextGuid = context.guid;
+        EditorFileManager.CurrentContextType = context.type;
     }
 
     public static void UpdateWindowTitle()
@@ -295,13 +332,13 @@ public class NovaWindow : EditorWindow
         window.registerContext(context);
     }
 
-    public static void UnregisterContext(string contextGuid)
+    public static void UnregisterContext(string contextGuid, NovaLine.Editor.Window.Context.ContextType type)
     {
         var window = GetMainWindowInstance();
 
         if (window == null) return;
 
-        window.unregisterContext(contextGuid);
+        window.unregisterContext(contextGuid,type);
     }
 
     public static void UnregisterContext(IGraphViewContext context)
@@ -313,22 +350,22 @@ public class NovaWindow : EditorWindow
         window.unregisterContext(context);
     }
 
-    public static IGraphViewContext GetContext(GraphNode graphNode)
+    public static IGraphViewContext GetContext(GraphNode graphNode, NovaLine.Editor.Window.Context.ContextType type)
     {
         var window = GetMainWindowInstance();
 
         if (window == null) return null;
 
-        return window.getContext(graphNode);
+        return window.getContext(graphNode, type);
     }
 
-    public static IGraphViewContext GetContext(string contextGuid)
+    public static IGraphViewContext GetContext(string contextGuid, NovaLine.Editor.Window.Context.ContextType type)
     {
         var window = GetMainWindowInstance();
 
         if (window == null) return null;
 
-        return window.getContext(contextGuid);
+        return window.getContext(contextGuid, type);
     }
 
     public static void UpdateContext()

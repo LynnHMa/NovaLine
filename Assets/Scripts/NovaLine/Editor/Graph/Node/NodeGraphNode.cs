@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 using NovaLine.Editor.Graph.Port;
 using NovaLine.Editor.Graph.Edge;
 using UnityEditor.Experimental.GraphView;
@@ -12,7 +11,7 @@ namespace NovaLine.Editor.Graph.Node
 {
     public class NodeGraphNode : GraphNode
     {
-        protected override Color themedColor => ColorExt.red;
+        protected override Color themedColor => ColorExt.NODE_THEMED_COLOR;
         public NodeGraphNode(Element.Node node, Vector2 pos) : base(node, pos)
         {
             addPort();
@@ -30,11 +29,7 @@ namespace NovaLine.Editor.Graph.Node
         {
             if (evt.clickCount == 2)
             {
-                var window = NovaWindow.GetMainWindowInstance();
-                
-                if (window == null) return;
-
-                var nodeContext = (NodeContext)NovaWindow.GetContext(this);
+                var nodeContext = (NodeContext)NovaWindow.GetContext(this,Window.Context.ContextType.NODE);
 
                 if(nodeContext != null)
                 {

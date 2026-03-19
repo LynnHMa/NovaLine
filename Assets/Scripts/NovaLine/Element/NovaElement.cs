@@ -9,19 +9,18 @@ namespace NovaLine.Element
     public class NovaElement : INovaElement
     {
         //Ignore it,just for unity bug fixing.
-        [SerializeField, HideInInspector]
-        private bool fuckUnity;
+        [SerializeField, HideInInspector] private bool fuckUnity;
+
+        [SerializeReference, HideInInspector] private string _guid;
+        [SerializeReference, HideInInspector] private NovaElement _parent;
 
         public string name;
         [TextArea]
         public string describtion;
 
-        [SerializeField, HideInInspector] private string _guid;
         public virtual string guid { get => _guid; set => _guid = value; }
-
-        [HideInInspector]
-        public INovaElement parent;
-        INovaElement INovaElement.parent { get => parent; set => parent = value; }
+        public virtual NovaElement parent { get => _parent; set => _parent = value;}
+        NovaElement INovaElement.parent { get => parent; set => parent = value; }
         public virtual void onGraphConnect(INovaSwitcher graphEdge) { }
         public virtual void onGraphDisconnect(INovaSwitcher graphEdge) { }
 
@@ -42,6 +41,6 @@ namespace NovaLine.Element
     }
     public interface INovaElement : IGUID
     {
-        public INovaElement parent { get; set; }
+        public NovaElement parent { get; set; }
     }
 }

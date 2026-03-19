@@ -1,4 +1,3 @@
-using NovaLine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,7 +9,7 @@ namespace NovaLine.Element
     public class Flowchart : NovaElement
     {
         [HideInInspector]
-        public EList<Node> nodes = new();
+        public List<Node> nodes = new();
 
         [HideInInspector]
         public Node firstNode;
@@ -22,7 +21,7 @@ namespace NovaLine.Element
         {
             this.name = name;
         }
-        public Flowchart(string name, string describtion, EList<Node> nodes,string guid)
+        public Flowchart(string name, string describtion, List<Node> nodes,string guid)
         {
             this.name = name;
             this.describtion = describtion;

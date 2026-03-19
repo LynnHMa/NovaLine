@@ -8,7 +8,7 @@ namespace NovaLine.Editor.Graph.Edge
 
     public class ActionGraphEdge : GraphEdge<NovaAction, ActionSwitcher>
     {
-        protected override Color themedColor => ColorExt.orange;
+        protected override Color themedColor => ColorExt.ACTION_THEMED_COLOR;
         public ActionGraphEdge() : base()
         {
         }

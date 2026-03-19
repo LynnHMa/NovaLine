@@ -3,14 +3,47 @@ namespace NovaLine.Editor.Utils
     using UnityEditor;
     using UnityEngine;
     using NovaLine.Element;
-    using NovaLine.Switcher;
     using NovaLine.Action;
     using NovaLine.Editor.File;
     using NovaLine.Event;
+    using System;
 
     [CustomEditor(typeof(ObjectInspectorWrapper))]
     public class ObjectInspectorWrapperEditor : Editor
     {
+        private static GUIStyle SELECTED_ELEMENT_STYLE;
+
+        private static GUIStyle SELECTED_PARENT_ELEMENT_STYLE;
+
+        private static GUIStyle ARROW_STYLE;
+
+        private void OnEnable()
+        {
+            SELECTED_ELEMENT_STYLE = new GUIStyle()
+            {
+                fontSize = 20,
+                fontStyle = FontStyle.Bold,
+                normal = new GUIStyleState() { textColor = ColorExt.NODE_THEMED_COLOR },
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            SELECTED_PARENT_ELEMENT_STYLE = new GUIStyle()
+            {
+                fontSize = 20,
+                fontStyle = FontStyle.Bold,
+                normal = new GUIStyleState() { textColor = ColorExt.ACTION_THEMED_COLOR },
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            ARROW_STYLE = new GUIStyle()
+            {
+                fontSize = 35,
+                fontStyle = FontStyle.Bold,
+                normal = new GUIStyleState() { textColor = ColorExt.ACTION_THEMED_COLOR },
+                alignment = TextAnchor.MiddleCenter
+            };
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -23,129 +56,29 @@ namespace NovaLine.Editor.Utils
         {
             try
             {
-                var parentsProp = serializedObject.FindProperty("parentNodes");
-                var selectedProp = serializedObject.FindProperty("selectedNodeInfo");
-                var currentStyle = new GUIStyle()
-                {
-                    fontSize = 20,
-                    fontStyle = FontStyle.Bold,
-                    normal = new GUIStyleState() { textColor = ColorExt.light_red },
-                    alignment = TextAnchor.MiddleCenter
-                };
+                var parentsProp = serializedObject.FindProperty("parentElements");
+                var selectedProp = serializedObject.FindProperty("selectedElement");
 
-                var parentStyle = new GUIStyle()
-                {
-                    fontSize = 20,
-                    fontStyle = FontStyle.Bold,
-                    normal = new GUIStyleState() { textColor = ColorExt.orange },
-                    alignment = TextAnchor.MiddleCenter
-                };
-
-                var arrowStyle = new GUIStyle()
-                {
-                    fontSize = 35,
-                    fontStyle = FontStyle.Bold,
-                    normal = new GUIStyleState() { textColor = Color.yellow },
-                    alignment = TextAnchor.MiddleCenter
-                };
-
+                //Draw parent elements
                 if (parentsProp.arraySize > 0)
                 {
                     EditorGUILayout.Space(15);
 
                     for (int i = 0; i < parentsProp.arraySize; i++)
                     {
-                        EditorGUILayout.Space(30);
+                        var parentItemProp = parentsProp.GetArrayElementAtIndex(i);
 
-                        SerializedProperty parentItemProp = parentsProp.GetArrayElementAtIndex(i);
+                        drawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
 
-                        var parentElement = parentItemProp.managedReferenceValue as NovaElement;
-
-                        parentItemProp.isExpanded = true;
-
-                        if (parentElement == null) continue;
-
-                        EditorGUILayout.LabelField(parentElement.getActualName(), parentStyle);
-
-                        EditorGUILayout.PropertyField(parentItemProp, GUIContent.none, true);
-
-                        EditorGUILayout.Space(30);
-                        EditorGUILayout.LabelField("↓", arrowStyle);
+                        EditorGUILayout.LabelField("↓", ARROW_STYLE);
                     }
                 }
-
-                EditorGUILayout.Space(30);
-
-                if (selectedProp != null && selectedProp.managedReferenceValue is NovaElement selectedElement)
-                {
-                    EditorGUILayout.LabelField(selectedElement?.getActualName(), currentStyle);
-
-                    // 绘制多态下拉框
-                    if (selectedElement is NovaAction)
-                    {
-                        SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
-                    }
-                    else if (selectedElement is NovaEvent)
-                    {
-                        SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
-                    }
-
-                    selectedProp.isExpanded = true;
-
-                    SerializedProperty iterator = selectedProp.Copy();
-                    SerializedProperty endProperty = iterator.GetEndProperty();
-
-                    if (iterator.NextVisible(true))
-                    {
-                        do
-                        {
-                            EditorGUILayout.Space(30);
-                            if (SerializedProperty.EqualContents(iterator, endProperty))
-                                break;
-
-                            if (iterator.name == "conditionBeforeInvoke" || iterator.name == "conditionAfterInvoke")
-                            {
-                                EditorGUILayout.PropertyField(iterator, false);
-                                if (GUILayout.Button("Edit", GUILayout.Height(30)))
-                                {
-                                    loadConditionContext(iterator);
-                                }
-                            }
-                            else
-                            {
-                                // 默认画出来
-                                EditorGUILayout.PropertyField(iterator, true);
-                            }
-
-                        }
-                        while (iterator.NextVisible(false));
-                    }
-
-                    EditorGUILayout.Space(30);
-
-                    if (GUILayout.Button("Set To Start", GUILayout.Height(30)) && NovaWindow.SelectedGraphNode != null)
-                    {
-                        var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
-                        if (currentGraphView != null)
-                        {
-                            currentGraphView.firstNode = NovaWindow.SelectedGraphNode;
-                            NovaFileManager.SaveGraphWindowData();
-                        }
-                    }
-
-                    EditorGUILayout.Space(30);
-                }
-                else if (selectedProp != null && selectedProp.managedReferenceValue is NodeSwitcher selectedSwitcher)
-                {
-                    EditorGUILayout.LabelField("Selected Edge Info", currentStyle);
-
-                    selectedProp.isExpanded = true;
-
-                    EditorGUILayout.PropertyField(selectedProp, GUIContent.none, true);
-                }
+                //Draw selected element
+                drawElement(selectedProp, SELECTED_ELEMENT_STYLE);
             }
-            catch
+            catch(Exception e)
             {
+                Debug.LogError("There is a error in drawing elements!" + e.StackTrace);
             }
         }
         private void loadConditionContext(SerializedProperty conditionPropery)
@@ -153,12 +86,82 @@ namespace NovaLine.Editor.Utils
             var targetCondition = conditionPropery.boxedValue as Condition;
             if (targetCondition != null)
             {
-                Debug.Log("guid: " + targetCondition.guid);
-                var conditionContext = NovaWindow.GetContext(targetCondition.guid);
+                var conditionContext = NovaWindow.GetContext(targetCondition.guid,Window.Context.ContextType.CONDITION);
+                conditionContext.linkedData.linkedElement.name = conditionPropery.name.Contains("Before") ? "Before" : "After";
                 if (conditionContext != null)
                 {
                     NovaWindow.LoadContextInWindow(conditionContext);
                 }
+            }
+        }
+
+        private void drawElement(SerializedProperty selectedProp, GUIStyle style)
+        {
+            if (selectedProp == null) return;
+            var selectedElement = selectedProp.managedReferenceValue as NovaElement;
+            if (selectedElement != null)
+            {
+                EditorGUILayout.Space(30);
+
+                EditorGUILayout.LabelField(selectedElement.getActualName(), style);
+
+                // 绘制多态下拉框
+                if (selectedElement is NovaAction)
+                {
+                    SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
+                }
+                else if (selectedElement is NovaEvent)
+                {
+                    SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
+                }
+
+                selectedProp.isExpanded = true;
+
+                SerializedProperty iterator = selectedProp.Copy();
+                SerializedProperty endProperty = iterator.GetEndProperty();
+
+                if (iterator.NextVisible(true))
+                {
+                    do
+                    {
+                        EditorGUILayout.Space(10);
+                        if (SerializedProperty.EqualContents(iterator, endProperty))
+                            break;
+
+                        if (iterator.name == "conditionBeforeInvoke" || iterator.name == "conditionAfterInvoke")
+                        {
+                            EditorGUILayout.PropertyField(iterator, false);
+                            if (GUILayout.Button("Edit", GUILayout.Height(30)))
+                            {
+                                loadConditionContext(iterator);
+                            }
+                        }
+                        else
+                        {
+                            // 默认画出来
+                            EditorGUILayout.PropertyField(iterator, true);
+                        }
+
+                    }
+                    while (iterator.NextVisible(false));
+                }
+
+                if (NovaWindow.SelectedGraphNode != null && NovaWindow.SelectedGraphNode.linkedElement.guid.Equals(selectedElement.guid) && NovaWindow.SelectedGraphNode.inputContainer.childCount != 0 && NovaWindow.SelectedGraphNode.outputContainer.childCount != 0)
+                {
+                    EditorGUILayout.Space(30);
+                    if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
+                    {
+                        var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
+                        if (currentGraphView != null)
+                        {
+                            currentGraphView.firstNode = NovaWindow.SelectedGraphNode;
+                            currentGraphView.update();
+                            EditorFileManager.SaveGraphWindowData();
+                        }
+                    }
+                    EditorGUILayout.Space(30);
+                }
+
             }
         }
 

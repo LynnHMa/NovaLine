@@ -7,6 +7,7 @@ namespace NovaLine.Editor.Window.Context
     [ContextInfo(AsNode.True, AsGraphView.False)]
     public class ActionContext : GraphViewContext<IObject, ActionData>
     {
+        public override ContextType type => ContextType.ACTION;
         public ActionContext(ActionData linkedData) : base(linkedData) { }
         public override void save()
         {
