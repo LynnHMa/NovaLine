@@ -1,9 +1,9 @@
-﻿using NovaLine.Event;
-using NovaLine.Switcher;
+﻿using NovaLine.Switcher;
 using NovaLine.Utils.Ext;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NovaLine.Element.Event;
 using UnityEngine;
 
 namespace NovaLine.Element
@@ -11,7 +11,8 @@ namespace NovaLine.Element
     [Serializable]
     public class Condition : NovaElement
     {
-        public ConditionType type = ConditionType.All;
+        public ConditionType conditionType = ConditionType.All;
+        public override NovaElementType type => NovaElementType.CONDITION;
 
         [HideInInspector]
         public List<NovaEvent> novaEvents = new();
@@ -26,14 +27,14 @@ namespace NovaLine.Element
         {
             this.parent = parent;
         }
-        public override string getType()
+        public override string getTypeName()
         {
             return "[Condition]";
         }
         public async Task waiting()
         {
             var waitingTasks = getWaitingTasks();
-            switch (type)
+            switch (conditionType)
             {
                 case ConditionType.All:
                     await waitingTasks.RunAll();

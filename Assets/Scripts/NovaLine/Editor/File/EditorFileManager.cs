@@ -2,9 +2,12 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
-using static NovaWindow;
 using System;
 using NovaLine.Editor.Window.Context;
+using static NovaWindow;
+using static NovaLine.Editor.Window.WindowContextRegistry;
+using NovaLine.File;
+using NovaLine.Element;
 
 namespace NovaLine.Editor.File
 {
@@ -23,9 +26,9 @@ namespace NovaLine.Editor.File
             get => SessionState.GetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, string.Empty);
             set => SessionState.SetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, value);
         }
-        public static ContextType CurrentContextType
+        public static NovaElementType CurrentContextType
         {
-            get => (ContextType) Enum.Parse(typeof(ContextType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "NONE"));
+            get => (NovaElementType) Enum.Parse(typeof(NovaElementType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "NONE"));
             set => SessionState.SetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, value.ToString());
         }
 
@@ -39,23 +42,6 @@ namespace NovaLine.Editor.File
                 return _currentAsset;
             }
             set => _currentAsset = value;
-        }
-
-        //Fuck u Unity!
-        //ScriptableObject is depending on runtime assembly,but it's unconvenient to move all of data script to that assembly.
-        //Just force reloading domain after Unity lanughing.....Sorry....I dislike this fucking engine...
-        [InitializeOnLoadMethod]
-        private static void Init()
-        {
-            if (!SessionState.GetBool("Initialized", false))
-            {
-                SessionState.SetBool("Initialized", true);
-
-                EditorApplication.delayCall += () =>
-                {
-                    EditorUtility.RequestScriptReload();
-                };
-            }
         }
 
         [OnOpenAsset]
@@ -90,22 +76,17 @@ namespace NovaLine.Editor.File
         [Shortcut("NovaLine/Save", typeof(NovaWindow), KeyCode.S, ShortcutModifiers.Action)]
         public static void SaveGraphWindowData()
         {
-            var window = GetMainWindowInstance();
-
-            if (window == null)
+            if (Instance == null)
                 return;
 
-            var flowchartContext = window.registeredFlowchartContext;
-            var currentContext = window.currentGraphViewContext;
-
-            if (flowchartContext == null || flowchartContext.linkedData == null || currentContext == null || currentContext.linkedData == null)
+            if (RegisteredFlowchartContext == null || RegisteredFlowchartContext.linkedData == null || CurrentGraphViewContext == null || CurrentGraphViewContext.linkedData == null)
                 return;
 
             if (string.IsNullOrEmpty(CurrentPath))
             {
                 CurrentPath = EditorUtility.SaveFilePanelInProject(
                     "Save Flowchart",
-                    flowchartContext.linkedData.name,
+                    RegisteredFlowchartContext.linkedData.name,
                     "asset",
                     "Save Flowchart"
                 );
@@ -120,8 +101,9 @@ namespace NovaLine.Editor.File
                 return;
             }
 
-            if (!currentContext.guid.Equals(flowchartContext.guid)) currentContext.save();
-            flowchartContext.save();
+            if (!CurrentGraphViewContext.guid.Equals(RegisteredFlowchartContext.guid)) CurrentGraphViewContext.save();
+
+            RegisteredFlowchartContext.save();
 
             if (currentAsset == null)
             {
@@ -129,12 +111,12 @@ namespace NovaLine.Editor.File
 
                 if (currentAsset == null)
                 {
-                    currentAsset = FlowchartDataAsset.CreateInstance(flowchartContext.linkedData);
+                    currentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartContext.linkedData);
                     AssetDatabase.CreateAsset(currentAsset, CurrentPath);
                 }
             }
 
-            currentAsset.data = flowchartContext.linkedData;
+            currentAsset.data = RegisteredFlowchartContext.linkedData;
 
             EditorUtility.SetDirty(currentAsset);
 

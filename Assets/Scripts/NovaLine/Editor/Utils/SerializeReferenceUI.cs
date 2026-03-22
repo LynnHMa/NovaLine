@@ -2,8 +2,12 @@
 using NovaLine.Element;
 using System;
 using System.Linq;
+using NovaLine.Editor.Window;
+using NovaLine.Editor.Window.Command;
+using NovaLine.Element.Event;
 using UnityEditor;
 using UnityEngine;
+using static NovaLine.Editor.Window.WindowContextRegistry;
 
 namespace NovaLine.Editor.Utils
 {
@@ -53,23 +57,27 @@ namespace NovaLine.Editor.Utils
                         newElement.name = oldElement.name;
                         newElement.guid = oldElement.guid;
                         newElement.describtion = oldElement.describtion;
-                        NovaWindow.SelectedGraphNode.linkedElement = newElement;
-
+                        newElement.parent = oldElement.parent;
+                        
                         if (oldElement is NovaAction oldAction && newElement is NovaAction newAction)
                         {
                             newAction.conditionAfterInvoke = oldAction.conditionAfterInvoke;
                             newAction.conditionBeforeInvoke = oldAction.conditionBeforeInvoke;
                         }
-                    }
 
-                    property.managedReferenceValue = newInstance;
+                        newElement.ReplaceToContext();
+
+                        property.managedReferenceValue = newElement;
+                        property.serializedObject.ApplyModifiedProperties();
+                        
+                        CommandRegistry.Register(new InspectorElementChangeCommand(newElement.parent.guid,newElement.parent.type,oldElement,newElement));
+                        InspectorHelper.UpdateCache();
+                    }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"无法实例化类 {selectedType.Name}，请确保它有一个无参构造函数！\n{e.Message}");
                 }
-
-                property.serializedObject.ApplyModifiedProperties();
             }
         }
     }

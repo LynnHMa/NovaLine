@@ -1,11 +1,11 @@
 using UnityEngine;
 using NovaLine.Element;
-using NovaLine.Utils.Ext;
+using System.Collections.Generic;
 
 namespace NovaLine
 {
     public class FlowchartManager : MonoBehaviour
     {
-        public EList<Flowchart> flowcharts { get; set; } = new();
+        public List<Flowchart> flowcharts { get; set; } = new();
     }
 }

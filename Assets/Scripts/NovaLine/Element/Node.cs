@@ -15,6 +15,8 @@ namespace NovaLine.Element
 
         public Condition conditionAfterInvoke;
 
+        public override NovaElementType type => NovaElementType.NODE;
+
         [HideInInspector]
         public List<NodeSwitcher> nextNodes  = new();
 
@@ -28,34 +30,11 @@ namespace NovaLine.Element
             guid = Guid.NewGuid().ToString();
         }
 
-        public Node(Node node)
-        {
-            name = node.name;
-            describtion = node.describtion;
-            conditionAfterInvoke = node.conditionAfterInvoke;
-            conditionBeforeInvoke = node.conditionBeforeInvoke;
-            conditionBeforeInvoke.parent = this;
-            conditionAfterInvoke.parent = this;
-            actions = node.actions;
-            guid = node.guid;
-        }
-
         public Node(string name) : this()
         {
             this.name = name;
             conditionBeforeInvoke = new(this);
             conditionAfterInvoke = new(this);
-        }
-        public Node(string name, string describtion, Condition conditionBeforeInvoke, Condition conditionAfterInvoke, EList<NovaAction> actions,string guid)
-        {
-            this.name = name;
-            this.describtion = describtion;
-            this.conditionBeforeInvoke = conditionBeforeInvoke;
-            this.conditionAfterInvoke = conditionAfterInvoke;
-            this.conditionBeforeInvoke.parent = this;
-            this.conditionAfterInvoke.parent = this;
-            this.actions = actions;
-            this.guid = guid;
         }
 
         public async Task run()
@@ -63,12 +42,12 @@ namespace NovaLine.Element
             await conditionBeforeInvoke.waiting();
             foreach (var action in actions)
             {
-                if(action.type == ActionType.Meanwhile) action.invoke();
+                if(action.actionType == ActionType.Meanwhile) action.invoke();
             }
             await (firstAction == null ? Task.CompletedTask : firstAction.invoke());
             await conditionAfterInvoke.waiting();
         }
-        public override string getType()
+        public override string getTypeName()
         {
             return "[Node]";
         }

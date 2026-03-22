@@ -1,24 +1,22 @@
 ﻿using NovaLine.Editor.Utils.Interface;
 using static NovaLine.Editor.Window.Context.ContextInfo;
-using NovaLine.Editor.Graph.Data.NodeGraphView;
+using NovaLine.Data.NodeGraphView;
 
 namespace NovaLine.Editor.Window.Context
 {
     [ContextInfo(AsNode.True, AsGraphView.False)]
-    public class ActionContext : GraphViewContext<IObject, ActionData>
+    public class ActionContext : GraphViewContext<IObjectEditor, ActionData>
     {
-        public override ContextType type => ContextType.ACTION;
         public ActionContext(ActionData linkedData) : base(linkedData) { }
         public override void save()
         {
         }
 
-        public void saveConditionData()
+        protected override void cleanInvalidChild()
         {
-
         }
         //No action graph view
-        protected override IObject summonGraphView()
+        protected override IObjectEditor summonGraphView()
         {
             return null;
         }

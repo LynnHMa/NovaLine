@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System;
-using NovaLine.Editor.Graph.Node;
 using UnityEngine;
+using static NovaLine.Editor.Window.WindowContextRegistry;
+using static NovaWindow;
+using NovaLine.Element;
 
 namespace NovaLine.Editor.Graph.View
 {
@@ -17,13 +19,17 @@ namespace NovaLine.Editor.Graph.View
     using NovaLine.Editor.Graph.Port;
     using System.Collections;
     using NovaLine.Editor.Window.Context;
-    using NovaLine.Utils.Ext;
+    using NovaLine.Editor.Utils.Ext;
+    using NovaLine.Editor.Window.Command;
+    using NovaLine.Editor.Window;
+    using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 
     public abstract class NovaGraphView<N,E,PE,EE> : GraphView, INovaGraphView where N : GraphNode where E : NovaElement where PE : NovaElement where EE : NovaSwitcher
     {
         public virtual E linkedElement { get; set; }
-        public EList<N> graphNodes { get; set; } = new();
-        public EList<IGraphEdge> graphEdges { get; set; } = new();
+        public virtual EList<N> graphNodes { get; set; } = new();
+        public virtual EList<IGraphEdge> graphEdges { get; set; } = new();
+        public virtual NovaElementType type => linkedElement != null ? linkedElement.type : NovaElementType.NONE;
         public new string name => linkedElement?.name;
 
         private N _firstNode;
@@ -32,9 +38,7 @@ namespace NovaLine.Editor.Graph.View
             get => _firstNode;
             set
             {
-                _firstNode?.unmarkStartNode();
                 _firstNode = value;
-                _firstNode?.markedAsStartNode();
             }
         }
         IList INovaGraphView.graphNodes { get => graphNodes; set => graphNodes = value as EList<N>; }
@@ -51,10 +55,10 @@ namespace NovaLine.Editor.Graph.View
             this.AddManipulator(new SelectionDragger());
             this.AddManipulator(new RectangleSelector());
 
-            serializeGraphElements = OnSerializeGraphElements;
-            canPasteSerializedData = OnCanPaste;
-            unserializeAndPaste = OnUnserializeAndPaste;
-            graphViewChanged += OnGraphViewChanged;
+            serializeGraphElements = copyGraphElement;
+            canPasteSerializedData = onCanPaste;
+            unserializeAndPaste = pasteGraphElement;
+            graphViewChanged += onGraphViewChanged;
 
             this.linkedElement = linkedElement;
         }
@@ -120,7 +124,7 @@ namespace NovaLine.Editor.Graph.View
             return summonNewGraphEdge((EE)switcher);
         }
 
-        public virtual void addGraphEdge(IGraphEdge graphEdge,bool isLoading = false,bool autoSave = true)
+        public virtual void addGraphEdge(IGraphEdge graphEdge,bool isLoading = false,bool autoSave = true, bool registerCommand = true)
         {
             if (graphEdge is not GraphEdge<PE, EE> toAdd) return;
 
@@ -132,18 +136,34 @@ namespace NovaLine.Editor.Graph.View
             {
                 update();
             }
+
+            if (registerCommand)
+            {
+                CommandRegistry.Register(new AddEdgeCommand(linkedElement.guid, type, graphEdge));
+            }
         }
-        public virtual void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
+        public virtual void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true, bool registerCommand = true)
         {
             if (graphEdge is not GraphEdge<PE, EE> toRemove) return;
+
             graphEdges?.Remove(toRemove);
-            toRemove.input.DisconnectAll();
-            toRemove.output.DisconnectAll();
+            toRemove.RemoveFromHierarchy();
+            toRemove.input.Disconnect(toRemove,registerCommand);
+            toRemove.output.Disconnect(toRemove, registerCommand);
             RemoveElement(toRemove);
 
             update();
+
+            if (registerCommand)
+            {
+                CommandRegistry.Register(new RemoveEdgeCommand(linkedElement.guid, type, graphEdge));
+            }
         }
-        public virtual void addGraphNode(GraphNode graphNode,bool isLoading = false,bool autoSave = true)
+        public virtual void removeGraphEdge(string guid, bool autoSave = true, bool registerCommand = true)
+        {
+            removeGraphEdge(getExistingGraphEdge(guid), autoSave, registerCommand);
+        }
+        public virtual void addGraphNode(GraphNode graphNode,bool isLoading = false,bool autoSave = true,bool registerCommand = true)
         {
             if (graphNode is not N toAdd) return;
 
@@ -155,91 +175,171 @@ namespace NovaLine.Editor.Graph.View
 
             if (!isLoading)
             {
-                NovaWindow.RegisterContext(summonNewChildGraphContext((PE)toAdd.linkedElement, graphNode.pos));
+                RegisterContext(summonNewChildGraphContext((PE)toAdd.linkedElement, graphNode.pos));
                 update();
             }
+
+            if (registerCommand)
+            {
+                CommandRegistry.Register(new AddNodeCommand(linkedElement.guid, type, graphNode));
+            }
         }
-        public virtual void removeGraphNode(GraphNode graphNode,bool autoSave = true)
+        public virtual void removeGraphNode(GraphNode graphNode,bool autoSave = true, bool registerCommand = true)
         {
             if (graphNode is not N toRemove) return;
 
+            if (toRemove.guid.Equals(firstNode?.guid))
+            {
+                if(graphNodes.Count > 1)
+                {
+                    var index = graphNodes.IndexOf(toRemove);
+                    resetFirstNode(index,true);
+                }
+            }
+
             graphNodes?.Remove(toRemove);
+            toRemove.RemoveFromHierarchy();
             RemoveElement(toRemove);
 
             update();
+
+            if (registerCommand)
+            {
+                CommandRegistry.Register(new RemoveNodeCommand(linkedElement.guid, type, graphNode));
+            }
         }
-        public virtual void selectGraphNode(string guid)
+        public virtual void removeGraphNode(string guid, bool autoSave = true, bool registerCommand = true)
         {
-            var toSelectGraphNode = getExistingGraphNode(guid);
-            if (toSelectGraphNode == null) return;
-            AddToSelection(toSelectGraphNode);
+            removeGraphNode(getExistingGraphNode(guid),autoSave,registerCommand);
+        }
+        public virtual void moveGraphNode(string guid,Vector2 newPos,bool registerCommand = true)
+        {
+            var graphNode = getExistingGraphNode(guid);
+            if(graphNode != null)
+            {
+                graphNode.SetPosition(newPos, registerCommand);
+            }
+        }
+        public virtual bool selectGraphNode(string guid)
+        {
+            return selectGraphNode(getExistingGraphNode(guid));
+        }
+        public bool selectGraphNode(GraphNode graphNode)
+        {
+            if (graphNode == null) return false;
+            AddToSelection(graphNode);
+            return true;
+        }
+
+        public virtual bool selectGraphEdge(string guid)
+        {
+            var toSelectGraphEdge = getExistingGraphEdge(guid);
+            if (toSelectGraphEdge == null) return false;
+            AddToSelection(toSelectGraphEdge);
+            return true;
+        }
+        public virtual void setFirstNode(string guid,bool registerCommand = true)
+        {
+            setFirstNode(getExistingGraphNode(guid), registerCommand);
+        }
+        public virtual void setFirstNode(GraphNode graphNode, bool registerCommand = true)
+        {
+            if (registerCommand)
+            {
+                CommandRegistry.Register(new SetFirstNodeCommand(linkedElement.guid, type, firstNode == null ? null : firstNode.guid, graphNode.guid));
+            }
+            firstNode?.unmarkStartNode();
+            firstNode = (N)graphNode;
+            firstNode?.markedAsStartNode();
         }
         public virtual N getExistingGraphNode(string guid)
+        {
+            return (N)getExistingGraphNode(guid,0);
+        }
+        public GraphNode getExistingGraphNode(string guid,int inInterface)
         {
             var elementsList = new List<GraphElement>(graphElements);
             for (int i = 0; i < elementsList.Count; i++)
             {
                 var element = elementsList[i];
-                if (element is N node)
+                if (element is GraphNode node)
                 {
                     if (node.guid.Equals(guid)) return node;
                 }
             }
             return null;
         }
-        protected virtual GraphViewChange OnGraphViewChanged(GraphViewChange change)
+        public virtual GraphEdge<PE,EE> getExistingGraphEdge(string guid)
+        {
+            var elementsList = new List<GraphElement>(graphElements);
+            for (int i = 0; i < elementsList.Count; i++)
+            {
+                var element = elementsList[i];
+                if (element is GraphEdge<PE, EE> edge)
+                {
+                    if (edge.guid.Equals(guid)) return edge;
+                }
+            }
+            return null;
+        }
+        protected virtual GraphViewChange onGraphViewChanged(GraphViewChange change)
         {
             if(change.elementsToRemove != null)
             {
-                foreach (var element in change.elementsToRemove)
+                using (new CommandScope())
                 {
-                    if(element is N graphNode)
+                    foreach (var element in change.elementsToRemove)
                     {
-                        removeGraphNode(graphNode,false);
+                        if (element is N graphNode)
+                        {
+                            removeGraphNode(graphNode, false);
+                        }
                     }
                 }
             }
-            NovaWindow.UpdateContext();
+            UpdateContext();
             EditorFileManager.SaveGraphWindowData();
             return change;
         }
-        protected virtual string OnSerializeGraphElements(IEnumerable<GraphElement> elements)
+        protected virtual string copyGraphElement(IEnumerable<GraphElement> elements)
         {
             var elementsList = new List<GraphElement>(elements);
-            var copiedData = new CopyPasteData<N>();
+            var copiedData = new CopyPasteData<PE>();
             for (int i = 0; i < elementsList.Count; i++)
             {
                 var element = elementsList[i];
                 if (element is N graphNode)
                 {
-                    copiedData.data.Add(graphNode);
+                    copiedData.elementData.Add((PE)graphNode.linkedElement);
                     copiedData.pastePos = new Vector2(graphNode.GetPosition().x + 50,graphNode.GetPosition().y + 50); 
                 }
             }
             return JsonUtility.ToJson(copiedData);
         }
-        protected virtual void OnUnserializeAndPaste(string operationName, string data)
+        protected virtual void pasteGraphElement(string operationName, string data)
         {
             if (string.IsNullOrEmpty(data)) return;
 
-            var pasteData = JsonUtility.FromJson<CopyPasteData<N>>(data);
-            if (pasteData == null || pasteData?.data?.Count == 0) return;
+            var pasteData = JsonUtility.FromJson<CopyPasteData<PE>>(data);
+            if (pasteData == null || pasteData.elementData?.Count == 0) return;
 
             ClearSelection();
 
-            for (int i = 0; i < pasteData?.data?.Count; i++)
+            using (new CommandScope())
             {
-                var nodeData = pasteData?.data?[i];
-                if (nodeData is N graphNode)
+                for (int i = 0; i < pasteData.elementData.Count; i++)
                 {
-                    var n = summonNewGraphNode(pasteData.pastePos);
-                    addGraphNode(n,false,false);
+                    var nodeElement = pasteData.elementData[i];
+                    nodeElement.guid = Guid.NewGuid().ToString();
+                    var n = summonNewGraphNode(nodeElement, pasteData.pastePos);
+                    addGraphNode(n, false, false);
                     AddToSelection(n);
                 }
             }
+
             EditorFileManager.SaveGraphWindowData();
         }
-        protected virtual bool OnCanPaste(string data)
+        protected virtual bool onCanPaste(string data)
         {
             return !string.IsNullOrEmpty(data);
         }
@@ -251,9 +351,9 @@ namespace NovaLine.Editor.Graph.View
         }
         protected virtual void updateNodes()
         {
-            if (firstNode == null && graphNodes.Count != 0)
+            if (firstNode == null)
             {
-                firstNode = graphNodes[0];
+                resetFirstNode();
             }
 
             foreach (var graphNode in graphNodes)
@@ -336,6 +436,13 @@ namespace NovaLine.Editor.Graph.View
                 node.OnSelected();
             }
         }
+        private void resetFirstNode(int index = 0,bool registerCommand = false)
+        {
+            if(graphNodes.Count != 0)
+            {
+                setFirstNode(graphNodes[(index + 1) % graphNodes.Count], registerCommand);
+            }
+        }
     }
     public interface INovaGraphView
     {
@@ -345,18 +452,26 @@ namespace NovaLine.Editor.Graph.View
         public GraphNode firstNode { get; set; }
         public GraphNode summonNewGraphNode(INovaElement novaElement, Vector2 pos);
         public IGraphEdge summonNewGraphEdge(INovaSwitcher switcher);
-        public void addGraphEdge(IGraphEdge graphEdge, bool isInit = false, bool autoSave = true);
-        public void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true);
-        public void addGraphNode(GraphNode graphNode, bool isInit = false, bool autoSave = true);
-        public void removeGraphNode(GraphNode graphNode, bool autoSave = true);
-        public void selectGraphNode(string guid);
+        public void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true, bool registerCommand = true);
+        public void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true, bool registerCommand = true);
+        public void removeGraphEdge(string guid, bool autoSave = true, bool registerCommand = true);
+        public void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true, bool registerCommand = true);
+        public void removeGraphNode(GraphNode graphNode, bool autoSave = true, bool registerCommand = true);
+        public void removeGraphNode(string guid, bool autoSave = true, bool registerCommand = true);
+        public GraphNode getExistingGraphNode(string guid,int inInterface);
+        public void moveGraphNode(string guid, Vector2 newPos, bool registerCommand = true);
+        public bool selectGraphNode(string guid);
+        public bool selectGraphNode(GraphNode graphNode);
+        public bool selectGraphEdge(string guid);
+        public void setFirstNode(string guid, bool registerCommand = true);
+        public void setFirstNode(GraphNode graphNode, bool registerCommand = true);
         string getActualName();
         void update();
     }
 }
 [Serializable]
-public class CopyPasteData<T> where T : GraphNode
+public class CopyPasteData<PE> where PE : NovaElement
 {
-    public List<T> data = new List<T>();
+    public List<PE> elementData = new();
     public Vector2 pastePos;
 }

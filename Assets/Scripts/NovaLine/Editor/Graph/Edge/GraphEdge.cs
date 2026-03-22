@@ -8,7 +8,8 @@ namespace NovaLine.Editor.Graph.Edge
     using UnityEngine;
     using UnityEngine.UIElements;
     using NovaLine.Utils.Interface;
-
+    using NovaLine.Editor.Window;
+    using static NovaLine.Editor.Window.WindowContextRegistry;
     public class GraphEdge<PE, EE> : Edge, IGraphEdge where PE : NovaElement where EE : NovaSwitcher
     {
         protected virtual Color themedColor => Color.green;
@@ -73,6 +74,29 @@ namespace NovaLine.Editor.Graph.Edge
             var result = base.UpdateEdgeControl();
             updateArrow();
             return result;
+        }
+
+        public override void OnSelected()
+        {
+            base.OnSelected();
+
+            NovaWindow.SelectedGraphEdge = this;
+
+            if (linkedElement == null) return;
+
+            linkedElement.ShowInInspector();
+        }
+        public override void OnUnselected()
+        {
+            base.OnUnselected();
+
+            NovaWindow.SelectedGraphEdge = null;
+
+            var activeRoot = (NovaElement)CurrentGraphViewContext?.graphView?.linkedElement;
+
+            if (activeRoot == null) return;
+
+            activeRoot.ShowInInspector();
         }
 
         public virtual void updateArrow()

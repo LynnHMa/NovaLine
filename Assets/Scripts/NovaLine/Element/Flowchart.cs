@@ -8,6 +8,8 @@ namespace NovaLine.Element
     [Serializable]
     public class Flowchart : NovaElement
     {
+        public override NovaElementType type => NovaElementType.FLOWCHART;
+
         [HideInInspector]
         public List<Node> nodes = new();
 
@@ -21,18 +23,7 @@ namespace NovaLine.Element
         {
             this.name = name;
         }
-        public Flowchart(string name, string describtion, List<Node> nodes,string guid)
-        {
-            this.name = name;
-            this.describtion = describtion;
-            this.nodes = nodes;
-            foreach(var node in nodes)
-            {
-                node.parent = this;
-            }
-            this.guid = guid;
-        }
-        public override string getType()
+        public override string getTypeName()
         {
             return "[Flowchart]";
         }

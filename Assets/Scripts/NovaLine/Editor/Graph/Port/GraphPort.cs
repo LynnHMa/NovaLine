@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using UnityEngine;
+using static NovaLine.Editor.Window.WindowContextRegistry;
 
 namespace NovaLine.Editor.Graph.Port
 {
@@ -9,6 +10,7 @@ namespace NovaLine.Editor.Graph.Port
     using NovaLine.Editor.Graph.Edge;
     using NovaLine.Switcher;
     using UnityEditor.Experimental.GraphView;
+    using System.Linq;
 
     public class GraphPort<PE,EE> : Port where EE : NovaSwitcher where PE : NovaElement
     {
@@ -61,12 +63,16 @@ namespace NovaLine.Editor.Graph.Port
             val.linkedElement = edgeElement;
             val.input = other;
             val.output = this;
-            Connect(val);
+            Connect(val,false);
             other.Connect(val);
             return val;
         }
 
         public override void Connect(Edge edge)
+        {
+            Connect(edge, true);
+        }
+        public void Connect(Edge edge,bool registerCommand)
         {
             base.Connect(edge);
             if (edge is GraphEdge<PE, EE> graphEdge)
@@ -76,27 +82,27 @@ namespace NovaLine.Editor.Graph.Port
                 graphEdge.linkedElement.outputElement = ownerElement;
                 graphEdge.linkedElement.inputElement = graphEdge.input.ownerElement;
 
-                var window = NovaWindow.GetMainWindowInstance();
-                if (window == null) return;
-
                 ownerElement.onGraphConnect(graphEdge.linkedElement);
 
-                window.currentGraphViewContext.graphView.addGraphEdge(graphEdge, false,false);
+                CurrentGraphViewContext.graphView.addGraphEdge(graphEdge, false, false,registerCommand);
             }
         }
         public override void Disconnect(Edge edge)
         {
+            Disconnect(edge, true);
+        }
+        public void Disconnect(Edge edge,bool registerCommand)
+        {
+            if (!connections.Contains(edge)) return;
             base.Disconnect(edge);
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
                 if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 ownerElement.onGraphDisconnect(graphEdge.linkedElement);
 
-                var window = NovaWindow.GetMainWindowInstance();
-                if (window == null) return;
-                window.currentGraphViewContext.graphView.removeGraphEdge(graphEdge,false);
+                CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge, false, registerCommand);
 
-                edge.RemoveFromHierarchy();
+                graphEdge.RemoveFromHierarchy();
             }
         }
     }

@@ -1,3 +1,5 @@
+using NovaLine.Element.Event;
+
 namespace NovaLine.Editor.Utils
 {
     using UnityEditor;
@@ -5,8 +7,8 @@ namespace NovaLine.Editor.Utils
     using NovaLine.Element;
     using NovaLine.Action;
     using NovaLine.Editor.File;
-    using NovaLine.Event;
     using System;
+    using static NovaLine.Editor.Window.WindowContextRegistry;
 
     [CustomEditor(typeof(ObjectInspectorWrapper))]
     public class ObjectInspectorWrapperEditor : Editor
@@ -70,7 +72,7 @@ namespace NovaLine.Editor.Utils
 
                         drawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
 
-                        EditorGUILayout.LabelField("¡ý", ARROW_STYLE);
+                        EditorGUILayout.LabelField("â†“", ARROW_STYLE);
                     }
                 }
                 //Draw selected element
@@ -86,10 +88,19 @@ namespace NovaLine.Editor.Utils
             var targetCondition = conditionPropery.boxedValue as Condition;
             if (targetCondition != null)
             {
-                var conditionContext = NovaWindow.GetContext(targetCondition.guid,Window.Context.ContextType.CONDITION);
-                conditionContext.linkedData.linkedElement.name = conditionPropery.name.Contains("Before") ? "Before" : "After";
+                var conditionContext = GetContext(targetCondition.guid, NovaElementType.CONDITION);
                 if (conditionContext != null)
                 {
+                    var actualConditionName = targetCondition.name;
+
+                    if(actualConditionName == null || actualConditionName == "")
+                    {
+                        if (conditionPropery.name.Contains("Before")) actualConditionName = $"Before {targetCondition.parent?.name} Invoke";
+                        else if (conditionPropery.name.Contains("After")) actualConditionName = $"After {targetCondition.parent?.name} Invoke";
+                        else actualConditionName = "Switch Condition";
+                    }
+
+                    targetCondition.name = actualConditionName;
                     NovaWindow.LoadContextInWindow(conditionContext);
                 }
             }
@@ -105,7 +116,7 @@ namespace NovaLine.Editor.Utils
 
                 EditorGUILayout.LabelField(selectedElement.getActualName(), style);
 
-                // »æÖÆ¶àÌ¬ÏÂÀ­¿ò
+                // ï¿½ï¿½ï¿½Æ¶ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 if (selectedElement is NovaAction)
                 {
                     SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
@@ -128,7 +139,7 @@ namespace NovaLine.Editor.Utils
                         if (SerializedProperty.EqualContents(iterator, endProperty))
                             break;
 
-                        if (iterator.name == "conditionBeforeInvoke" || iterator.name == "conditionAfterInvoke")
+                        if (iterator.name == "conditionBeforeInvoke" || iterator.name == "conditionAfterInvoke" || iterator.name == "switchCondition")
                         {
                             EditorGUILayout.PropertyField(iterator, false);
                             if (GUILayout.Button("Edit", GUILayout.Height(30)))
@@ -138,7 +149,6 @@ namespace NovaLine.Editor.Utils
                         }
                         else
                         {
-                            // Ä¬ÈÏ»­³öÀ´
                             EditorGUILayout.PropertyField(iterator, true);
                         }
 
@@ -151,10 +161,10 @@ namespace NovaLine.Editor.Utils
                     EditorGUILayout.Space(30);
                     if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
                     {
-                        var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
+                        var currentGraphView = CurrentGraphViewContext?.graphView;
                         if (currentGraphView != null)
                         {
-                            currentGraphView.firstNode = NovaWindow.SelectedGraphNode;
+                            currentGraphView.setFirstNode(NovaWindow.SelectedGraphNode);
                             currentGraphView.update();
                             EditorFileManager.SaveGraphWindowData();
                         }

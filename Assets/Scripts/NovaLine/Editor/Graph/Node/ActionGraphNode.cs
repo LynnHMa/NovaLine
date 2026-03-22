@@ -5,6 +5,12 @@ using UnityEngine;
 using NovaLine.Editor.Utils;
 using NovaLine.Editor.Graph.Port;
 using NovaLine.Switcher;
+using NovaLine.Editor.Window.Command;
+using NovaLine.Editor.Window;
+using NovaLine.Editor.Window.Context;
+using NovaLine.Element;
+using Editor.Utils.Ext;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -22,7 +28,7 @@ namespace NovaLine.Editor.Graph.Node
         {
             if (linkedElement is not NovaAction action) return;
 
-            if (action.type == ActionType.Meanwhile) return;
+            if (action.actionType == ActionType.Meanwhile) return;
 
             var input = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, themedColor,"In");
             var output = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, themedColor,"Out");
@@ -37,11 +43,11 @@ namespace NovaLine.Editor.Graph.Node
             base.update();
             if (linkedElement is NovaAction novaAction)
             {
-                if (novaAction.type == ActionType.Meanwhile && inputContainer.childCount > 0)
+                if (novaAction.actionType == ActionType.Meanwhile && inputContainer.childCount > 0)
                 {
                     removePort();
                 }
-                else if (novaAction.type == ActionType.Sort && inputContainer.childCount == 0)
+                else if (novaAction.actionType == ActionType.Sort && inputContainer.childCount == 0)
                 {
                     addPort();
                 }

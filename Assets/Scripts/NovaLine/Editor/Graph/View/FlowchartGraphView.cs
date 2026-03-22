@@ -7,7 +7,10 @@
     using NovaLine.Editor.File;
     using NovaLine.Editor.Graph.Edge;
     using NovaLine.Editor.Window.Context;
-    using NovaLine.Editor.Graph.Data.NodeGraphView;
+    using static NovaLine.Editor.Window.WindowContextRegistry;
+    using NovaLine.Data.NodeGraphView;
+    using NovaLine.Editor.Window.Command;
+    using NovaLine.Editor.Window;
 
     public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Flowchart,Node,NodeSwitcher>
     {
@@ -20,7 +23,7 @@
             set
             {
                 base.firstNode = value;
-                linkedElement.firstNode = (Node)value.linkedElement;
+                linkedElement.firstNode = (Node)value?.linkedElement;
             }
         }
         public FlowchartGraphView(Flowchart linkedFlowchart) : base(linkedFlowchart,linkedFlowchart?.name) {
@@ -65,22 +68,21 @@
         }
         public override IGraphViewContext summonNewChildGraphContext(Node node,Vector2 pos)
         {
-            var newGraphView = new NodeGraphView(node);
-            return new NodeContext(newGraphView,new NodeData(newGraphView,pos));
+            return new NodeContext(new NodeData(node, pos));
         }
         public override IGraphEdge summonNewGraphEdge(INovaSwitcher switcher)
         {
             return summonAndConnectEdge<NodeGraphEdge>((NodeSwitcher)switcher);
         }
-        public override void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true)
+        public override void addGraphEdge(IGraphEdge graphEdge, bool isLoading = false, bool autoSave = true, bool registerCommand = true)
         {
-            base.addGraphEdge(graphEdge, isLoading, autoSave);
+            base.addGraphEdge(graphEdge, isLoading, autoSave, registerCommand);
 
             if (!isLoading)
             {
                 if (graphEdge is NodeGraphEdge nodeGraphEdge)
                 {
-                    NovaWindow.RegisterContext(new ConditionContext(new ConditionData(nodeGraphEdge.linkedElement.switchCondition)));
+                    RegisterContext(new ConditionContext(new ConditionData(nodeGraphEdge.linkedElement.switchCondition)));
                 }
             }
 
@@ -89,20 +91,20 @@
                 EditorFileManager.SaveGraphWindowData();
             }
         }
-        public override void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true)
+        public override void removeGraphEdge(IGraphEdge graphEdge, bool autoSave = true, bool registerCommand = true)
         {
-            base.removeGraphEdge(graphEdge, autoSave);
+            base.removeGraphEdge(graphEdge, autoSave, registerCommand);
 
-            NovaWindow.UnregisterContext(((NodeSwitcher)graphEdge.linkedElement).switchCondition.guid,ContextType.CONDITION);
+            if(graphEdge.linkedElement != null) UnregisterContext(((NodeSwitcher)graphEdge.linkedElement).switchCondition.guid,NovaElementType.CONDITION);
 
             if (autoSave)
             {
                 EditorFileManager.SaveGraphWindowData();
             }
         }
-        public override void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true)
+        public override void addGraphNode(GraphNode graphNode, bool isLoading = false, bool autoSave = true, bool registerCommand = true)
         {
-            base.addGraphNode(graphNode, isLoading, autoSave);
+            base.addGraphNode(graphNode, isLoading, autoSave, registerCommand);
 
             if (!isLoading)
             {
@@ -114,12 +116,12 @@
                 EditorFileManager.SaveGraphWindowData();
             }
         }
-        public override void removeGraphNode(GraphNode graphNode, bool autoSave = true)
+        public override void removeGraphNode(GraphNode graphNode, bool autoSave = true, bool registerCommand = true)
         {
-            base.removeGraphNode(graphNode, autoSave);
+            base.removeGraphNode(graphNode, autoSave, registerCommand);
 
             linkedElement.nodes.Remove((Node)graphNode.linkedElement);
-            NovaWindow.UnregisterContext(graphNode.guid, ContextType.NODE);
+            UnregisterContext(graphNode.guid, NovaElementType.NODE);
 
             if (autoSave)
             {

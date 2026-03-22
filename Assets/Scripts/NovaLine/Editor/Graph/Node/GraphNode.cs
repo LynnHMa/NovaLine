@@ -5,6 +5,10 @@ using System.Linq;
 using NovaLine.Editor.Graph.Edge;
 using NovaLine.Utils.Interface;
 using NovaLine.Editor.Window;
+using static NovaLine.Editor.Window.WindowContextRegistry;
+using NovaLine.Editor.Window.Command;
+using UnityEditor.Experimental.GraphView;
+using Editor.Utils.Ext;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -13,7 +17,9 @@ namespace NovaLine.Editor.Graph.Node
         protected virtual Color themedColor => Color.white;
         public virtual Vector2 pos => new Vector2(base.GetPosition().x, base.GetPosition().y);
         public virtual string guid => linkedElement?.guid;
+        public virtual NovaElementType type => linkedElement != null ? linkedElement.type : NovaElementType.NONE;
         public override string title => linkedElement?.getActualName();
+        public GraphView graphView => GetFirstAncestorOfType<GraphView>();
 
         private NovaElement _linkedElement;
         public virtual NovaElement linkedElement
@@ -26,6 +32,8 @@ namespace NovaLine.Editor.Graph.Node
             }
         }
         public bool isPassable = true;
+        public bool isDragging = false;
+        private Vector2 posWhenStartDragging;
 
         string IGUID.guid { get => guid; set { return; } }
 
@@ -102,15 +110,54 @@ namespace NovaLine.Editor.Graph.Node
                 top.style.flexDirection = FlexDirection.Row;
                 top.style.justifyContent = Justify.SpaceBetween;
             }
+
+            RegisterCallback<PointerDownEvent>(onMouseDown, TrickleDown.TrickleDown);
         }
         public GraphNode(NovaElement element, Vector2 pos) : this()
         {
-            SetPosition(pos);
             linkedElement = element;
+            SetPosition(pos,false);
         }
-        public void SetPosition(Vector2 pos)
+        public virtual void SetPosition(Vector2 pos,bool registerCommand)
         {
-            base.SetPosition(new Rect(pos.x,pos.y,base.GetPosition().width,base.GetPosition().height));
+            if (registerCommand) CommandRegistry.Register(buildMoveCommand(this.pos, pos));
+            base.SetPosition(new Rect(pos.x, pos.y, base.GetPosition().width, base.GetPosition().height));
+        }
+        private void onMouseDown(PointerDownEvent evt)
+        {
+            if(evt.button == 0 && !isDragging)
+            {
+                posWhenStartDragging = pos;
+                isDragging = true;
+
+                if (graphView != null)
+                {
+                    graphView.RegisterCallback<PointerUpEvent>(onMouseUp, TrickleDown.TrickleDown);
+                }
+            }
+        }
+        private void onMouseUp(PointerUpEvent evt)
+        {
+            if (evt.button == 0 && isDragging)
+            {
+                isDragging = false;
+
+                if (graphView != null)
+                {
+                    graphView.UnregisterCallback<PointerUpEvent>(onMouseUp, TrickleDown.TrickleDown);
+                }
+
+                if (posWhenStartDragging != pos)
+                {
+                    CommandRegistry.Register(buildMoveCommand(posWhenStartDragging, pos));
+                }
+                posWhenStartDragging = pos;
+            }
+        }
+        protected virtual MoveNodeCommand buildMoveCommand(Vector2 oldPos, Vector2 newPos)
+        {
+            if (linkedElement == null || linkedElement.parent == null) return null;
+            return new MoveNodeCommand(linkedElement.parent.guid, linkedElement.parent.type, new KeyValue<NovaElement, PosKeyValue>(linkedElement, new PosKeyValue(oldPos, newPos)));
         }
         public override void OnSelected()
         {
@@ -126,7 +173,7 @@ namespace NovaLine.Editor.Graph.Node
             base.OnUnselected();
             NovaWindow.SelectedGraphNode = null;
 
-            var rootElement = (NovaElement)NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView?.linkedElement;
+            var rootElement = (NovaElement)CurrentGraphViewContext?.graphView?.linkedElement;
 
             if (rootElement == null) return;
 
@@ -147,26 +194,29 @@ namespace NovaLine.Editor.Graph.Node
             {
                 var input = inputContainer[0] as UnityEditor.Experimental.GraphView.Port;
                 var output = outputContainer[0] as UnityEditor.Experimental.GraphView.Port;
-                var currentGraphView = NovaWindow.GetMainWindowInstance()?.currentGraphViewContext?.graphView;
+                var currentGraphView = CurrentGraphViewContext?.graphView;
                 if (currentGraphView != null)
                 {
-                    var inputConnections = input.connections.ToList();
-                    for (var i = inputConnections.Count() - 1; i >= 0; i--)
+                    using (new CommandScope())
                     {
-                        var ei = inputConnections[i] as IGraphEdge;
-                        if (ei != null)
+                        var inputConnections = input.connections.ToList();
+                        for (var i = inputConnections.Count() - 1; i >= 0; i--)
                         {
-                            currentGraphView.removeGraphEdge(ei);
+                            var ei = inputConnections[i] as IGraphEdge;
+                            if (ei != null)
+                            {
+                                currentGraphView.removeGraphEdge(ei,false);
+                            }
                         }
-                    }
 
-                    var outputConnections = output.connections.ToList();
-                    for (var i = outputConnections.Count() - 1; i >= 0; i--)
-                    {
-                        var eo = outputConnections[i] as IGraphEdge;
-                        if (eo != null)
+                        var outputConnections = output.connections.ToList();
+                        for (var i = outputConnections.Count() - 1; i >= 0; i--)
                         {
-                            currentGraphView.removeGraphEdge(eo);
+                            var eo = outputConnections[i] as IGraphEdge;
+                            if (eo != null)
+                            {
+                                currentGraphView.removeGraphEdge(eo,false);
+                            }
                         }
                     }
                 }

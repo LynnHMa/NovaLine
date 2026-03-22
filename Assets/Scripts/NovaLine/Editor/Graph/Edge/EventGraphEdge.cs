@@ -1,8 +1,9 @@
 ﻿
+using NovaLine.Element.Event;
+
 namespace NovaLine.Editor.Graph.Edge
 {
     using NovaLine.Editor.Utils;
-    using NovaLine.Event;
     using NovaLine.Switcher;
     using UnityEngine;
 

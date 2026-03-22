@@ -1,4 +1,6 @@
 ﻿
+using NovaLine.Element.Switcher;
+
 namespace NovaLine.Editor.Graph.Edge
 {
     using NovaLine.Editor.Utils;

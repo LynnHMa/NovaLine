@@ -6,6 +6,8 @@ using NovaLine.Switcher;
 using UnityEngine.UIElements;
 using NovaLine.Editor.Utils;
 using NovaLine.Editor.Window.Context;
+using static NovaLine.Editor.Window.WindowContextRegistry;
+using NovaLine.Element;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -29,7 +31,7 @@ namespace NovaLine.Editor.Graph.Node
         {
             if (evt.clickCount == 2)
             {
-                var nodeContext = (NodeContext)NovaWindow.GetContext(this,Window.Context.ContextType.NODE);
+                var nodeContext = (NodeContext)GetContext(this,NovaElementType.NODE);
 
                 if(nodeContext != null)
                 {
