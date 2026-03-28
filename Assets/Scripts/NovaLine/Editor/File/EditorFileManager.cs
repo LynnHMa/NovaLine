@@ -3,15 +3,16 @@ using UnityEditor.Callbacks;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using System;
+using NovaLine.Editor.Window;
 using NovaLine.Editor.Window.Context;
-using static NovaWindow;
+using static NovaLine.Editor.Window.NovaWindow;
 using static NovaLine.Editor.Window.WindowContextRegistry;
 using NovaLine.File;
 using NovaLine.Element;
 
 namespace NovaLine.Editor.File
 {
-    public class EditorFileManager
+    public static class EditorFileManager
     {
         private static readonly string CURRENT_PATH_SESSION_PATH_KEY = "NOVA_CURRENT_PATH";
         private static readonly string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
@@ -26,6 +27,7 @@ namespace NovaLine.Editor.File
             get => SessionState.GetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, string.Empty);
             set => SessionState.SetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, value);
         }
+
         public static NovaElementType CurrentContextType
         {
             get => (NovaElementType) Enum.Parse(typeof(NovaElementType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "NONE"));
@@ -101,9 +103,9 @@ namespace NovaLine.Editor.File
                 return;
             }
 
-            if (!CurrentGraphViewContext.guid.Equals(RegisteredFlowchartContext.guid)) CurrentGraphViewContext.save();
+            if (!CurrentGraphViewContext.guid.Equals(RegisteredFlowchartContext.guid)) CurrentGraphViewContext.saveData();
 
-            RegisteredFlowchartContext.save();
+            RegisteredFlowchartContext.saveData();
 
             if (currentAsset == null)
             {

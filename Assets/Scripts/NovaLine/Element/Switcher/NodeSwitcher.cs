@@ -1,7 +1,6 @@
-﻿using NovaLine.Element;
-using System;
+﻿using System;
 
-namespace NovaLine.Switcher
+namespace NovaLine.Element.Switcher
 {
     [Serializable]
     public class NodeSwitcher : NovaSwitcher
@@ -14,6 +13,16 @@ namespace NovaLine.Switcher
         public override string getTypeName()
         {
             return "[Node Edge]";
+        }
+        public override NovaElement copy()
+        {
+            var clone = base.copy() as NodeSwitcher;
+            if (clone == null) return null;
+            
+            clone.switchCondition = (Condition)switchCondition.copy();
+            clone.switchCondition.parent = clone;
+            
+            return clone;
         }
     }
 }

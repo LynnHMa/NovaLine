@@ -1,7 +1,6 @@
 ﻿using System;
 using Editor.Utils.Ext;
 using NovaLine.Element;
-using UnityEngine;
 
 namespace NovaLine.Editor.Window.Command
 {
@@ -15,21 +14,19 @@ namespace NovaLine.Editor.Window.Command
             elementKeyValue = new(beforeChange, afterChange);
         }
 
-        public override void undo(bool autoSave = true)
+        protected override void onUndo()
         {
             if(elementKeyValue.key != null)
             {
                 elementKeyValue.key.ReplaceToContext();
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = true)
+        protected override void onRedo()
         {
             if (elementKeyValue.value != null)
             {
                 elementKeyValue.value.ReplaceToContext();
             }
-            base.redo(autoSave);
         }
 
         public override void merge(Command congenericCommand)

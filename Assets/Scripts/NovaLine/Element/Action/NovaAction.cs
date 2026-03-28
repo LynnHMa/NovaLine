@@ -1,3 +1,4 @@
+using System.Linq;
 using NovaLine.Element.Switcher;
 
 namespace NovaLine.Action
@@ -5,7 +6,6 @@ namespace NovaLine.Action
     using System;
     using System.Threading.Tasks;
     using NovaLine.Element;
-    using NovaLine.Switcher;
     using UnityEngine;
 
     [Serializable]
@@ -18,9 +18,6 @@ namespace NovaLine.Action
         public Condition conditionBeforeInvoke;
 
         public Condition conditionAfterInvoke;
-
-        [HideInInspector]
-        public ActionSwitcher nextAction;
 
         public override NovaElementType type => NovaElementType.ACTION;
         public NovaAction()
@@ -39,12 +36,6 @@ namespace NovaLine.Action
         {
             this.guid = guid;
         }
-
-        public override string getTypeName()
-        {
-            return "[Default Action]";
-        }
-
         public virtual async Task invoke()
         {
             await conditionBeforeInvoke.waiting();
@@ -53,24 +44,27 @@ namespace NovaLine.Action
 
             await conditionAfterInvoke.waiting();
 
-            var next = (NovaAction)nextAction?.inputElement;
+            var next = (NovaAction)switchers.FirstOrDefault()?.inputElement;
             if (next != null)
             {
                 await next?.invoke();
             }
             else await Task.CompletedTask;
         }
-
-        public override void onGraphConnect(INovaSwitcher graphEdge)
+        public override string getTypeName()
         {
-            if (graphEdge is ActionSwitcher actionSwitcher)
-            {
-                nextAction = actionSwitcher;
-            }
+            return "[Default Action]";
         }
-        public override void onGraphDisconnect(INovaSwitcher graphEdge)
+
+        public override NovaElement copy()
         {
-            nextAction = null;
+            var clone = base.copy();
+            if (clone == null || clone is not NovaAction action) return clone;
+            action.conditionBeforeInvoke = (Condition)conditionBeforeInvoke.copy();
+            action.conditionAfterInvoke = (Condition)conditionAfterInvoke.copy();
+            action.conditionBeforeInvoke.parent = action;
+            action.conditionAfterInvoke.parent = action;
+            return action;
         }
     }
     public interface INovaAction

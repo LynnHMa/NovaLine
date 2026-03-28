@@ -9,14 +9,8 @@ namespace NovaLine.Data.NodeGraphView
     [Serializable]
     public class ActionData : GraphViewNodeData<NovaAction, IObject, IObject>
     {
-        [SerializeReference] private NovaAction _linkedElement;
         [SerializeReference] private ConditionData _conditionBeforeInvokeData;
         [SerializeReference] private ConditionData _conditionAfterInvokeData;
-        public override NovaAction linkedElement
-        {
-            get => _linkedElement;
-            set => _linkedElement = value;
-        }
         public ConditionData conditionBeforeInvokeData
         {
             get => _conditionBeforeInvokeData;
@@ -28,12 +22,26 @@ namespace NovaLine.Data.NodeGraphView
             set => _conditionAfterInvokeData = value;
         }
 
+        public ActionData(){}
         public ActionData(NovaAction linkedAction, Vector2 pos)
         {
             this.pos = pos;
             linkedElement = linkedAction;
             conditionBeforeInvokeData = new ConditionData(linkedElement?.conditionBeforeInvoke);
             conditionAfterInvokeData = new ConditionData(linkedElement?.conditionAfterInvoke);
+        }
+        
+        public override INovaData copy()
+        {
+            var clone = (ActionData)base.copy();
+            
+            if (clone == null) return null;
+            
+            clone.conditionBeforeInvokeData = (ConditionData)conditionBeforeInvokeData.copy();
+            clone.conditionAfterInvokeData = (ConditionData)conditionAfterInvokeData.copy();
+            clone.conditionBeforeInvokeData.linkedElement = clone.linkedElement.conditionBeforeInvoke;
+            clone.conditionAfterInvokeData.linkedElement = clone.linkedElement.conditionAfterInvoke;
+            return clone;
         }
     }
 }

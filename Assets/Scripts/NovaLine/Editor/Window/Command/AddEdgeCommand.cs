@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System;
-using NovaLine.Switcher;
 using NovaLine.Editor.Graph.Edge;
+using NovaLine.Editor.Utils.Scope;
 using NovaLine.Element;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Window.Command
 {
@@ -22,27 +23,19 @@ namespace NovaLine.Editor.Window.Command
                 linkedSwitchers.Add(graphEdge.linkedElement);
             }
         }
-        public override void undo(bool autoSave = false)
+        protected override void onUndo()
         {
-            if(linkedGraphView != null)
+            foreach(var linkedSwitcher in linkedSwitchers)
             {
-                foreach(var linkedSwitcher in linkedSwitchers)
-                {
-                    linkedGraphView.removeGraphEdge(linkedSwitcher.guid, false, false);
-                }
+                linkedGraphView.removeGraphEdge(linkedSwitcher.guid,false);
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = false)
+        protected override void onRedo() 
         {
-            if (linkedGraphView != null)
+            foreach (var linkedSwitcher in linkedSwitchers)
             {
-                foreach (var linkedSwitcher in linkedSwitchers)
-                {
-                    linkedGraphView.addGraphEdge(linkedGraphView.summonNewGraphEdge(linkedSwitcher), false, false,false);
-                }
+                linkedGraphView.addGraphEdge(linkedGraphView.summonNewGraphEdge(linkedSwitcher),false);
             }
-            base.redo(autoSave);
         }
 
         public override void merge(Command congenericCommand)

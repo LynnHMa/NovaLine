@@ -4,12 +4,6 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using NovaLine.Editor.Utils;
 using NovaLine.Editor.Graph.Port;
-using NovaLine.Switcher;
-using NovaLine.Editor.Window.Command;
-using NovaLine.Editor.Window;
-using NovaLine.Editor.Window.Context;
-using NovaLine.Element;
-using Editor.Utils.Ext;
 using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Graph.Node

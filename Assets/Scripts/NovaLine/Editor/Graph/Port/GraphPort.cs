@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NovaLine.Element.Switcher;
 using UnityEngine.UIElements;
 using UnityEngine;
 using static NovaLine.Editor.Window.WindowContextRegistry;
@@ -8,7 +9,6 @@ namespace NovaLine.Editor.Graph.Port
 {
     using NovaLine.Element;
     using NovaLine.Editor.Graph.Edge;
-    using NovaLine.Switcher;
     using UnityEditor.Experimental.GraphView;
     using System.Linq;
 
@@ -78,13 +78,13 @@ namespace NovaLine.Editor.Graph.Port
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
                 if (graphEdge.linkedElement == null) graphEdge.generateNewLinkedElement();
-                if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
+                if (graphEdge.linkedElement == null || graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 graphEdge.linkedElement.outputElement = ownerElement;
                 graphEdge.linkedElement.inputElement = graphEdge.input.ownerElement;
 
                 ownerElement.onGraphConnect(graphEdge.linkedElement);
 
-                CurrentGraphViewContext.graphView.addGraphEdge(graphEdge, false, false,registerCommand);
+                CurrentGraphViewContext.graphView.addGraphEdge(graphEdge, registerCommand);
             }
         }
         public override void Disconnect(Edge edge)
@@ -100,7 +100,7 @@ namespace NovaLine.Editor.Graph.Port
                 if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 ownerElement.onGraphDisconnect(graphEdge.linkedElement);
 
-                CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge, false, registerCommand);
+                CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge, registerCommand);
 
                 graphEdge.RemoveFromHierarchy();
             }

@@ -1,11 +1,15 @@
-﻿using NovaLine.Editor.Graph.Node;
+﻿using System;
+using System.Collections.Generic;
+using Editor.Utils.Ext;
+using NovaLine.Editor.Graph.Node;
 using NovaLine.Editor.Utils.Ext;
 using NovaLine.Editor.Window.Context;
 using NovaLine.Element;
+using UnityEngine;
 
 namespace NovaLine.Editor.Window
 {
-    public class WindowContextRegistry
+    public static class WindowContextRegistry
     {
         public static FlowchartContext RegisteredFlowchartContext { get; set; }
         public static EList<NodeContext> RegisteredNodeContexts { get; } = new();

@@ -9,12 +9,7 @@ namespace NovaLine.Data.NodeGraphView
     [Serializable]
     public class EventData : GraphViewNodeData<NovaEvent, IObject, IObject>
     {
-        [SerializeReference] private NovaEvent _linkedElement;
-        public override NovaEvent linkedElement
-        {
-            get => _linkedElement;
-            set => _linkedElement = value;
-        }
+        public EventData(){}
         public EventData(NovaEvent novaEvent, Vector2 pos)
         {
             this.pos = pos;

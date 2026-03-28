@@ -5,7 +5,6 @@ namespace NovaLine.Editor.Graph.Edge
 {
     using NovaLine.Editor.Utils;
     using NovaLine.Action;
-    using NovaLine.Switcher;
     using UnityEngine;
 
     public class ActionGraphEdge : GraphEdge<NovaAction, ActionSwitcher>

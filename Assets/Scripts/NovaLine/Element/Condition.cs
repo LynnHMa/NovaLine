@@ -1,5 +1,4 @@
-﻿using NovaLine.Switcher;
-using NovaLine.Utils.Ext;
+﻿using NovaLine.Utils.Ext;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,12 +12,6 @@ namespace NovaLine.Element
     {
         public ConditionType conditionType = ConditionType.All;
         public override NovaElementType type => NovaElementType.CONDITION;
-
-        [HideInInspector]
-        public List<NovaEvent> novaEvents = new();
-
-        [HideInInspector]
-        public NovaEvent firstEvent;
         public Condition()
         {
             guid = Guid.NewGuid().ToString();
@@ -43,21 +36,18 @@ namespace NovaLine.Element
                     await waitingTasks.RunAny();
                     break;
                 case ConditionType.Sort:
-                    await firstEvent?.onEvent();
+                    var firstEvent = (NovaEvent)firstChild;
+                    await firstEvent.onEvent();
                     break;
             }
         }
-
-        public override void onGraphConnect(INovaSwitcher graphEdge)
-        {
-            //There is not condition graph node.
-        }
+        
         private List<Task> getWaitingTasks()
         {
             List<Task> waitingTasks = new();
-            foreach(var novaEvent in novaEvents)
+            foreach(var child in children)
             {
-                if (novaEvent == null) continue;
+                if (child == null || child is not NovaEvent novaEvent) continue;
                 waitingTasks.Add(novaEvent.onEvent());
             }
             return waitingTasks;

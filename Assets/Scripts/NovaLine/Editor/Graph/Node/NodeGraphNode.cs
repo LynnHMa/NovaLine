@@ -2,12 +2,13 @@
 using NovaLine.Editor.Graph.Port;
 using NovaLine.Editor.Graph.Edge;
 using UnityEditor.Experimental.GraphView;
-using NovaLine.Switcher;
 using UnityEngine.UIElements;
 using NovaLine.Editor.Utils;
+using NovaLine.Editor.Window;
 using NovaLine.Editor.Window.Context;
 using static NovaLine.Editor.Window.WindowContextRegistry;
 using NovaLine.Element;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Graph.Node
 {
@@ -15,10 +16,6 @@ namespace NovaLine.Editor.Graph.Node
     {
         protected override Color themedColor => ColorExt.NODE_THEMED_COLOR;
         public NodeGraphNode(Element.Node node, Vector2 pos) : base(node, pos)
-        {
-            addPort();
-        }
-        public NodeGraphNode(string title, Vector2 pos) : this(new Element.Node(title), pos)
         {
             addPort();
         }

@@ -70,7 +70,7 @@ namespace NovaLine.Editor.Utils
                         property.managedReferenceValue = newElement;
                         property.serializedObject.ApplyModifiedProperties();
                         
-                        CommandRegistry.Register(new InspectorElementChangeCommand(newElement.parent.guid,newElement.parent.type,oldElement,newElement));
+                        CommandRegistry.Register(new InspectorElementChangeCommand(newElement.parent.guid,newElement.parent.type,oldElement.strongCopy(),newElement.strongCopy()));
                         InspectorHelper.UpdateCache();
                     }
                 }

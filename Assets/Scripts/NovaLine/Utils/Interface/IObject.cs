@@ -1,7 +1,7 @@
 ﻿using NovaLine.Data.Edge;
 using NovaLine.Data.NodeGraphView;
 using NovaLine.Element;
-using NovaLine.Switcher;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Utils.Interface
 {

@@ -7,19 +7,28 @@ using NovaLine.Utils.Interface;
 using NovaLine.Editor.Window;
 using static NovaLine.Editor.Window.WindowContextRegistry;
 using NovaLine.Editor.Window.Command;
-using UnityEditor.Experimental.GraphView;
 using Editor.Utils.Ext;
+using NovaLine.Editor.Utils.Scope;
 
 namespace NovaLine.Editor.Graph.Node
 {
     public abstract class GraphNode : UnityEditor.Experimental.GraphView.Node,IGraphNode
     {
+        private Vector2 _pos;
+        private Vector2 _posWhenStartMoving;
+        private bool _ignoreNextAutoRecord = false;
+        private bool _isMoving = false;
+        private IVisualElementScheduledItem _moveSettleTimer;
+        
         protected virtual Color themedColor => Color.white;
-        public virtual Vector2 pos => new Vector2(base.GetPosition().x, base.GetPosition().y);
+        public virtual Vector2 pos
+        {
+            get => _pos;
+            set => _pos = value;
+        }
         public virtual string guid => linkedElement?.guid;
         public virtual NovaElementType type => linkedElement != null ? linkedElement.type : NovaElementType.NONE;
         public override string title => linkedElement?.getActualName();
-        public GraphView graphView => GetFirstAncestorOfType<GraphView>();
 
         private NovaElement _linkedElement;
         public virtual NovaElement linkedElement
@@ -32,12 +41,10 @@ namespace NovaLine.Editor.Graph.Node
             }
         }
         public bool isPassable = true;
-        public bool isDragging = false;
-        private Vector2 posWhenStartDragging;
 
         string IGUID.guid { get => guid; set { return; } }
 
-        public GraphNode()
+        protected GraphNode()
         {
             removePort();
 
@@ -110,48 +117,61 @@ namespace NovaLine.Editor.Graph.Node
                 top.style.flexDirection = FlexDirection.Row;
                 top.style.justifyContent = Justify.SpaceBetween;
             }
-
-            RegisterCallback<PointerDownEvent>(onMouseDown, TrickleDown.TrickleDown);
         }
-        public GraphNode(NovaElement element, Vector2 pos) : this()
+        protected GraphNode(NovaElement element, Vector2 pos) : this()
         {
             linkedElement = element;
             SetPosition(pos,false);
         }
-        public virtual void SetPosition(Vector2 pos,bool registerCommand)
+        
+        public virtual void SetPosition(Vector2 pos, bool registerCommand)
         {
-            if (registerCommand) CommandRegistry.Register(buildMoveCommand(this.pos, pos));
-            base.SetPosition(new Rect(pos.x, pos.y, base.GetPosition().width, base.GetPosition().height));
-        }
-        private void onMouseDown(PointerDownEvent evt)
-        {
-            if(evt.button == 0 && !isDragging)
+            if (registerCommand)
             {
-                posWhenStartDragging = pos;
-                isDragging = true;
-
-                if (graphView != null)
-                {
-                    graphView.RegisterCallback<PointerUpEvent>(onMouseUp, TrickleDown.TrickleDown);
-                }
+                CommandRegistry.Register(buildMoveCommand(this.pos, pos));
+                _ignoreNextAutoRecord = true;
             }
+
+            _pos = pos;
+            _isMoving = false; 
+            
+            SetPosition(new Rect(pos.x, pos.y, base.GetPosition().width, base.GetPosition().height));
         }
-        private void onMouseUp(PointerUpEvent evt)
+        
+        public override void SetPosition(Rect newPos)
         {
-            if (evt.button == 0 && isDragging)
+            Vector2 targetPos = new Vector2(newPos.x, newPos.y);
+            
+            if (_pos != targetPos)
             {
-                isDragging = false;
-
-                if (graphView != null)
+                if (!_isMoving)
                 {
-                    graphView.UnregisterCallback<PointerUpEvent>(onMouseUp, TrickleDown.TrickleDown);
+                    _posWhenStartMoving = _pos;
+                    _isMoving = true;
                 }
 
-                if (posWhenStartDragging != pos)
+                _pos = targetPos; 
+                
+                if (_moveSettleTimer == null)
                 {
-                    CommandRegistry.Register(buildMoveCommand(posWhenStartDragging, pos));
+                    _moveSettleTimer = schedule.Execute(OnMoveSettled);
                 }
-                posWhenStartDragging = pos;
+                _moveSettleTimer.ExecuteLater(100); 
+            }
+
+            base.SetPosition(newPos); 
+        }
+        
+        private void OnMoveSettled()
+        {
+            if (_isMoving)
+            {
+                _isMoving = false;
+                
+                if (_posWhenStartMoving != _pos)
+                {
+                    CommandRegistry.Register(buildMoveCommand(_posWhenStartMoving, _pos));
+                }
             }
         }
         protected virtual MoveNodeCommand buildMoveCommand(Vector2 oldPos, Vector2 newPos)
@@ -205,7 +225,7 @@ namespace NovaLine.Editor.Graph.Node
                             var ei = inputConnections[i] as IGraphEdge;
                             if (ei != null)
                             {
-                                currentGraphView.removeGraphEdge(ei,false);
+                                currentGraphView.removeGraphEdge(ei);
                             }
                         }
 
@@ -215,7 +235,7 @@ namespace NovaLine.Editor.Graph.Node
                             var eo = outputConnections[i] as IGraphEdge;
                             if (eo != null)
                             {
-                                currentGraphView.removeGraphEdge(eo,false);
+                                currentGraphView.removeGraphEdge(eo);
                             }
                         }
                     }

@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
-using NovaLine.Switcher;
+using NovaLine.Element.Switcher;
 using UnityEngine;
 
 namespace NovaLine.Element.Event
@@ -9,8 +10,6 @@ namespace NovaLine.Element.Event
     public class NovaEvent : NovaElement,INovaEvent
     {
         public override NovaElementType type => NovaElementType.EVENT;
-        [HideInInspector]
-        public EventSwitcher nextEvent;
         public NovaEvent()
         {
             guid = Guid.NewGuid().ToString();
@@ -24,8 +23,11 @@ namespace NovaLine.Element.Event
         {
             if (parent != null && parent is Condition parentCondition && parentCondition.conditionType == ConditionType.Sort)
             {
-                var nextEvent = (NovaEvent)this.nextEvent.inputElement;
-                await nextEvent?.onEvent();
+                var nextEvent = (NovaEvent)switchers.FirstOrDefault()?.inputElement;
+                if (nextEvent != null)
+                {
+                    await nextEvent?.onEvent();
+                }
             }
             else await Task.CompletedTask;
         }
@@ -34,21 +36,8 @@ namespace NovaLine.Element.Event
         {
             return "[Default Event]";
         }
-
-        public override void onGraphConnect(INovaSwitcher graphEdge)
-        {
-            if (graphEdge is EventSwitcher eventSwitcher)
-            {
-                nextEvent = eventSwitcher;
-            }
-        }
-        public override void onGraphDisconnect(INovaSwitcher graphEdge)
-        {
-            nextEvent = null;
-        }
     }
     public interface INovaEvent
     {
-
     }
 }

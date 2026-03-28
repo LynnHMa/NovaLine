@@ -1,7 +1,9 @@
 ﻿using NovaLine.Editor.Window.Command;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using static NovaLine.Editor.Window.WindowContextRegistry;
@@ -13,42 +15,52 @@ namespace NovaLine.Editor.Window
         public Stack<Command.Command> undoStack { get; set; } = new();
         public Stack<Command.Command> redoStack { get; set; } = new();
         public bool isImporting { get; set; }
-        private Stack<Command.Command> preparativeStack { get; set; } = new();
+        private Stack<Command.Command> preparativeStack { get; } = new();
         public bool isRecordingCompoundCommand { get; set; }
-        private List<Command.Command> recordedCommands { get; set; } = new();
+        private List<Command.Command> recordedCommands { get; } = new();
 
         public static CommandRegistry Instance => CurrentGraphViewContext?.commandRegistry;
         public static Stack<Command.Command> UndoStack => Instance?.undoStack;
         public static Stack<Command.Command> RedoStack => Instance?.redoStack;
 
-        private async Task importPreparativeStackTask()
+        private Task importPreparativeStackTask()
         {
-            if (isImporting) return;
-
-            isImporting = true;
-
-            await Task.Delay(100);
-
-            if (preparativeStack.Count >= 2)
+            try
             {
-                var toImports = new List<Command.Command>();
-                while (preparativeStack.Count > 0)
+                if (isImporting) return Task.CompletedTask;
+
+                isImporting = true;
+
+                EditorApplication.delayCall += () =>
                 {
-                    var toImport = preparativeStack.Pop();
-                    if (toImport != null)
+                    if (preparativeStack.Count >= 2)
                     {
-                        toImports.Add(toImport);
-                    }
-                }
-                var compoundCommand = new CompoundCommand(toImports);
-                undoStack.Push(compoundCommand);
-            }
-            else if (preparativeStack.Count == 1)
-            {
-                undoStack.Push(preparativeStack.Pop());
-            }
+                        var toImports = new List<Command.Command>();
+                        while (preparativeStack.Count > 0)
+                        {
+                            var toImport = preparativeStack.Pop();
+                            if (toImport != null)
+                            {
+                                toImports.Add(toImport);
+                            }
+                        }
 
-            isImporting = false;
+                        var compoundCommand = new CompoundCommand(toImports);
+                        undoStack.Push(compoundCommand);
+                    }
+                    else if (preparativeStack.Count == 1)
+                    {
+                        undoStack.Push(preparativeStack.Pop());
+                    }
+
+                    isImporting = false;
+                };
+                return Task.CompletedTask;
+            }
+            catch (Exception exception)
+            {
+                return Task.FromException(exception);
+            }
         }
         public void importPreparativeStack()
         {

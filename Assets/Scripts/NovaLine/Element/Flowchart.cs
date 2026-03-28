@@ -9,13 +9,6 @@ namespace NovaLine.Element
     public class Flowchart : NovaElement
     {
         public override NovaElementType type => NovaElementType.FLOWCHART;
-
-        [HideInInspector]
-        public List<Node> nodes = new();
-
-        [HideInInspector]
-        public Node firstNode;
-
         public Flowchart() { 
             guid = Guid.NewGuid().ToString();
         }
@@ -29,12 +22,18 @@ namespace NovaLine.Element
         }
         public async Task play()
         {
-            if(firstNode == null)
+            if(firstChild == null)
             {
                 await Task.CompletedTask;
             }
             else
             {
+                var firstNode = firstChild as Node;
+                if (firstNode == null)
+                {
+                    await Task.CompletedTask;
+                    return;
+                }
                 await firstNode.run();
             }
 

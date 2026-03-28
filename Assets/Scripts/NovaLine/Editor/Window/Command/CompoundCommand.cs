@@ -18,7 +18,6 @@ namespace NovaLine.Editor.Window.Command
                 var command = commands[i];
                 if (command is CompoundCommand compoundCommand)
                 {
-                    Debug.Log("WTF Compound!");
                     this.commands.AddRange(compoundCommand.commands);
                     commands.RemoveAt(i);
                 }
@@ -28,24 +27,21 @@ namespace NovaLine.Editor.Window.Command
 
             mergeCongenericCommand();
         }
-        public override void undo(bool autoSave = true)
+        protected override void onUndo()
         {
             for (var i = commands.Count - 1; i >= 0; i--)
             {
                 var command = commands[i];
-                Debug.Log($"{i} is {command.type}");
-                command.undo(false);
+                command.undo();
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = true)
+        protected override void onRedo()
         {
             for (var i = 0; i < commands.Count; i++)
             {
                 var command = commands[i];
-                command.redo(false);
+                command.redo();
             }
-            base.redo(autoSave);
         }
         //Merge congeneric command
         private void mergeCongenericCommand()

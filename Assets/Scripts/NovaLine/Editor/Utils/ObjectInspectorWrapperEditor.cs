@@ -1,3 +1,5 @@
+using NovaLine.Editor.Utils.Scope;
+using NovaLine.Editor.Window;
 using NovaLine.Element.Event;
 
 namespace NovaLine.Editor.Utils
@@ -53,6 +55,8 @@ namespace NovaLine.Editor.Utils
             modifyInfo();
 
             serializedObject.ApplyModifiedProperties();
+            
+            interceptUndoRedo();
         }
         private void modifyInfo()
         {
@@ -93,7 +97,7 @@ namespace NovaLine.Editor.Utils
                 {
                     var actualConditionName = targetCondition.name;
 
-                    if(actualConditionName == null || actualConditionName == "")
+                    if(String.IsNullOrEmpty(actualConditionName))
                     {
                         if (conditionPropery.name.Contains("Before")) actualConditionName = $"Before {targetCondition.parent?.name} Invoke";
                         else if (conditionPropery.name.Contains("After")) actualConditionName = $"After {targetCondition.parent?.name} Invoke";
@@ -115,8 +119,7 @@ namespace NovaLine.Editor.Utils
                 EditorGUILayout.Space(30);
 
                 EditorGUILayout.LabelField(selectedElement.getActualName(), style);
-
-                // ���ƶ�̬������
+                
                 if (selectedElement is NovaAction)
                 {
                     SerializeReferenceUI.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
@@ -166,7 +169,7 @@ namespace NovaLine.Editor.Utils
                         {
                             currentGraphView.setFirstNode(NovaWindow.SelectedGraphNode);
                             currentGraphView.update();
-                            EditorFileManager.SaveGraphWindowData();
+                            SaveScope.RequireSave();
                         }
                     }
                     EditorGUILayout.Space(30);
@@ -175,14 +178,38 @@ namespace NovaLine.Editor.Utils
             }
         }
 
-        private void DrawUILine(Color color, int thickness = 1, int padding = 10)
+        private void interceptUndoRedo()
         {
-            Rect r = EditorGUILayout.GetControlRect(GUILayout.Height(padding + thickness));
-            r.height = thickness;
-            r.y += padding / 2;
-            r.x -= 2;
-            r.width += 6;
-            EditorGUI.DrawRect(r, color);
+            Event e = Event.current;
+            
+            if (e.type == EventType.KeyDown && e.isKey)
+            {
+                if (EditorGUIUtility.editingTextField)
+                {
+                    return;
+                }
+                if (e.keyCode == KeyCode.Z)
+                {
+                    if (e.shift)
+                    {
+                        CommandRegistry.Redo();
+                        //Debug.Log("【Inspector 拦截】触发自定义 Redo！");
+                    }
+                    else
+                    {
+                        CommandRegistry.Undo();
+                        //Debug.Log("【Inspector 拦截】触发自定义 Undo！");
+                    }
+                    
+                    e.Use();
+                }
+                else if (e.keyCode == KeyCode.Y)
+                {
+                    CommandRegistry.Redo();
+                    //Debug.Log("【Inspector 拦截】触发自定义 Redo(Ctrl+Y)！");
+                    e.Use();
+                }
+            }
         }
     }
 }

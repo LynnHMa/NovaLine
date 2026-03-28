@@ -2,9 +2,9 @@
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using NovaLine.Editor.Graph.Port;
-using NovaLine.Switcher;
 using NovaLine.Editor.Utils;
 using NovaLine.Element.Event;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Graph.Node
 {

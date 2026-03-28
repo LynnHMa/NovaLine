@@ -17,6 +17,22 @@ namespace NovaLine.Data
         public virtual string describtion { get => _describtion; set => _describtion = value; }
         public virtual Vector2 pos { get => _pos; set => _pos = value; }
         public virtual string guid { get => _guid; set => _guid = value; }
+        public Vector2 getPos() => _pos;
+        
+        protected NovaData(){}
+
+        public virtual INovaData copy()
+        {
+            return strongCopy();
+        }
+
+        public virtual NovaData strongCopy()
+        {
+            var data = JsonUtility.ToJson(this);
+            var clone = (NovaData)Activator.CreateInstance(GetType());
+            JsonUtility.FromJsonOverwrite(data, clone);
+            return clone;
+        }
     }
     public interface INovaData : IGUID
     {
@@ -25,5 +41,7 @@ namespace NovaLine.Data
         public string describtion { get; set; }
 
         public Vector2 pos { get; set; }
+        INovaData copy();
+        NovaData strongCopy();
     }
 }

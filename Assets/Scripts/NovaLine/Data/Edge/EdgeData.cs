@@ -1,24 +1,25 @@
 using System;
-using NovaLine.Element;
-using NovaLine.Switcher;
+using NovaLine.Element.Switcher;
 using NovaLine.Utils.Interface;
+using UnityEngine;
 
 namespace NovaLine.Data.Edge
 {
     [Serializable]
-    public class EdgeData<PE, EE> : NovaData, IEdgeData
-        where PE : NovaElement
+    public class EdgeData<EE> : NovaData, IEdgeData
         where EE : NovaSwitcher
     {
-        public virtual EE linkedSwitcher { get; set; }
+        [SerializeReference] private EE _linkedSwitcher;
+        
+        public virtual EE linkedSwitcher { get => _linkedSwitcher; set =>  _linkedSwitcher = value; }
         public override string guid => linkedSwitcher?.guid;
 
         NovaSwitcher IEdgeData.linkedSwitcher { get => linkedSwitcher; set => linkedSwitcher = value as EE; }
 
-        public EdgeData()
+        protected EdgeData()
         {
         }
-        public EdgeData(EE linkedSwitcher)
+        protected EdgeData(EE linkedSwitcher)
         {
             this.linkedSwitcher = linkedSwitcher;
         }
@@ -27,8 +28,16 @@ namespace NovaLine.Data.Edge
         {
             this.linkedSwitcher = (EE)linkedSwitcher;
         }
+
+        public override INovaData copy()
+        {
+            var clone = base.copy() as EdgeData<EE>;
+            if (clone == null) return null;
+            clone.linkedSwitcher = (EE)linkedSwitcher.copy();
+            return clone;
+        }
     }
-    public interface IEdgeData : IGUID
+    public interface IEdgeData : INovaData,IGUID
     {
         void onSummon(NovaSwitcher linkedSwitcher);
         public NovaSwitcher linkedSwitcher { get; set; }

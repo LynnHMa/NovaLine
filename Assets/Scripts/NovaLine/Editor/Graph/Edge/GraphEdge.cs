@@ -1,10 +1,11 @@
 ﻿
+using NovaLine.Element.Switcher;
+
 namespace NovaLine.Editor.Graph.Edge
 {
     using UnityEditor.Experimental.GraphView;
     using NovaLine.Editor.Graph.Port;
     using NovaLine.Element;
-    using NovaLine.Switcher;
     using UnityEngine;
     using UnityEngine.UIElements;
     using NovaLine.Utils.Interface;

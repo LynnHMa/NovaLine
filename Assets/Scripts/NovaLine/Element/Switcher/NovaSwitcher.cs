@@ -1,9 +1,8 @@
-﻿using NovaLine.Element;
+﻿using System;
 using NovaLine.Utils.Interface;
-using System;
 using UnityEngine;
 
-namespace NovaLine.Switcher
+namespace NovaLine.Element.Switcher
 {
     [Serializable]
     public class NovaSwitcher : NovaElement,INovaSwitcher
@@ -24,9 +23,16 @@ namespace NovaLine.Switcher
         {
             return "[Edge]";
         }
-        public override string getActualName()
+        public override NovaElement copy()
         {
-            return getTypeName() + " " + name;
+            var clone = base.copy() as NovaSwitcher;
+            if (clone == null) return null;
+            
+            //Waiting to be written by CopyPasteHelper.
+            clone._inputElement = null;
+            clone._outputElement = null;
+            
+            return clone;
         }
     }
     public interface INovaSwitcher : IGUID

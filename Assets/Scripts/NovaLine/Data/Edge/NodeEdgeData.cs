@@ -1,13 +1,13 @@
 ﻿using NovaLine.Data.Edge;
 using NovaLine.Data.NodeGraphView;
-using NovaLine.Switcher;
 using System;
+using NovaLine.Element.Switcher;
 using UnityEngine;
 
 namespace NovaLine.Data.Edge
 {
     [Serializable]
-    public class NodeEdgeData : EdgeData<Element.Node, NodeSwitcher>
+    public class NodeEdgeData : EdgeData<NodeSwitcher>
     {
         [SerializeReference] private NodeSwitcher _linkedSwitcher;
         [SerializeReference] private ConditionData _switchConditionData;
@@ -37,6 +37,14 @@ namespace NovaLine.Data.Edge
             base.onSummon(linkedSwitcher);
             if (linkedSwitcher is not NodeSwitcher nodeSwitcher) return;
             switchConditionData = new ConditionData(nodeSwitcher.switchCondition);
+        }
+        public override INovaData copy()
+        {
+            var clone = base.copy() as NodeEdgeData;
+            if (clone == null) return null;
+            clone.switchConditionData = (ConditionData)switchConditionData.copy();
+            clone.switchConditionData.linkedElement = clone.linkedSwitcher.switchCondition;
+            return clone;
         }
     }
 }

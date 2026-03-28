@@ -6,7 +6,7 @@ namespace NovaLine.File
     [CreateAssetMenu]
     public class FlowchartDataAsset : ScriptableObject
     {
-        [SerializeReference]
+        [SerializeReference,HideInInspector]
         public FlowchartData data;
 
         public static FlowchartDataAsset CreateInstance(FlowchartData data = null)

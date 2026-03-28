@@ -1,7 +1,10 @@
-﻿using NovaLine.Editor.Graph.Node;
+﻿using System.Collections.Generic;
+using System.Linq;
+using NovaLine.Editor.Graph.Node;
 using NovaLine.Editor.Graph.View;
 using NovaLine.Data.Edge;
 using NovaLine.Data.NodeGraphView;
+using NovaLine.Editor.Graph.Edge;
 using static NovaLine.Editor.Window.Context.ContextInfo;
 
 namespace NovaLine.Editor.Window.Context
@@ -10,27 +13,14 @@ namespace NovaLine.Editor.Window.Context
     public class NodeContext : GraphViewContext<NodeGraphView, NodeData>
     {
         public NodeContext(NodeData linkedData) : base(linkedData) { }
-        public NodeContext(NodeGraphView graphView, NodeData linkedData) : base(graphView, linkedData) { }
-
-        public override void save()
+        public override void saveNodeData(List<GraphNode> graphNodes = null)
         {
-            base.save<ActionGraphNode, ActionContext, ActionEdgeData>();
+            saveNodeData<ActionGraphNode, ActionContext>(graphNodes == null ? null : graphNodes.Cast<ActionGraphNode>().ToList());
         }
-
-        protected override void cleanInvalidChild()
+        public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
         {
-            if (linkedData != null && linkedData.linkedElement != null)
-            {
-                var actions = linkedData.linkedElement.actions;
-                if(actions == null || actions.Count == 0) return;
-                for (var i = actions.Count - 1; i >= 0; i--)
-                {
-                    var action =  actions[i];
-                    if(action == null || linkedData.nodeDatas.Find(nD => nD.guid.Equals(action.guid)) == null) actions.RemoveAt(i);
-                }
-            }
+            saveEdgeData<ActionEdgeData>(graphEdges);
         }
-
         protected override NodeGraphView summonGraphView()
         {
             return new NodeGraphView(linkedData.linkedElement);

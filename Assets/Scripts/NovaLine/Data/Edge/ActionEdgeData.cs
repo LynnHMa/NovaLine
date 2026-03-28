@@ -1,5 +1,4 @@
 ﻿using NovaLine.Action;
-using NovaLine.Switcher;
 using System;
 using NovaLine.Element.Switcher;
 using UnityEngine;
@@ -7,7 +6,7 @@ using UnityEngine;
 namespace NovaLine.Data.Edge
 {
     [Serializable]
-    public class ActionEdgeData : EdgeData<NovaAction, ActionSwitcher>
+    public class ActionEdgeData : EdgeData<ActionSwitcher>
     {
         [SerializeReference] private ActionSwitcher _linkedSwitcher;
 

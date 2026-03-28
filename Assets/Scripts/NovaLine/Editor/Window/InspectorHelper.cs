@@ -1,4 +1,7 @@
-﻿using NovaLine.Editor.Utils;
+﻿using System;
+using System.Threading.Tasks;
+using NovaLine.Editor.Utils;
+using NovaLine.Editor.Utils.Scope;
 using NovaLine.Editor.Window.Command;
 using NovaLine.Element;
 using UnityEditor;
@@ -10,22 +13,40 @@ namespace NovaLine.Editor.Window
     public static class InspectorHelper
     {
         private static ObjectInspectorWrapper wrapper;
+        private static bool showingInInspector;
         public static NovaElement cachedNovaElement;
-        public static void ShowInInspector(this NovaElement novaElement)
+
+        private static int _inspectorUpdateVersion = 0;
+
+        public static async void ShowInInspector(this NovaElement novaElement)
         {
-            if (novaElement == null)
+            int currentVersion = ++_inspectorUpdateVersion;
+            
+            await Task.Delay(50);
+            
+            if (currentVersion != _inspectorUpdateVersion)
             {
-                Selection.activeObject = null;
-                cachedNovaElement = null;
-                wrapper = null;
                 return;
             }
-
-            wrapper = ObjectInspectorWrapper.CreateInstance(novaElement);
-
-            cachedNovaElement = novaElement.copy();
             
-            Selection.activeObject = wrapper;
+            try
+            {
+                if (novaElement == null)
+                {
+                    Selection.activeObject = null;
+                    wrapper = null;
+                    cachedNovaElement = null;
+                    return;
+                }
+                
+                wrapper = ObjectInspectorWrapper.CreateInstance(novaElement);
+                cachedNovaElement = novaElement.strongCopy();
+                Selection.activeObject = wrapper; 
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
 
         public static void ReplaceToContext(this NovaElement novaElement)
@@ -47,6 +68,7 @@ namespace NovaLine.Editor.Window
                     if (targetGraphNode != null)
                     {
                         targetGraphNode.linkedElement = novaElement;
+                        novaElement.ShowInInspector();
                     }
                     parentContext.graphView.selectGraphNode(targetGraphNode);
                 }
@@ -55,21 +77,21 @@ namespace NovaLine.Editor.Window
         public static void OnInspectorObjValueChange()
         {
             if(wrapper == null) return;
-            
-            CurrentGraphViewContext?.graphView?.update();
-            NovaWindow.UpdateContext();
-            
             var inspectorElement = wrapper.selectedElement as NovaElement;
             if (inspectorElement == null || inspectorElement.parent == null) return;
-            CommandRegistry.Register(new InspectorElementChangeCommand(inspectorElement.parent.guid,inspectorElement.parent.type,cachedNovaElement,inspectorElement));
+            CommandRegistry.Register(new InspectorElementChangeCommand(inspectorElement.parent.guid,inspectorElement.parent.type,cachedNovaElement.strongCopy(),inspectorElement.strongCopy()));
             UpdateCache();
+            
+            UpdateScope.RequireUpdate();
         }
         public static void UpdateCache()
         {
             if(wrapper == null) return;
             var wrapperElement = wrapper.selectedElement as NovaElement;
             if (wrapperElement == null) return;
-            cachedNovaElement = wrapperElement.copy();
+            cachedNovaElement = wrapperElement.strongCopy();
+            cachedNovaElement.parent = wrapperElement.parent;
         }
+        
     }
 }

@@ -4,6 +4,7 @@ using Editor.Utils.Ext;
 using System.Collections.Generic;
 using NovaLine.Editor.Graph.Node;
 using System;
+using static NovaLine.Editor.Window.WindowContextRegistry;
 using NovaLine.Element;
 
 namespace NovaLine.Editor.Window.Command
@@ -25,27 +26,19 @@ namespace NovaLine.Editor.Window.Command
             }
         }
 
-        public override void undo(bool autoSave = false)
+        protected override void onUndo()
         {
-            if(linkedGraphView != null)
+            foreach(var graphNodeInfo in addedGraphNodeInfo)
             {
-                foreach(var graphNodeInfo in addedGraphNodeInfo)
-                {
-                    linkedGraphView.removeGraphNode(graphNodeInfo.key?.guid, false, false);
-                }
+                linkedGraphView.removeGraphNodeByCommand(graphNodeInfo.key);
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = false)
+        protected override void onRedo()
         {
-            if (linkedGraphView != null)
+            foreach (var graphNodeInfo in addedGraphNodeInfo)
             {
-                foreach (var graphNodeInfo in addedGraphNodeInfo)
-                {
-                    linkedGraphView.addGraphNode(linkedGraphView.summonNewGraphNode(graphNodeInfo.key,graphNodeInfo.value), false, false, false);
-                }
+                linkedGraphView.addGraphNodeByCommand(graphNodeInfo.key,graphNodeInfo.value);
             }
-            base.redo(autoSave);
         }
 
         public override void merge(Command congenericCommand)

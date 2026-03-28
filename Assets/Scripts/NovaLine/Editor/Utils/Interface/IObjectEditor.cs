@@ -5,7 +5,7 @@ using NovaLine.Editor.Graph.Node;
 using NovaLine.Editor.Graph.View;
 using NovaLine.Editor.Window.Context;
 using NovaLine.Element;
-using NovaLine.Switcher;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Editor.Utils.Interface
 {

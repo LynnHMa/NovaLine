@@ -20,29 +20,21 @@ namespace NovaLine.Editor.Window.Command
             movedGraphNodeInfo = situations;
         }
 
-        public override void undo(bool autoSave = true)
+        protected override void onUndo()
         {
-            if(linkedGraphView != null)
+            foreach(var graphNodeInfo in movedGraphNodeInfo)
             {
-                foreach(var graphNodeInfo in movedGraphNodeInfo)
-                {
-                    var keyValue = graphNodeInfo.value;
-                    linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.oldPos,false);
-                }
+                var keyValue = graphNodeInfo.value;
+                linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.oldPos,false);
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = true)
+        protected override void onRedo()
         {
-            if (linkedGraphView != null)
+            foreach (var graphNodeInfo in movedGraphNodeInfo)
             {
-                foreach (var graphNodeInfo in movedGraphNodeInfo)
-                {
-                    var keyValue = graphNodeInfo.value;
-                    linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.newPos,false);
-                }
+                var keyValue = graphNodeInfo.value;
+                linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.newPos,false);
             }
-            base.redo(autoSave);
         }
 
         public override void merge(Command congenericCommand)

@@ -1,8 +1,8 @@
 ﻿using Editor.Utils.Ext;
-using NovaLine.Editor.File;
 using NovaLine.Editor.Graph.View;
 using NovaLine.Element;
 using System;
+using NovaLine.Editor.Utils.Scope;
 using UnityEngine;
 using static NovaLine.Editor.Window.WindowContextRegistry;
 
@@ -23,25 +23,43 @@ namespace NovaLine.Editor.Window.Command
         }
 
         CommandType ICommand.type { get => type; set => type = value; }
-        public virtual void undo(bool autoSave = true)
+
+        public void undo()
         {
-            Debug.Log("[Undo] " + type);
+            if (linkedGraphView == null) return;
+            
+            //Debug.Log("[Undo] " + type);
+            using (new UpdateScope())
+            using (new SaveScope())
+            {
+                onUndo();
+            }
             linkedGraphView?.update();
-            if (autoSave) EditorFileManager.SaveGraphWindowData();
         }
-        public virtual void redo(bool autoSave = true)
+
+        public void redo()
         {
-            Debug.Log("[Redo] " + type);
+            if (linkedGraphView == null) return;
+            
+            //Debug.Log("[Redo] " + type);
+            using (new UpdateScope())
+            using (new SaveScope())
+            {
+                onRedo();
+            }
             linkedGraphView?.update();
-            if (autoSave) EditorFileManager.SaveGraphWindowData();
         }
+
+        protected abstract void onUndo();
+
+        protected abstract void onRedo();
         public abstract void merge(Command congenericCommand);
     }
     public interface ICommand
     {
         public CommandType type { get; set; }
-        void undo(bool autoSave = true);
-        void redo(bool autoSave = true);
+        void undo();
+        void redo();
         void merge(Command congenericCommand);
     }
     public enum CommandType

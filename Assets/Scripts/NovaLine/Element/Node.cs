@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NovaLine.Action;
-using NovaLine.Switcher;
-using NovaLine.Utils.Ext;
-using UnityEngine;
+using NovaLine.Element.Switcher;
 
 namespace NovaLine.Element
 {
@@ -16,16 +14,6 @@ namespace NovaLine.Element
         public Condition conditionAfterInvoke;
 
         public override NovaElementType type => NovaElementType.NODE;
-
-        [HideInInspector]
-        public List<NodeSwitcher> nextNodes  = new();
-
-        [HideInInspector]
-        public List<NovaAction> actions = new();
-
-        [HideInInspector]
-        public NovaAction firstAction;
-
         public Node() {
             guid = Guid.NewGuid().ToString();
         }
@@ -40,45 +28,37 @@ namespace NovaLine.Element
         public async Task run()
         {
             await conditionBeforeInvoke.waiting();
-            foreach (var action in actions)
+            foreach (var child in children)
             {
-                if(action.actionType == ActionType.Meanwhile) action.invoke();
+                if(child == null || child is not NovaAction action) continue;
+                if(action.actionType == ActionType.Meanwhile) action?.invoke();
             }
-            await (firstAction == null ? Task.CompletedTask : firstAction.invoke());
+            await (firstChild == null || firstChild is not NovaAction firstAction ? Task.CompletedTask : firstAction.invoke());
             await conditionAfterInvoke.waiting();
         }
         public override string getTypeName()
         {
             return "[Node]";
         }
-        public override void onGraphConnect(INovaSwitcher graphEdge)
+        public override NovaElement copy()
         {
-            if (graphEdge is NodeSwitcher nodeSwitcher)
-            {
-                if (nextNodes == null) nextNodes = new();
-                if (!nextNodes.Exists(s => s.guid == nodeSwitcher.guid))
-                {
-                    nextNodes.Add(nodeSwitcher);
-                }
-            }
-        }
-        public override void onGraphDisconnect(INovaSwitcher graphEdge)
-        {
-            if (graphEdge is NodeSwitcher nodeSwitcher)
-            {
-                if (nextNodes == null)
-                {
-                    nextNodes = new();
-                }
-                nextNodes.Remove(nodeSwitcher);
-            }
+            var clone = base.copy();
+            if (clone == null || clone is not Node node) return clone;
+            node.conditionBeforeInvoke = (Condition)conditionBeforeInvoke.copy();
+            node.conditionAfterInvoke = (Condition)conditionAfterInvoke.copy();
+            node.conditionBeforeInvoke.parent = node;
+            node.conditionAfterInvoke.parent = node;
+            return node;
         }
         private List<Task> getNextNodeConditionTasks()
         {
             var result = new List<Task>();
-            foreach (var switcher in nextNodes)
+            foreach (var switcher in switchers)
             {
-                result.Add(switcher.switchCondition?.waiting());
+                if (switcher is NodeSwitcher nodeSwitcher)
+                {
+                    result.Add(nodeSwitcher.switchCondition?.waiting());
+                }
             }
             return result;
         }

@@ -23,27 +23,19 @@ namespace NovaLine.Editor.Window.Command
                 removedGraphNodeInfo.Add(new(graphNode.linkedElement, graphNode.pos));
             }
         }
-        public override void undo(bool autoSave = true)
+        protected override void onUndo()
         {
-            if (linkedGraphView != null)
+            foreach (var graphNodeInfo in removedGraphNodeInfo)
             {
-                foreach (var graphNodeInfo in removedGraphNodeInfo)
-                {
-                    linkedGraphView.addGraphNode(linkedGraphView.summonNewGraphNode(graphNodeInfo.key, graphNodeInfo.value), false, false, false);
-                }
+                linkedGraphView.addGraphNodeByCommand(graphNodeInfo.key,graphNodeInfo.value);
             }
-            base.undo(autoSave);
         }
-        public override void redo(bool autoSave = true)
+        protected override void onRedo()
         {
-            if(linkedGraphView != null)
+            foreach(var graphNodeInfo in removedGraphNodeInfo)
             {
-                foreach(var graphNodeInfo in removedGraphNodeInfo)
-                {
-                    linkedGraphView.removeGraphNode(graphNodeInfo.key?.guid, false, false);
-                }
+                linkedGraphView.removeGraphNodeByCommand(graphNodeInfo.key);
             }
-            base.redo(autoSave);
         }
 
         public override void merge(Command congenericCommand)

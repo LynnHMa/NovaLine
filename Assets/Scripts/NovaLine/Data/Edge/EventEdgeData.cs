@@ -1,12 +1,12 @@
-﻿using NovaLine.Switcher;
-using System;
+﻿using System;
 using NovaLine.Element.Event;
+using NovaLine.Element.Switcher;
 using UnityEngine;
 
 namespace NovaLine.Data.Edge
 {
     [Serializable]
-    public class EventEdgeData : EdgeData<NovaEvent, EventSwitcher>
+    public class EventEdgeData : EdgeData<EventSwitcher>
     {
         [SerializeReference] private EventSwitcher _linkedSwitcher;
 
