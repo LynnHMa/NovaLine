@@ -22,7 +22,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public override EventGraphNode summonNewGraphNode(Vector2 pos)
         {
-            var actualName = linkedElement.childrenGuidList.Count.ToString();
+            var actualName = (linkedElement.childrenGuidList.Count + 1).ToString();
             var newEvent = new NovaEvent(actualName);
             var newActionGraphNode = new EventGraphNode(newEvent, pos);
             return newActionGraphNode;

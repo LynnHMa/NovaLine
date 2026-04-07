@@ -240,7 +240,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public bool selectGraphEdge(IGraphEdge graphEdge)
         {
-            if (graphEdge == null || graphEdge is not GraphEdge<PE,EE> toSelect) return false;
+            if (graphEdge is not GraphEdge<PE,EE> toSelect) return false;
             AddToSelection(toSelect);
             return true;
         }
@@ -260,8 +260,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public virtual N getExistingGraphNode(string guid)
         {
-            if (guid != null && graphNodes.TryGetValue(guid, out var node))
-                return node;
+            if (guid != null && graphNodes.TryGetValue(guid, out var node)) return node;
             return default;
         }
         public GraphNode getExistingGraphNode(string guid,int inInterface)
@@ -270,8 +269,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public virtual GraphEdge<PE,EE> getExistingGraphEdge(string guid)
         {
-            if (guid != null && graphEdges.TryGetValue(guid, out var edge) && edge is GraphEdge<PE, EE> typedEdge)
-                return typedEdge;
+            if (guid != null && graphEdges.TryGetValue(guid, out var edge) && edge is GraphEdge<PE, EE> typedEdge) return typedEdge;
             return null;
         }
         protected virtual GraphViewChange onGraphViewChanged(GraphViewChange change)
@@ -381,9 +379,12 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void addGraphNodeByHand(GraphNode graphNode,Vector2 pos)
         {
-            addGraphNode(graphNode);
-            graphNode.linkedElement.setParent(linkedElement);
-            RegisterContext(summonNewChildGraphContext((PE)graphNode.linkedElement, pos));
+            using (new SaveScope())
+            {
+                graphNode.linkedElement.setParent(linkedElement);
+                addGraphNode(graphNode);
+                RegisterContext(summonNewChildGraphContext((PE)graphNode.linkedElement, pos));
+            }
         }
 
         public virtual void removeGraphNodeByHand(GraphNode graphNode)
@@ -410,11 +411,14 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void addGraphNodeByCommand(string linkedElementGuid,Vector2 pos)
         {
-            if (FindElement(linkedElementGuid) is not PE addElement) return;
-            var graphNode = summonNewGraphNode(addElement, pos);
-            addGraphNode(graphNode,false);
-            addElement.setParent(linkedElement);
-            RegisterContext(summonNewChildGraphContext(addElement, pos));
+            using (new SaveScope())
+            {
+                if (FindElement(linkedElementGuid) is not PE addElement) return;
+                var graphNode = summonNewGraphNode(addElement, pos);
+                addGraphNode(graphNode,false);
+                addElement.setParent(linkedElement);
+                RegisterContext(summonNewChildGraphContext(addElement, pos));
+            }
         }
 
         public virtual void removeGraphNodeByCommand(string linkedElementGuid)
@@ -475,7 +479,7 @@ namespace NovaLine.Script.Editor.Graph.View
                 }
             };
 
-            float buttonHeight = 28f;
+            const float buttonHeight = 28f;
             _backButton.style.height = buttonHeight;
             _backButton.style.paddingLeft = 8;
             _backButton.style.paddingRight = 12;

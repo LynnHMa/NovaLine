@@ -49,6 +49,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
             if (scopeDepth == 0 && isDirty)
             {
                 EditorFileManager.SaveGraphWindowData();
+                isDirty = false;
             }
         }
     }

@@ -99,6 +99,7 @@ namespace NovaLine.Script.Element
         {
             var data = JsonUtility.ToJson(this);
             var clone = (NovaElement)Activator.CreateInstance(GetType());
+            UnregisterElement(clone.guid);
             JsonUtility.FromJsonOverwrite(data, clone);
             return clone;
         }
@@ -121,12 +122,12 @@ namespace NovaLine.Script.Element
         {
             if (this.parent != null)
             {
-                if (this is not Condition && this is not NovaSwitcher) this.parent.childrenGuidList.Remove(guid);
+                this.parent.childrenGuidList.Remove(guid);
             }
             if (parent != null)
             {
                 parentGuid = parent.guid;
-                if(this is not Condition && this is not NovaSwitcher) parent.childrenGuidList.Add(guid);
+                parent.childrenGuidList.Add(guid);
             }
         }
     }

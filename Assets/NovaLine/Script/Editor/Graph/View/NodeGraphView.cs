@@ -17,7 +17,7 @@ namespace NovaLine.Script.Editor.Graph.View
         public NodeGraphView(string linkedNodeGuid) : base(linkedNodeGuid) { }
         public override ActionGraphNode summonNewGraphNode(Vector2 pos)
         {
-            var actualName = linkedElement.childrenGuidList.Count.ToString();
+            var actualName = (linkedElement.childrenGuidList.Count + 1).ToString();
             var newAction = new NovaAction(actualName);
             var newActionGraphNode = new ActionGraphNode(newAction, pos);
             return newActionGraphNode;

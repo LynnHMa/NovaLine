@@ -28,15 +28,7 @@ namespace NovaLine.Script
             for (var i = 0; i < playList.Count; i++)
             {
                 var flowchartDataAsset = playList[i];
-                var flowchart = flowchartDataAsset.data.linkedElement;
-                if (flowchart != null)
-                {
-                    yield return flowchart.play();
-                }
-                else
-                {
-                    yield break;
-                }
+                yield return playSingle(flowchartDataAsset);
             }
         }
 

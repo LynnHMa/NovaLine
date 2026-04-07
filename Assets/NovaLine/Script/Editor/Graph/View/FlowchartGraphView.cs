@@ -17,7 +17,7 @@ namespace NovaLine.Script.Editor.Graph.View
         public FlowchartGraphView(string linkedFlowchartGuid) : base(linkedFlowchartGuid) { }
         public override NodeGraphNode summonNewGraphNode(Vector2 pos)
         {
-            var newNode = new Node(linkedElement.childrenGuidList.Count.ToString());
+            var newNode = new Node((linkedElement.childrenGuidList.Count + 1).ToString());
             return new NodeGraphNode(newNode, pos);
         }
         public override NodeGraphNode summonNewGraphNode(Node node, Vector2 pos)

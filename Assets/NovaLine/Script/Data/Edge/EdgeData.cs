@@ -31,6 +31,7 @@ namespace NovaLine.Script.Data.Edge
 
         public virtual void registerLinkedElement()
         {
+            if (linkedSwitcher == null) return;
             var toReg = linkedSwitcher.strongCopy() as EE;
             NovaElementRegistry.RegisterElement(toReg);
         }

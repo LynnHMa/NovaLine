@@ -68,6 +68,8 @@ namespace NovaLine.Script.Editor.Window
                 {
                     importPreparativeStack();
                 }
+                
+                redoStack?.Clear();
             }
         }
         public void beginRecordingCompoundCommand()

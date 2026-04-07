@@ -1,4 +1,4 @@
-﻿﻿﻿using NovaLine.Script.Editor.Graph.Edge;
+﻿﻿﻿﻿using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
 using NovaLine.Script.Editor.Graph.View;
 using NovaLine.Script.Utils.Interface;
@@ -99,7 +99,7 @@ namespace NovaLine.Script.Editor.Window.Context
             var newEdgeDatas = new EList<IEdgeData>();
             
             //Must redraw
-            if (graphEdges != null)
+            if (graphEdges != null && graphView != null)
             {
                 disposeGraphView();
             }
@@ -123,37 +123,22 @@ namespace NovaLine.Script.Editor.Window.Context
         
         public virtual void draw()
         {
-            try
+            if (window == null || hasDrawn) return;
+
+            commandRegistry = new();
+
+            using(new SaveScope(true))
+            using(new UpdateScope())
             {
-                if (window == null || hasDrawn) return;
-
-                commandRegistry = new();
-
-                try
-                {
-                    using(new SaveScope())
-                    using(new UpdateScope())
-                    {
-                        drawNode();
-                        drawEdge();
-                    }
-                }
-                catch(Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                drawNode();
+                drawEdge();
+            }
                 
-                hasDrawn = true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
+            hasDrawn = true;
         }
         public virtual void drawNode()
         {
             var nodeDataList = linkedData.nodeDataList;
-            linkedData.linkedElement.childrenGuidList.Clear();
             if (nodeDataList == null || nodeDataList.Count == 0) return;
             for (int i = nodeDataList.Count - 1; i >= 0; i--)
             {
@@ -162,9 +147,9 @@ namespace NovaLine.Script.Editor.Window.Context
                 if (graphNode != null)
                 {
                     graphView.addGraphNode(graphNode, false);
-                    if (graphNode.guid.Equals(linkedData.startGraphNodeGuid)) graphView.setFirstNode(graphNode,false);
                 }
             }
+            if(!String.IsNullOrEmpty(linkedData.startGraphNodeGuid))graphView.setFirstNode(linkedData.startGraphNodeGuid,false);
         }
         public virtual void drawEdge()
         {

@@ -5,7 +5,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
 {
     public class EList<T> : List<T> where T : IGUID
     {
-        public EList() : base() { }
+        public EList(){}
         public EList(IEnumerable<T> source) : base(source) { }
         public new void Add(T e)
         {
@@ -20,6 +20,12 @@ namespace NovaLine.Script.Editor.Utils.Ext
         {
             if (guid == null) return default;
             return Find(c => c != null && c.guid != null && c.guid.Equals(guid));
+        }
+
+        public new void Insert(int index, T e)
+        {
+            RemoveAll(c => c.guid.Equals(e.guid));
+            base.Insert(index, e);
         }
     }
     public static class EListUtils

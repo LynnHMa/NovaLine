@@ -8,14 +8,7 @@ namespace NovaLine.Script.Data.Edge
     [Serializable]
     public class NodeEdgeData : EdgeData<NodeSwitcher>
     {
-        [SerializeReference] private NodeSwitcher _linkedSwitcher;
         [SerializeReference] private ConditionData _switchConditionData;
-
-        public override NodeSwitcher linkedSwitcher
-        {
-            get => _linkedSwitcher;
-            set => _linkedSwitcher = value;
-        }
         public ConditionData switchConditionData
         {
             get => _switchConditionData;

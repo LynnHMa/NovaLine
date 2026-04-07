@@ -8,8 +8,8 @@ namespace NovaLine.Script.Element.Switcher
     [Serializable]
     public class NovaSwitcher : NovaElement,INovaSwitcher
     {
-        [SerializeReference, HideInInspector] private string _inputElementGuid;
-        [SerializeReference, HideInInspector] private string _outputElementGuid;
+        [SerializeField, HideInInspector] private string _inputElementGuid;
+        [SerializeField, HideInInspector] private string _outputElementGuid;
 
         public override NovaElementType type => NovaElementType.SWITCHER;
         public string inputElementGuid  { get => _inputElementGuid;  set => _inputElementGuid  = value; }
@@ -57,6 +57,11 @@ namespace NovaLine.Script.Element.Switcher
             }
 
             return null;
+        }
+
+        public override void setParent(NovaElement parent)
+        {
+            parentGuid = parent.guid;
         }
     }
     public interface INovaSwitcher : IGUID

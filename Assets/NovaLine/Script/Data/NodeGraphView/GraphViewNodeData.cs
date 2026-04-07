@@ -1,4 +1,4 @@
-﻿using NovaLine.Script.Data.Edge;
+﻿﻿﻿using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Element;
 using System;
 using System.Collections.Generic;
@@ -52,19 +52,22 @@ namespace NovaLine.Script.Data.NodeGraphView
 
         public virtual void registerLinkedElement()
         {
-            if (linkedElement.strongCopy() is not T toReg) return;
+            if (linkedElement == null) return;
             foreach (var nodeGraphViewData in nodeDataList)
             {
-                nodeGraphViewData.linkedElement.setParent(toReg);
+                nodeGraphViewData.linkedElement.setParent(linkedElement);
                 nodeGraphViewData.registerLinkedElement();
             }
             foreach (var edgeData in edgeDataList)
             {
-                edgeData.linkedSwitcher.setParent(toReg);
+                var switcher = edgeData.linkedSwitcher;
+                var outputElement = NovaElementRegistry.FindElement(switcher?.outputElementGuid);
+                outputElement?.onGraphConnect(switcher);
+                switcher?.setParent(linkedElement);
                 edgeData.registerLinkedElement();
             }
 
-            NovaElementRegistry.RegisterElement(toReg);
+            NovaElementRegistry.RegisterElement(linkedElement);
         }
 
         public virtual void updateLinkedElement(bool updateChildren = true)
