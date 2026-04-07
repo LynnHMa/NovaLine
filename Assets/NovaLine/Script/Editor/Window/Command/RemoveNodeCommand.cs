@@ -1,8 +1,6 @@
-﻿using UnityEngine;
-using Editor.Utils.Ext;
-using System.Collections.Generic;
-using NovaLine.Script.Editor.Graph.Node;
+﻿using System.Collections.Generic;
 using System;
+using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Editor.Window.Command
@@ -10,38 +8,35 @@ namespace NovaLine.Script.Editor.Window.Command
     [Serializable]
     public class RemoveNodeCommand : Command
     {
-        public List<KeyValue<string,Vector2>> removedGraphNodeInfo = new();
+        public List<IGraphViewNodeData> linkedDataList = new();
 
-        public RemoveNodeCommand(string contextGuid, NovaElementType contextType, GraphNode graphNode) : this(contextGuid, contextType, new List<GraphNode>() { graphNode })
+        public RemoveNodeCommand(string contextGuid, NovaElementType contextType, IGraphViewNodeData linkedData) : this(contextGuid, contextType, new List<IGraphViewNodeData>() { linkedData })
         {
         }
-        public RemoveNodeCommand(string contextGuid, NovaElementType contextType, List<GraphNode> graphNodes) : base(contextGuid, contextType)
+        public RemoveNodeCommand(string contextGuid, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGuid, contextType)
         {
             type = CommandType.Remove_Node;
-            foreach (var graphNode in graphNodes)
-            {
-                removedGraphNodeInfo.Add(new(graphNode.linkedElementGuid, graphNode.pos));
-            }
+            this.linkedDataList.AddRange(linkedDataList);
         }
         public override void onUndo()
         {
-            foreach (var graphNodeInfo in removedGraphNodeInfo)
+            foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphNodeByCommand(graphNodeInfo.key,graphNodeInfo.value);
+                linkedGraphView.addGraphNodeByCommand(linkedData);
             }
         }
         public override void onRedo()
         {
-            foreach(var graphNodeInfo in removedGraphNodeInfo)
+            foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphNodeByCommand(graphNodeInfo.key);
+                linkedGraphView.removeGraphNodeByCommand(linkedData);
             }
         }
 
         public override void merge(Command congenericCommand)
         {
             if (congenericCommand is not RemoveNodeCommand removeNodeCommand) return;
-            removedGraphNodeInfo.AddRange(removeNodeCommand.removedGraphNodeInfo);
+            linkedDataList.AddRange(removeNodeCommand.linkedDataList);
         }
     }
 }

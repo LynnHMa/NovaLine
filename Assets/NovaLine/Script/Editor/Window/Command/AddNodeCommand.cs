@@ -3,6 +3,7 @@ using Editor.Utils.Ext;
 using System.Collections.Generic;
 using NovaLine.Script.Editor.Graph.Node;
 using System;
+using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Editor.Window.Command
@@ -10,39 +11,36 @@ namespace NovaLine.Script.Editor.Window.Command
     [Serializable]
     public class AddNodeCommand : Command
     {
-        public List<KeyValue<string,Vector2>> addedGraphNodeInfo = new();
+        public List<IGraphViewNodeData> linkedDataList = new();
 
-        public AddNodeCommand(string contextGuid, NovaElementType contextType, GraphNode graphNode) : this(contextGuid, contextType, new List<GraphNode>() { graphNode })
+        public AddNodeCommand(string contextGuid, NovaElementType contextType, IGraphViewNodeData linkedData) : this(contextGuid, contextType, new List<IGraphViewNodeData>() { linkedData })
         {
         }
-        public AddNodeCommand(string contextGuid, NovaElementType contextType, List<GraphNode> graphNodes) : base(contextGuid, contextType)
+        public AddNodeCommand(string contextGuid, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGuid, contextType)
         {
             type = CommandType.Add_Node;
-            foreach (var graphNode in graphNodes)
-            {
-                addedGraphNodeInfo.Add(new(graphNode.linkedElementGuid, graphNode.pos));
-            }
+            this.linkedDataList.AddRange(linkedDataList);
         }
 
         public override void onUndo()
         {
-            foreach(var graphNodeInfo in addedGraphNodeInfo)
+            foreach(var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphNodeByCommand(graphNodeInfo.key);
+                linkedGraphView.removeGraphNodeByCommand(linkedData);
             }
         }
         public override void onRedo()
         {
-            foreach (var graphNodeInfo in addedGraphNodeInfo)
+            foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphNodeByCommand(graphNodeInfo.key,graphNodeInfo.value);
+                linkedGraphView.addGraphNodeByCommand(linkedData);
             }
         }
 
         public override void merge(Command congenericCommand)
         {
             if (congenericCommand is not AddNodeCommand addNodeCommand) return;
-            addedGraphNodeInfo.AddRange(addNodeCommand.addedGraphNodeInfo);
+            linkedDataList.AddRange(addNodeCommand.linkedDataList);
         }
     }
 }

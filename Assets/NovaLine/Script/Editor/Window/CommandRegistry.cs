@@ -15,7 +15,8 @@ namespace NovaLine.Script.Editor.Window
         private Stack<Command.Command> preparativeStack { get; } = new();
         public bool isRecordingCompoundCommand { get; set; }
         private List<Command.Command> recordedCommands { get; } = new();
-
+        private int _compoundDepth = 0;
+        
         public static CommandRegistry Instance => CurrentGraphViewContext?.commandRegistry;
         public static Stack<Command.Command> UndoStack => Instance?.undoStack;
         public static Stack<Command.Command> RedoStack => Instance?.redoStack;
@@ -72,17 +73,27 @@ namespace NovaLine.Script.Editor.Window
                 redoStack?.Clear();
             }
         }
+
         public void beginRecordingCompoundCommand()
         {
+            if (_compoundDepth == 0)
+            {
+                recordedCommands.Clear(); // 只在最外层才清空
+            }
+            _compoundDepth++;
             isRecordingCompoundCommand = true;
-            recordedCommands.Clear();
         }
+
         public void endRecordingCompoundCommand()
         {
+            _compoundDepth--;
+            if (_compoundDepth > 0) return; // 还在外层 scope 里，不提前结束
+
             isRecordingCompoundCommand = false;
-            if(recordedCommands.Count > 0)
+            if (recordedCommands.Count > 0)
             {
-                var compoundCommand = new CompoundCommand(recordedCommands);
+                var compoundCommand = new CompoundCommand(new List<Command.Command>(recordedCommands));
+                recordedCommands.Clear();
                 register(compoundCommand);
             }
         }

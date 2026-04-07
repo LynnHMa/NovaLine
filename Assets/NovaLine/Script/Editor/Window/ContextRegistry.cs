@@ -46,7 +46,7 @@ namespace NovaLine.Script.Editor.Window
                     RegisterContext(conditionAfterInvokeContext);
                 }
             }
-            RegisteredContexts.TryAdd(graphViewContext.guid,graphViewContext);
+            RegisteredContexts[graphViewContext.guid] = graphViewContext;
         }
         public static void UnregisterContext(string contextGuid, NovaElementType type)
         {

@@ -16,17 +16,12 @@ namespace NovaLine.Script.Editor.Window.Command
 
         public override void onUndo()
         {
-            if(firstNodeKeyValue.key != null)
-            {
-                linkedGraphView.setFirstNode(firstNodeKeyValue.key,false);
-            }
+            linkedGraphView.setFirstNode(firstNodeKeyValue.key ?? "", false);
         }
+
         public override void onRedo()
         {
-            if (firstNodeKeyValue.value != null)
-            {
-                linkedGraphView.setFirstNode(firstNodeKeyValue.value,false);
-            }
+            linkedGraphView.setFirstNode(firstNodeKeyValue.value ?? "", false);
         }
 
         public override void merge(Command congenericCommand)

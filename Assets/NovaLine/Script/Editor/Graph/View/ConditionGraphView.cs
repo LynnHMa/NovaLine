@@ -31,9 +31,14 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             return new EventGraphNode(novaEvent, pos);
         }
-        public override IGraphViewContext summonNewChildGraphContext(NovaElement novaEvent, Vector2 pos)
+        public override IGraphViewContext summonNewChildGraphContext(NovaElement condition, Vector2 pos)
         {
-            return new EventContext(new EventData((NovaEvent)novaEvent, pos));
+            return summonNewChildGraphContext(new ConditionData(condition as Condition));
+        }
+
+        public override IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        {
+            return new ConditionContext(linkedData as ConditionData);
         }
         public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
@@ -58,7 +63,7 @@ namespace NovaLine.Script.Editor.Graph.View
             {
                 foreach(var graphEdge in graphEdges.Values)
                 {
-                    if (graphEdge == null || graphEdge is not EventGraphEdge eventEdge) continue;
+                    if (graphEdge is not EventGraphEdge eventEdge) continue;
                     setEdgeUnpassable(eventEdge);
                 }
             }

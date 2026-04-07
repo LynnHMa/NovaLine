@@ -5,7 +5,6 @@ using NovaLine.Script.Utils.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEditor.Experimental.GraphView;
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Data.NodeGraphView;
@@ -14,8 +13,6 @@ using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Element;
-using UnityEditor;
-using UnityEngine;
 
 namespace NovaLine.Script.Editor.Window.Context
 {
@@ -146,7 +143,7 @@ namespace NovaLine.Script.Editor.Window.Context
                 var graphNode = graphView.summonNewGraphNode(nodeData.linkedElement, nodeData.pos);
                 if (graphNode != null)
                 {
-                    graphView.addGraphNode(graphNode, false);
+                    graphView.addGraphNode(graphNode);
                 }
             }
             if(!String.IsNullOrEmpty(linkedData.startGraphNodeGuid))graphView.setFirstNode(linkedData.startGraphNodeGuid,false);
@@ -158,8 +155,13 @@ namespace NovaLine.Script.Editor.Window.Context
             foreach (var nodeEdgeData in nodeEdgeDatas)
             {
                 var nodeGraphEdge = graphView.summonNewGraphEdge(nodeEdgeData.linkedSwitcher);
-                if (nodeGraphEdge != null) graphView.addGraphEdge(nodeGraphEdge, false);
+                if (nodeGraphEdge != null) graphView.addGraphEdge(nodeGraphEdge);
             }
+        }
+
+        public virtual IEdgeData findChildEdgeData(string guid)
+        {
+            return linkedData?.edgeDataList.Find(edgeData => edgeData.guid.Equals(guid));
         }
         protected abstract GV summonGraphView();
 
@@ -185,6 +187,7 @@ namespace NovaLine.Script.Editor.Window.Context
         public void saveData();
         public void saveNodeData(List<GraphNode> graphNodes);
         public void saveEdgeData(List<IGraphEdge> graphEdges);
+        public IEdgeData findChildEdgeData(string guid);
         public void draw();
     }
     public class ContextInfo : Attribute

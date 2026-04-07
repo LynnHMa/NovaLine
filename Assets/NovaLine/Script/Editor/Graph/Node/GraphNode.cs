@@ -216,7 +216,7 @@ namespace NovaLine.Script.Editor.Graph.Node
                             var ei = inputConnections[i] as IGraphEdge;
                             if (ei != null)
                             {
-                                currentGraphView.removeGraphEdge(ei);
+                                currentGraphView.removeGraphEdgeByHand(ei);
                             }
                         }
 
@@ -226,7 +226,7 @@ namespace NovaLine.Script.Editor.Graph.Node
                             var eo = outputConnections[i] as IGraphEdge;
                             if (eo != null)
                             {
-                                currentGraphView.removeGraphEdge(eo);
+                                currentGraphView.removeGraphEdgeByHand(eo);
                             }
                         }
                     }

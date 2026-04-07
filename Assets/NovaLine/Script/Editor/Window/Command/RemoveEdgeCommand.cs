@@ -1,48 +1,43 @@
 ﻿using System.Collections.Generic;
 using System;
+using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Element;
-using NovaLine.Script.Element.Switcher;
-using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Window.Command
 {
     [Serializable]
     public class RemoveEdgeCommand : Command
     {
-        public List<string> linkedSwitcherGuidList = new();
+        public List<IEdgeData> linkedDataList = new();
 
-        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, IGraphEdge graphEdge) : this(contextGuid, contextType, new List<IGraphEdge>() { graphEdge })
+        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, IEdgeData linkedData) : this(contextGuid, contextType, new List<IEdgeData>() { linkedData })
         {
         }
-        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, List<IGraphEdge> graphEdges) : base(contextGuid, contextType)
+        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGuid, contextType)
         {
             type = CommandType.Remove_Edge;
-            foreach (var graphEdge in graphEdges)
-            {
-                linkedSwitcherGuidList.Add(graphEdge.guid);
-            }
+            this.linkedDataList.AddRange(linkedDataList);
         }
         public override void onUndo()
         {
-            foreach (var guid in linkedSwitcherGuidList)
+            foreach (var linkedData in linkedDataList)
             {
-                var linkedSwitcher = FindElement(guid) as NovaSwitcher;
-                linkedGraphView.addGraphEdge(linkedGraphView.summonNewGraphEdge(linkedSwitcher),false);
+                linkedGraphView.addGraphEdgeByCommand(linkedData);
             }
         }
         public override void onRedo()
         {
-            foreach (var guid in linkedSwitcherGuidList)
+            foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphEdge(guid, false);
+                linkedGraphView.removeGraphEdgeByCommand(linkedData);
             }
         }
 
         public override void merge(Command congenericCommand)
         {
             if (congenericCommand is not RemoveEdgeCommand removeEdgeCommand) return;
-            linkedSwitcherGuidList.AddRange(removeEdgeCommand.linkedSwitcherGuidList);
+            linkedDataList.AddRange(removeEdgeCommand.linkedDataList);
         }
     }
 }

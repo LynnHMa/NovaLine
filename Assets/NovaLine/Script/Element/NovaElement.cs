@@ -1,4 +1,4 @@
-﻿using NovaLine.Script.Utils.Interface;
+﻿﻿using NovaLine.Script.Utils.Interface;
 using System;
 using System.Collections.Generic;
 using NovaLine.Script.Element.Switcher;
@@ -112,21 +112,20 @@ namespace NovaLine.Script.Element
             return clone;
         }
 
-        public virtual void map(NovaElement oldElement)
-        {
-            string beforeJson = JsonUtility.ToJson(oldElement);
-            JsonUtility.FromJsonOverwrite(beforeJson, this);
-        }
-
         public virtual void setParent(NovaElement parent)
         {
             if (this.parent != null)
             {
-                this.parent.childrenGuidList.Remove(guid);
+                this.parent.childrenGuidList?.Remove(guid);
             }
-            if (parent != null)
+
+            parentGuid = parent != null ? parent.guid : "";
+
+            if (parent == null) return;
+
+            parent.childrenGuidList ??= new List<string>();
+            if (!parent.childrenGuidList.Contains(guid))
             {
-                parentGuid = parent.guid;
                 parent.childrenGuidList.Add(guid);
             }
         }

@@ -59,7 +59,7 @@ namespace NovaLine.Script.Element
 
         public override void setParent(NovaElement parent)
         {
-            parentGuid = parent.guid;
+            parentGuid = parent != null ? parent.guid : "";
         }
     }
     public enum ConditionType

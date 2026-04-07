@@ -24,10 +24,10 @@ namespace NovaLine.Script.Editor.Graph.Port
             CustomEdgeConnectorListener<PE,EE,ED> listener = new();
             var port = new GraphPort<PE,EE>(orientation, direction, capacity, type, ownerElement)
             {
-                m_EdgeConnector = new EdgeConnector<ED>(listener)
+                m_EdgeConnector = new EdgeConnector<ED>(listener),
+                portColor = Color.white,
+                portName = portName
             };
-            port.portColor = Color.white;
-            port.portName = portName;
 
             var inputPortLabel = port.Q<Label>();
             if (inputPortLabel != null)
@@ -42,38 +42,40 @@ namespace NovaLine.Script.Editor.Graph.Port
             return port;
         }
 
-        public T ConnectTo<T>(GraphPort<PE, EE> other, EE edgeElement) where T : GraphEdge<PE,EE>, new()
+        //Create an edge and connect two port (Not connect by hand)
+        public T ConnectTo<T>(GraphPort<PE, EE> targetPort, EE linkedSwitcher) where T : GraphEdge<PE,EE>, new()
         {
-            if (other == null)
+            if (targetPort == null)
             {
                 throw new ArgumentNullException("Port.ConnectTo<T>() other argument is null");
             }
 
-            if (other.direction == direction)
+            if (targetPort.direction == direction)
             {
                 throw new ArgumentException("Cannot connect two ports with the same direction");
             }
 
-            T val = new T
+            T graphEdge = new T
             {
-                output = ((direction == Direction.Output) ? this : other),
-                input = ((direction == Direction.Input) ? this : other)
+                output = ((direction == Direction.Output) ? this : targetPort),
+                input = ((direction == Direction.Input) ? this : targetPort),
+                linkedElement = linkedSwitcher
             };
 
-            val.linkedElement = edgeElement;
-            val.input = other;
-            val.output = this;
-            Connect(val,false);
-            other.Connect(val);
-            return val;
+            graphEdge.input = targetPort;
+            graphEdge.output = this;
+            connect(graphEdge,false);
+            targetPort.connect(graphEdge,false);
+            return graphEdge;
         }
 
+        //Connect by hand
         public override void Connect(Edge edge)
         {
             base.Connect(edge);
-            Connect(edge, true);
+            connect(edge, true);
         }
-        public void Connect(Edge edge,bool registerCommand)
+        public void connect(Edge edge,bool isByHand)
         {
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
@@ -84,14 +86,24 @@ namespace NovaLine.Script.Editor.Graph.Port
 
                 ownerElement.onGraphConnect(graphEdge.linkedElement);
 
-                CurrentGraphViewContext.graphView.addGraphEdge(graphEdge, registerCommand);
+                if (isByHand)
+                {
+                    CurrentGraphViewContext.graphView.addGraphEdgeByHand(graphEdge);
+                }
+                else
+                {
+                    CurrentGraphViewContext.graphView.addGraphEdge(graphEdge);
+                }
+
             }
         }
+        
+        //Disconnect by hand
         public override void Disconnect(Edge edge)
         {
-            Disconnect(edge, true);
+            disconnect(edge, true);
         }
-        public void Disconnect(Edge edge,bool registerCommand)
+        public void disconnect(Edge edge,bool isByHand)
         {
             if (!connections.Contains(edge)) return;
             base.Disconnect(edge);
@@ -100,7 +112,14 @@ namespace NovaLine.Script.Editor.Graph.Port
                 if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
                 ownerElement.onGraphDisconnect(graphEdge.linkedElement);
 
-                CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge, registerCommand);
+                if (isByHand)
+                {
+                    CurrentGraphViewContext.graphView.removeGraphEdgeByHand(graphEdge);
+                }
+                else
+                {
+                    CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge);
+                }
 
                 graphEdge.RemoveFromHierarchy();
             }
@@ -108,9 +127,9 @@ namespace NovaLine.Script.Editor.Graph.Port
     }
     public class CustomEdgeConnectorListener<PE,EE,ED> : IEdgeConnectorListener where ED : GraphEdge<PE, EE> where EE : NovaSwitcher where PE : NovaElement
     {
-        private GraphViewChange m_GraphViewChange;
-        private List<Edge> m_EdgesToCreate;
-        private List<GraphElement> m_EdgesToDelete;
+        private readonly GraphViewChange m_GraphViewChange;
+        private readonly List<Edge> m_EdgesToCreate;
+        private readonly List<GraphElement> m_EdgesToDelete;
 
         public CustomEdgeConnectorListener()
         {

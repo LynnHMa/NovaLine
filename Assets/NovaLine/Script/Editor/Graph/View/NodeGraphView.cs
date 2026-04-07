@@ -6,7 +6,6 @@ namespace NovaLine.Script.Editor.Graph.View
     using NovaLine.Script.Action;
     using NovaLine.Script.Element;
     using NovaLine.Script.Editor.Graph.Node;
-    using System.Linq;
     using NovaLine.Script.Editor.Graph.Edge;
     using NovaLine.Script.Editor.Window.Context;
     using NovaLine.Script.Data.NodeGraphView;
@@ -32,7 +31,12 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public override IGraphViewContext summonNewChildGraphContext(NovaElement action, Vector2 pos)
         {
-            return new ActionContext(new ActionData((NovaAction)action, pos));
+            return summonNewChildGraphContext(new ActionData(action as NovaAction, pos));
+        }
+
+        public override IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        {
+            return new ActionContext(linkedData as ActionData);
         }
         protected override void updateNodes()
         {

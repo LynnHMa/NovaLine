@@ -12,25 +12,18 @@ namespace NovaLine.Script.Editor.Window.Command
         {
             type = CommandType.Compound;
             
-            //Dismantle compound child command
-            for (var i = commands.Count - 1; i >= 0; i--)
+            foreach (var command in commands)
             {
-                var command = commands[i];
-                if (command is CompoundCommand compoundCommand)
-                {
-                    this.commands.AddRange(compoundCommand.commands);
-                    commands.RemoveAt(i);
-                }
+                if (command is CompoundCommand child)
+                    this.commands.AddRange(child.commands);
+                else
+                    this.commands.Add(command);
             }
-            
-            this.commands.AddRange(commands);
 
             mergeCongenericCommand();
-            
+
             if (linkedContextInfo == null && this.commands.Count > 0)
-            {
                 linkedContextInfo = this.commands[0].linkedContextInfo;
-            }
         }
         public override void onUndo()
         {

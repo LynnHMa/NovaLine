@@ -72,21 +72,6 @@ namespace NovaLine.Script.Action
             action.conditionAfterInvoke.parentGuid = action.guid;
             return action;
         }
-
-        public override void map(NovaElement oldElement)
-        {
-            if (oldElement is NovaAction oldAction)
-            {
-                conditionAfterInvokeGuid = oldAction.conditionAfterInvokeGuid;
-                conditionBeforeInvokeGuid = oldAction.conditionBeforeInvokeGuid;
-                
-                if (conditionAfterInvoke != null)
-                    conditionAfterInvoke.parentGuid = guid;
-                if (conditionBeforeInvoke != null)
-                    conditionBeforeInvoke.parentGuid = guid;
-            }
-            base.map(oldElement);
-        }
     }
     public interface INovaAction
     {

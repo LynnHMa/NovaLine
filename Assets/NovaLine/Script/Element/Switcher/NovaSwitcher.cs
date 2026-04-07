@@ -61,7 +61,7 @@ namespace NovaLine.Script.Element.Switcher
 
         public override void setParent(NovaElement parent)
         {
-            parentGuid = parent.guid;
+            parentGuid = parent != null ? parent.guid : "";
         }
     }
     public interface INovaSwitcher : IGUID

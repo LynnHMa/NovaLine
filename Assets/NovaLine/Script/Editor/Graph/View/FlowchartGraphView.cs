@@ -24,17 +24,22 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             return new NodeGraphNode(node, pos);
         }
-        public override IGraphViewContext summonNewChildGraphContext(NovaElement node,Vector2 pos)
+        public override IGraphViewContext summonNewChildGraphContext(NovaElement node, Vector2 pos)
         {
-            return new NodeContext(new NodeData((Node)node, pos));
+            return summonNewChildGraphContext(new NodeData(node as Node, pos));
+        }
+
+        public override IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        {
+            return new NodeContext(linkedData as NodeData);
         }
         public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
             return summonAndConnectEdge<NodeGraphEdge>((NodeSwitcher)linkedSwitcher);
         }
-        public override void addGraphEdge(IGraphEdge graphEdge, bool registerCommand = true)
+        public override void addGraphEdge(IGraphEdge graphEdge)
         {
-            base.addGraphEdge(graphEdge, registerCommand);
+            base.addGraphEdge(graphEdge);
 
             if (graphEdge is NodeGraphEdge nodeGraphEdge)
             {
@@ -42,13 +47,13 @@ namespace NovaLine.Script.Editor.Graph.View
             }
         }
 
-        public override void removeGraphEdge(IGraphEdge graphEdge, bool registerCommand = true)
+        public override void removeGraphEdge(IGraphEdge graphEdge)
         {
             if (graphEdge is NodeGraphEdge nodeGraphEdge)
             {
                 UnregisterContext(nodeGraphEdge.linkedElement.switchConditionGuid,NovaElementType.CONDITION);
             }
-            base.removeGraphEdge(graphEdge, registerCommand);
+            base.removeGraphEdge(graphEdge);
         }
     }
 }
