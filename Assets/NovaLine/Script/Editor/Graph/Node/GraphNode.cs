@@ -35,7 +35,7 @@ namespace NovaLine.Script.Editor.Graph.Node
 
         public bool isPassable = true;
 
-        string IGUID.guid { get => guid; set { } }
+        string IGUID.guid => guid;
 
         protected GraphNode()
         {
@@ -113,7 +113,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
         protected GraphNode(NovaElement linkedElement, Vector2 pos) : this()
         {
-            linkedElementGuid = linkedElement.guid;
+            linkedElementGuid = linkedElement?.guid;
             SetPosition(pos,false);
         }
         
@@ -184,7 +184,7 @@ namespace NovaLine.Script.Editor.Graph.Node
             base.OnUnselected();
             NovaWindow.SelectedGraphNode = null;
 
-            var rootElement = (NovaElement)CurrentGraphViewContext?.graphView?.linkedElement;
+            var rootElement = (NovaElement)CurrentGraphViewNodeContext?.graphView?.linkedElement;
 
             if (rootElement == null) return;
 
@@ -205,7 +205,7 @@ namespace NovaLine.Script.Editor.Graph.Node
             {
                 var input = inputContainer[0] as UnityEditor.Experimental.GraphView.Port;
                 var output = outputContainer[0] as UnityEditor.Experimental.GraphView.Port;
-                var currentGraphView = CurrentGraphViewContext?.graphView;
+                var currentGraphView = CurrentGraphViewNodeContext?.graphView;
                 if (currentGraphView != null)
                 {
                     using (new CommandScope())

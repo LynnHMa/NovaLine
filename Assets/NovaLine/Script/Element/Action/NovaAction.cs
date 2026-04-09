@@ -42,12 +42,12 @@ namespace NovaLine.Script.Action
 
             yield return conditionAfterInvoke.waiting();
 
+            yield return null;
+            
             var firstSwitcherGuid = switchersGuidList.FirstOrDefault();
-            if(FindElement(firstSwitcherGuid) is not ActionSwitcher firstSwitcher) yield break;
-            var nextElement = firstSwitcher.tryToFindInputElement();
-            if (nextElement is INovaAction next)
+            if (FindElement(firstSwitcherGuid) is ActionSwitcher firstSwitcher)
             {
-                yield return next.invoke();
+                yield return firstSwitcher.next();
             }
 
             yield return null;

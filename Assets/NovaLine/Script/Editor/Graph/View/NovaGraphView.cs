@@ -2,7 +2,9 @@
  using NovaLine.Script.Data.Edge;
  using NovaLine.Script.Data.NodeGraphView;
  using NovaLine.Script.Editor.Utils.Scope;
-using NovaLine.Script.Element.Switcher;
+ using NovaLine.Script.Editor.Window.Context.Edge;
+ using NovaLine.Script.Editor.Window.Context.GraphViewNode;
+ using NovaLine.Script.Element.Switcher;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Graph.View
@@ -16,36 +18,25 @@ namespace NovaLine.Script.Editor.Graph.View
     using NovaLine.Script.Element;
     using NovaLine.Script.Editor.Graph.Edge;
     using NovaLine.Script.Editor.Graph.Port;
-    using NovaLine.Script.Editor.Window.Context;
     using NovaLine.Script.Editor.Window.Command;
     using NovaLine.Script.Editor.Window;
     using static NovaLine.Script.Editor.Window.ContextRegistry;
     
-    public abstract class NovaGraphView<N,E,PE,EE> : GraphView, INovaGraphView where N : GraphNode where E : NovaElement where PE : NovaElement where EE : NovaSwitcher
+    public abstract class NovaGraphView<TGraphNode,TLinkedElement,TGraphNodeElement,TSwitcherElement> : GraphView, INovaGraphView where TGraphNode : GraphNode where TLinkedElement : NovaElement where TGraphNodeElement : NovaElement where TSwitcherElement : NovaSwitcher
     {
         protected virtual Color themedColor => Color.black;
         public virtual string linkedElementGuid { get; set; }
-        public virtual E linkedElement => FindElement(linkedElementGuid) as E;
-        public virtual Dictionary<string, N> graphNodes { get; } = new();
+        public virtual TLinkedElement linkedElement => FindElement(linkedElementGuid) as TLinkedElement;
+        public virtual Dictionary<string, TGraphNode> graphNodes { get; } = new();
         public virtual Dictionary<string, IGraphEdge> graphEdges { get; } = new();
         public virtual NovaElementType type => linkedElement != null ? linkedElement.type : NovaElementType.NONE;
         public virtual Vector2 mousePos { get; set; }
         public System.Action OnRequestBackToParent { get; set; }
         
-        public virtual N firstNode
+        public virtual TGraphNode firstNode
         {
             get => getExistingGraphNode(linkedElement?.firstChildGuid);
-            set
-            {
-                if (value != null)
-                {
-                    linkedElement.firstChildGuid = value.linkedElement.guid;
-                }
-                else
-                {
-                    linkedElement.firstChildGuid = "";
-                }
-            }
+            set => linkedElement.firstChildGuid = value != null ? value.linkedElement.guid : "";
         }
 
         private Button _backButton;
@@ -82,24 +73,24 @@ namespace NovaLine.Script.Editor.Graph.View
             return linkedElement?.getActualName();
         }
 
-        public virtual N summonNewGraphNode(Vector2 pos)
+        public virtual TGraphNode summonNewGraphNode(Vector2 pos)
         {
             return default;
         }
 
-        public virtual N summonNewGraphNode(PE element,Vector2 pos)
+        public virtual TGraphNode summonNewGraphNode(TGraphNodeElement element,Vector2 pos)
         {
             return default;
         }
 
-        protected virtual TEdge summonAndConnectEdge<TEdge>(EE linkedSwitcher) where TEdge : GraphEdge<PE,EE>,new()
+        protected virtual TEdge summonAndConnectEdge<TEdge>(TSwitcherElement linkedSwitcher) where TEdge : GraphEdge<TGraphNodeElement,TSwitcherElement>,new()
         {
             try
             {
                 var inputKey = linkedSwitcher?.inputElementGuid;
                 var outputKey = linkedSwitcher?.outputElementGuid;
-                N inputGraphNode = inputKey != null && graphNodes.TryGetValue(inputKey, out var iNode) ? iNode : null;
-                N outputGraphNode = outputKey != null && graphNodes.TryGetValue(outputKey, out var oNode) ? oNode : null;
+                TGraphNode inputGraphNode = inputKey != null && graphNodes.TryGetValue(inputKey, out var iNode) ? iNode : null;
+                TGraphNode outputGraphNode = outputKey != null && graphNodes.TryGetValue(outputKey, out var oNode) ? oNode : null;
 
                 if (inputGraphNode == null || outputGraphNode == null
                    || inputGraphNode.inputContainer.childCount == 0 || inputGraphNode.outputContainer.childCount == 0
@@ -108,8 +99,8 @@ namespace NovaLine.Script.Editor.Graph.View
                     throw new Exception("Can't find input or output node!");
                 }
 
-                var inputPort = inputGraphNode.inputContainer?[0] as GraphPort<PE, EE>;
-                var outputPort = outputGraphNode.outputContainer?[0] as GraphPort<PE, EE>;
+                var inputPort = inputGraphNode.inputContainer?[0] as GraphPort<TGraphNodeElement, TSwitcherElement>;
+                var outputPort = outputGraphNode.outputContainer?[0] as GraphPort<TGraphNodeElement, TSwitcherElement>;
 
                 if (inputPort == null || outputPort == null)
                 {
@@ -127,20 +118,30 @@ namespace NovaLine.Script.Editor.Graph.View
                 return null;
             }
         }
-        public virtual IGraphViewContext summonNewChildGraphContext(NovaElement novaElement,Vector2 pos)
+        public virtual IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement,Vector2 pos)
         {
             return default;
         }
 
-        public virtual IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        public virtual IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
             return default;
+        }
+
+        public virtual EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        {
+            return default;
+        }
+
+        public virtual EdgeContext summonNewChildEdgeContext(IEdgeData linkedData)
+        {
+            return new EdgeContext(linkedData);
         }
 
         //Interface
         public virtual GraphNode summonNewGraphNode(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewGraphNode((PE)linkedElement, pos);
+            return summonNewGraphNode((TGraphNodeElement)linkedElement, pos);
         }
 
         //Interface
@@ -151,7 +152,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void addGraphEdge(IGraphEdge graphEdge)
         {
-            if (graphEdge is not GraphEdge<PE, EE> toAdd) return;
+            if (graphEdge is not GraphEdge<TGraphNodeElement, TSwitcherElement> toAdd) return;
             if (String.IsNullOrEmpty(toAdd.guid) || !graphEdges.TryAdd(toAdd.guid, toAdd)) return;
             
             AddElement(toAdd);
@@ -161,7 +162,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public virtual void removeGraphEdge(IGraphEdge graphEdge)
         {
-            if (graphEdge is not GraphEdge<PE, EE> toRemove) return;
+            if (graphEdge is not GraphEdge<TGraphNodeElement, TSwitcherElement> toRemove) return;
             if (String.IsNullOrEmpty(toRemove.guid) || !graphEdges.Remove(toRemove.guid)) return;
 
             toRemove.RemoveFromHierarchy();
@@ -178,7 +179,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public virtual void addGraphNode(GraphNode graphNode)
         {
-            if (graphNode is not N toAdd) return;
+            if (graphNode is not TGraphNode toAdd) return;
             if (toAdd.guid == null || !graphNodes.TryAdd(toAdd.guid, toAdd)) return;
 
             if (String.IsNullOrEmpty(linkedElement?.firstChildGuid))
@@ -195,7 +196,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void removeGraphNode(GraphNode graphNode)
         {
-            if (graphNode is not N toRemove) return;
+            if (graphNode is not TGraphNode toRemove) return;
 
             if (toRemove.guid.Equals(linkedElement?.firstChildGuid))
             {
@@ -245,7 +246,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public bool selectGraphEdge(IGraphEdge graphEdge)
         {
-            if (graphEdge is not GraphEdge<PE,EE> toSelect) return false;
+            if (graphEdge is not GraphEdge<TGraphNodeElement,TSwitcherElement> toSelect) return false;
             AddToSelection(toSelect);
             return true;
         }
@@ -260,10 +261,10 @@ namespace NovaLine.Script.Editor.Graph.View
                 CommandRegistry.Register(new SetFirstNodeCommand(linkedElementGuid, type, firstNode == null ? null : firstNode.guid, graphNode.guid));
             }
             firstNode?.unmarkStartNode();
-            firstNode = (N)graphNode;
+            firstNode = (TGraphNode)graphNode;
             firstNode?.markedAsStartNode();
         }
-        public virtual N getExistingGraphNode(string guid)
+        public virtual TGraphNode getExistingGraphNode(string guid)
         {
             if (guid != null && graphNodes.TryGetValue(guid, out var node)) return node;
             return default;
@@ -272,9 +273,9 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             return getExistingGraphNode(guid);
         }
-        public virtual GraphEdge<PE,EE> getExistingGraphEdge(string guid)
+        public virtual GraphEdge<TGraphNodeElement,TSwitcherElement> getExistingGraphEdge(string guid)
         {
-            if (guid != null && graphEdges.TryGetValue(guid, out var edge) && edge is GraphEdge<PE, EE> typedEdge) return typedEdge;
+            if (guid != null && graphEdges.TryGetValue(guid, out var edge) && edge is GraphEdge<TGraphNodeElement, TSwitcherElement> typedEdge) return typedEdge;
             return null;
         }
         protected virtual GraphViewChange onGraphViewChanged(GraphViewChange change)
@@ -287,14 +288,14 @@ namespace NovaLine.Script.Editor.Graph.View
                 {
                     foreach (var element in change.elementsToRemove)
                     {
-                        if (element is GraphEdge<PE,EE> graphEdge)
+                        if (element is GraphEdge<TGraphNodeElement,TSwitcherElement> graphEdge)
                         {
                             removeGraphEdgeByHand(graphEdge);
                         }
                     }
                     foreach (var element in change.elementsToRemove)
                     {
-                        if (element is N graphNode)
+                        if (element is TGraphNode graphNode)
                         {
                             removeGraphNodeByHand(graphNode);
                         }
@@ -333,21 +334,21 @@ namespace NovaLine.Script.Editor.Graph.View
 
                 if (inputGraphNode == null || outputGraphNode == null)
                 {
-                    removeGraphEdge(graphEdge);
+                    removeGraphEdgeByHand(graphEdge);
                     continue;
                 }
 
-                if (!inputGraphNode.isPassable || !outputGraphNode.isPassable) setEdgeUnpassable((GraphEdge<PE, EE>)graphEdge);
-                else setEdgePassable((GraphEdge<PE, EE>)graphEdge);
+                if (!inputGraphNode.isPassable || !outputGraphNode.isPassable) setEdgeUnpassable((GraphEdge<TGraphNodeElement, TSwitcherElement>)graphEdge);
+                else setEdgePassable((GraphEdge<TGraphNodeElement, TSwitcherElement>)graphEdge);
             }
         }
-        protected virtual void setNodePassable(N graphNode)
+        protected virtual void setNodePassable(TGraphNode graphNode)
         {
             if (graphNode == null || graphNode.isPassable) return;
             graphNode.style.opacity = 1f;
             graphNode.isPassable = true;
             
-            if (graphNode.linkedElement is not PE element || element.switchersGuidList == null || element.switchersGuidList.Count == 0) return;
+            if (graphNode.linkedElement is not TGraphNodeElement element || element.switchersGuidList == null || element.switchersGuidList.Count == 0) return;
             
             foreach (var nodeSwitcherGuid in element.switchersGuidList)
             {
@@ -356,13 +357,13 @@ namespace NovaLine.Script.Editor.Graph.View
                 setNodePassable(getExistingGraphNode(nodeSwitcher.inputElementGuid));
             }
         }
-        protected virtual void setNodeUnpassable(N graphNode)
+        protected virtual void setNodeUnpassable(TGraphNode graphNode)
         {
             if (graphNode == null || !graphNode.isPassable) return;
             graphNode.style.opacity = 0.5f;
             graphNode.isPassable = false;
 
-            if (graphNode.linkedElement is not PE element || element.switchersGuidList == null || element.switchersGuidList.Count == 0) return;
+            if (graphNode.linkedElement is not TGraphNodeElement element || element.switchersGuidList == null || element.switchersGuidList.Count == 0) return;
 
             foreach (var nodeSwitcherGuid in element.switchersGuidList)
             {
@@ -371,12 +372,12 @@ namespace NovaLine.Script.Editor.Graph.View
                 setNodeUnpassable(getExistingGraphNode(nodeSwitcher.inputElementGuid));
             }
         }
-        protected virtual void setEdgePassable(GraphEdge<PE,EE> edge)
+        protected virtual void setEdgePassable(GraphEdge<TGraphNodeElement,TSwitcherElement> edge)
         {
             if (edge == null) return;
             edge.style.opacity = 1f;
         }
-        protected virtual void setEdgeUnpassable(GraphEdge<PE,EE> edge)
+        protected virtual void setEdgeUnpassable(GraphEdge<TGraphNodeElement,TSwitcherElement> edge)
         {
             if (edge == null) return;
             edge.style.opacity = 0.5f;
@@ -385,10 +386,11 @@ namespace NovaLine.Script.Editor.Graph.View
         public virtual void addGraphNodeByHand(GraphNode graphNode,Vector2 pos)
         {
             //Register context to create data
-            RegisterContext(summonNewChildGraphContext((PE)graphNode.linkedElement, pos));
+            var newGraphNodeContext = summonNewChildGraphViewNodeContext((TGraphNodeElement)graphNode.linkedElement, pos);
+            RegisterContext(newGraphNodeContext);
                 
             //Recording command
-            var linkedData = GetContext(graphNode.guid, graphNode.type)?.linkedData;
+            var linkedData = newGraphNodeContext.linkedData;
             if(linkedData != null) CommandRegistry.Register(new AddNodeCommand(linkedElementGuid, type, linkedData.strongCopy() as IGraphViewNodeData));
             
             //In the end: Add node to graph view
@@ -402,22 +404,26 @@ namespace NovaLine.Script.Editor.Graph.View
             removeGraphNode(graphNode);
                 
             //Recording command
-            var linkedData = GetContext(graphNode.guid, graphNode.type)?.linkedData;
+            var graphNodeContext = GetContext(graphNode.guid, graphNode.type);
+            var linkedData = graphNodeContext?.linkedData;
             if(linkedData != null) CommandRegistry.Register(new RemoveNodeCommand(linkedElementGuid, type, linkedData.strongCopy() as IGraphViewNodeData));
                 
             //Unregister context
-            UnregisterContext(graphNode.guid, graphNode.type);
+            UnregisterContext(graphNodeContext);
         }
 
         public virtual void addGraphEdgeByHand(IGraphEdge graphEdge)
         {
+            var newEdgeContext = summonNewChildEdgeContext(graphEdge.linkedElement);
+            RegisterContext(newEdgeContext);
+            
             graphEdge.linkedElement.setParent(linkedElement);
             
             //Put edge to graph view
             addGraphEdge(graphEdge);
             
             //Recording command
-            var linkedData = GetContext(linkedElementGuid, linkedElement.type)?.findChildEdgeData(graphEdge.guid);
+            var linkedData = newEdgeContext.linkedData;
             if(linkedData != null) CommandRegistry.Register(new AddEdgeCommand(linkedElementGuid, type, linkedData.strongCopy() as IEdgeData));
         }
         public virtual void removeGraphEdgeByHand(IGraphEdge graphEdge)
@@ -428,15 +434,17 @@ namespace NovaLine.Script.Editor.Graph.View
             removeGraphEdge(graphEdge);
             
             //Recording command
-            var linkedData = GetContext(linkedElementGuid, linkedElement.type)?.findChildEdgeData(graphEdge.guid);
+            var edgeContext = GetContext(graphEdge.guid, NovaElementType.SWITCHER);
+            var linkedData = edgeContext?.linkedData;
             if(linkedData != null) CommandRegistry.Register(new RemoveEdgeCommand(linkedElementGuid, type, linkedData.strongCopy() as IEdgeData));
+            
+            UnregisterContext(edgeContext);
         }
         
         public virtual void addGraphNodeByCommand(IGraphViewNodeData linkedData)
         {
-            if (linkedData.linkedElement is not PE addElement) return;
-            
-            RegisterContext(summonNewChildGraphContext(linkedData));
+            if (FindElement(linkedData.linkedElement.guid) is not TGraphNodeElement addElement) return;
+            RegisterContext(summonNewChildGraphViewNodeContext(linkedData));
             
             addElement.setParent(linkedElement);
             
@@ -447,7 +455,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public virtual void removeGraphNodeByCommand(IGraphViewNodeData linkedData)
         {
-            if (linkedData.linkedElement is not PE removeElement) return;
+            if (FindElement(linkedData.linkedElement.guid) is not TGraphNodeElement removeElement) return;
             
             removeGraphNode(linkedData.guid);
             
@@ -460,7 +468,10 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void addGraphEdgeByCommand(IEdgeData linkedData)
         {
-            if (linkedData.linkedSwitcher is not EE switcherElement) return;
+            if (FindElement(linkedData.linkedElement.guid) is not TSwitcherElement switcherElement) return;
+            
+            RegisterContext(summonNewChildEdgeContext(linkedData));
+            
             switcherElement.setParent(linkedElement);
             
             var graphEdge = summonNewGraphEdge(switcherElement);
@@ -469,10 +480,13 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void removeGraphEdgeByCommand(IEdgeData linkedData)
         {
-            if (linkedData.linkedSwitcher is not EE switcherElement) return;
+            if (FindElement(linkedData.linkedElement.guid) is not TSwitcherElement switcherElement) return;
+            
             switcherElement.setParent(null);
             
             removeGraphEdge(linkedData.guid);
+            
+            UnregisterContext(linkedData.guid, switcherElement.type);
         }
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
@@ -481,7 +495,7 @@ namespace NovaLine.Script.Editor.Graph.View
             Vector2 mousePosition = evt.localMousePosition;
             Vector2 graphMousePosition = contentViewContainer.WorldToLocal(mousePosition);
 
-            evt.menu.AppendAction("Add Graph Node", (action) =>
+            evt.menu.AppendAction("Add Graph Node", _ =>
             {
                 var e = summonNewGraphNode(graphMousePosition);
                 addGraphNodeByHand(e,graphMousePosition);
@@ -503,7 +517,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
             return compatiblePorts;
         }
-        private void resetFirstNode(N excludeNode = null,bool registerCommand = false)
+        private void resetFirstNode(TGraphNode excludeNode = null,bool registerCommand = false)
         {
             if (excludeNode == null)
             {
@@ -550,10 +564,10 @@ namespace NovaLine.Script.Editor.Graph.View
             _backButton.style.borderLeftWidth = 1;
             _backButton.style.borderRightWidth = 1;
             
-            _backButton.RegisterCallback<MouseEnterEvent>(e => {
+            _backButton.RegisterCallback<MouseEnterEvent>(_ => {
                 _backButton.style.backgroundColor = new StyleColor(themedColor);
             });
-            _backButton.RegisterCallback<MouseLeaveEvent>(e => {
+            _backButton.RegisterCallback<MouseLeaveEvent>(_ => {
                 _backButton.style.backgroundColor = new StyleColor(themedColor);
             });
 
@@ -575,8 +589,10 @@ namespace NovaLine.Script.Editor.Graph.View
         System.Action OnRequestBackToParent { get; set; }
         GraphNode summonNewGraphNode(NovaElement linkedElement, Vector2 pos);
         IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher);
-        IGraphViewContext summonNewChildGraphContext(NovaElement novaElement,Vector2 pos);
-        IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData);
+        IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement,Vector2 pos);
+        IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData);
+        EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher);
+        EdgeContext summonNewChildEdgeContext(IEdgeData linkedData);
         void addGraphEdge(IGraphEdge graphEdge);
         void removeGraphEdge(IGraphEdge graphEdge);
         void removeGraphEdge(string guid);

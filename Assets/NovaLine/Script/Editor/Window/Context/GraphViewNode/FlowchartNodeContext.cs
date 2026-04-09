@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NovaLine.Script.Data.Edge;
+using NovaLine.Script.Data.NodeGraphView;
+using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
 using NovaLine.Script.Editor.Graph.View;
-using static NovaLine.Script.Editor.Window.Context.ContextInfo;
-using NovaLine.Script.Data.NodeGraphView;
-using NovaLine.Script.Data.Edge;
-using NovaLine.Script.Editor.Graph.Edge;
+using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 
-namespace NovaLine.Script.Editor.Window.Context
+namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     [ContextInfo(AsNode.False, AsGraphView.True)]
-    public class FlowchartContext : GraphViewContext<FlowchartGraphView, FlowchartData>
+    public class FlowchartNodeContext : GraphViewNodeContext<FlowchartGraphView, FlowchartData>
     {
-        public FlowchartContext(FlowchartData linkedData) : base(linkedData) { }
+        public FlowchartNodeContext(FlowchartData linkedData) : base(linkedData) { }
         public override void saveData()
         {
             base.saveData();
@@ -20,7 +20,7 @@ namespace NovaLine.Script.Editor.Window.Context
         }
         public override void saveNodeData(List<GraphNode> graphNodes = null)
         {
-            saveNodeData<NodeGraphNode, NodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
+            saveNodeData<NodeGraphNode, NodeNodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
         }
         public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
         {

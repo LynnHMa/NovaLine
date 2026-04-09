@@ -97,7 +97,7 @@ namespace NovaLine.Script.Editor.Utils
 
         private static void refreshGraphNodeInfo()
         {
-            var graphView = ContextRegistry.CurrentGraphViewContext?.graphView;
+            var graphView = ContextRegistry.CurrentGraphViewNodeContext?.graphView;
             if (graphView == null) return;
 
             graphView.update();

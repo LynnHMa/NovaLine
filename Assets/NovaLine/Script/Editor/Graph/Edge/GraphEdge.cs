@@ -23,7 +23,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
         private const float arrowHeightHalf = 8f;
 
         NovaSwitcher IGraphEdge.linkedElement { get => linkedElement; set => linkedElement = value as EE; }
-        string IGUID.guid { get => guid; set { } }
+        string IGUID.guid => guid;
         public new GraphPort<PE, EE> input
         {
             get => base.input as GraphPort<PE, EE>;
@@ -94,7 +94,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
             NovaWindow.SelectedGraphEdge = null;
 
-            var activeRoot = (NovaElement)CurrentGraphViewContext?.graphView?.linkedElement;
+            var activeRoot = (NovaElement)CurrentGraphViewNodeContext?.graphView?.linkedElement;
 
             if (activeRoot == null) return;
 

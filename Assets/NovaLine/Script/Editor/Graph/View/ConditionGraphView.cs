@@ -5,9 +5,10 @@ using UnityEngine;
 using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
-using NovaLine.Script.Editor.Window.Context;
 using NovaLine.Script.Element;
-using System.Linq;
+using NovaLine.Script.Data.Edge;
+using NovaLine.Script.Editor.Window.Context.Edge;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 
 namespace NovaLine.Script.Editor.Graph.View
 {
@@ -31,15 +32,21 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             return new EventGraphNode(novaEvent, pos);
         }
-        public override IGraphViewContext summonNewChildGraphContext(NovaElement condition, Vector2 pos)
+        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewChildGraphContext(new ConditionData(condition as Condition));
+            return summonNewChildGraphViewNodeContext(new EventData(linkedElement as NovaEvent,pos));
         }
 
-        public override IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
-            return new ConditionContext(linkedData as ConditionData);
+            return new EventNodeContext(linkedData as EventData);
         }
+        
+        public override EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        {
+            return new EdgeContext(new EventEdgeData(linkedSwitcher as EventSwitcher));
+        }
+        
         public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
             return summonAndConnectEdge<EventGraphEdge>((EventSwitcher)linkedSwitcher);

@@ -3,7 +3,7 @@ using NovaLine.Script.Editor.Graph.View;
 using NovaLine.Script.Element;
 using System;
 using NovaLine.Script.Editor.Utils.Scope;
-using UnityEngine;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 
 namespace NovaLine.Script.Editor.Window.Command
@@ -14,7 +14,7 @@ namespace NovaLine.Script.Editor.Window.Command
         public CommandType type = CommandType.None;
         public KeyValue<string, NovaElementType> linkedContextInfo;
 
-        protected INovaGraphView linkedGraphView => linkedContextInfo == null ? null : GetContext(linkedContextInfo.key,linkedContextInfo.value)?.graphView;
+        protected INovaGraphView linkedGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.graphView;
 
         protected Command() { }
         protected Command(string contextGuid,NovaElementType contextType)

@@ -16,47 +16,30 @@ namespace NovaLine.Script.Data.Edge
         }
 
         public override string name => "Next Node";
-        public override string describtion => "Set next node and its condition.";
+        public override string description => "Set next node and its condition.";
 
         public NodeEdgeData() { }
-        public NodeEdgeData(NodeSwitcher novaSwitcher) : base(novaSwitcher)
+        public NodeEdgeData(NodeSwitcher novaElement) : base(novaElement)
         {
-            switchConditionData = new ConditionData(novaSwitcher.switchCondition);
-        }
-
-        public override void init(NovaSwitcher linkedSwitcher)
-        {
-            base.init(linkedSwitcher);
-            if (linkedSwitcher is not NodeSwitcher nodeSwitcher) return;
-            switchConditionData = new ConditionData(nodeSwitcher.switchCondition);
+            switchConditionData = new ConditionData(novaElement.switchCondition);
         }
         
         public override void registerLinkedElement()
         {
-            if (switchConditionData != null)
-            {
-                var conditionElement = switchConditionData.linkedElement;
-                if (conditionElement != null)
-                {
-                    NovaElementRegistry.RegisterElement(conditionElement);
-                }
-            }
+            switchConditionData?.registerLinkedElement();
             base.registerLinkedElement();
         }
         
-        public override void updateLinkedElement()
+        public override void updateLinkedElement(bool updateChildren = true)
         {
-            base.updateLinkedElement();
-            if (linkedSwitcher != null && switchConditionData != null)
-            {
-                linkedSwitcher.switchConditionGuid = switchConditionData.guid;
-            }
+            if(updateChildren) switchConditionData?.updateLinkedElement();
+            base.updateLinkedElement(updateChildren);
         }
         public override INovaData copy()
         {
             if (base.copy() is not NodeEdgeData clone) return null;
             clone.switchConditionData = (ConditionData)switchConditionData.copy();
-            clone.switchConditionData.linkedElement = clone.linkedSwitcher.switchCondition;
+            clone.switchConditionData.linkedElement = clone.linkedElement.switchCondition;
             return clone;
         }
     }

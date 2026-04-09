@@ -1,38 +1,34 @@
-﻿﻿﻿﻿using NovaLine.Script.Editor.Graph.Edge;
-using NovaLine.Script.Editor.Graph.Node;
-using NovaLine.Script.Editor.Graph.View;
-using NovaLine.Script.Utils.Interface;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Experimental.GraphView;
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Data.NodeGraphView;
-using static NovaLine.Script.Editor.Window.Context.ContextInfo;
-using static NovaLine.Script.Editor.Window.ContextRegistry;
+using NovaLine.Script.Editor.Graph.Edge;
+using NovaLine.Script.Editor.Graph.Node;
+using NovaLine.Script.Editor.Graph.View;
 using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
+using NovaLine.Script.Editor.Window.Context.Edge;
 using NovaLine.Script.Element;
+using UnityEditor.Experimental.GraphView;
+using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
+using static NovaLine.Script.Editor.Window.ContextRegistry;
 
-namespace NovaLine.Script.Editor.Window.Context
+namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     /// <summary>
-    /// Just a simple bridge from data to graph view.
+    /// Just a simple bridge from graph view node data to graph view.
     /// </summary>
-    /// <typeparam name="GV">GraphView</typeparam>
-    /// <typeparam name="GVND">Linked GraphViewNodeData</typeparam>
+    /// <typeparam name="TGraphView">GraphView</typeparam>
+    /// <typeparam name="TLinkedGraphViewNodeData">Linked GraphViewNodeData</typeparam>
     [ContextInfo(AsNode.False, AsGraphView.False)]
-    public abstract class GraphViewContext<GV, GVND> : IGraphViewContext where GV : INovaGraphView where GVND : IGraphViewNodeData
+    public abstract class GraphViewNodeContext<TGraphView, TLinkedGraphViewNodeData> : NovaContext<TLinkedGraphViewNodeData>,IGraphViewNodeContext where TGraphView : INovaGraphView where TLinkedGraphViewNodeData : IGraphViewNodeData
     {
-        protected NovaWindow window => NovaWindow.Instance;
-        private GV _graphView;
+        private TGraphView _graphView;
         public CommandRegistry commandRegistry;
-        protected GraphViewContext(GVND linkedData)
-        {
-            this.linkedData = linkedData;
-        }
+        protected GraphViewNodeContext(TLinkedGraphViewNodeData linkedData) : base(linkedData){}
         
-        public virtual GV graphView
+        public TGraphView graphView
         {
             get
             {
@@ -41,20 +37,14 @@ namespace NovaLine.Script.Editor.Window.Context
             }
             set => _graphView = value;
         }
-        public virtual GVND linkedData { get; set; }
-
-        public virtual bool hasDrawn { get; set; } = false;
-        public virtual NovaElementType type => linkedData != null && linkedData.linkedElement != null ? linkedData.linkedElement.type : NovaElementType.NONE;
-        public virtual string title => graphView?.getActualName();
-        public virtual string guid => linkedData?.guid;
-
-        INovaGraphView IGraphViewContext.graphView { get => graphView; set => graphView = (GV)value; }
-        IGraphViewNodeData IGraphViewContext.linkedData { get => linkedData; set => linkedData = (GVND)value; }
-        NovaElementType IGraphViewContext.type { get => type; set { } }
-        CommandRegistry IGraphViewContext.commandRegistry { get => commandRegistry; set => commandRegistry = value; }
-        string IGUID.guid { get => guid; set { } }
+        public bool hasDrawn { get; set; }
+        public string title => graphView?.getActualName();
         
-        public virtual void saveData()
+        INovaGraphView IGraphViewNodeContext.graphView { get => graphView; set => graphView = (TGraphView)value; }
+        IGraphViewNodeData IGraphViewNodeContext.linkedData { get => linkedData; set => linkedData = (TLinkedGraphViewNodeData)value; }
+        CommandRegistry IGraphViewNodeContext.commandRegistry => commandRegistry;
+        
+        public override void saveData()
         {
             if (linkedData == null || graphView == null || window == null || !hasDrawn) return;
             saveNodeData();
@@ -62,15 +52,9 @@ namespace NovaLine.Script.Editor.Window.Context
         }
         protected virtual void saveNodeData<N, C>(List<N> graphNodes = null)
             where N : GraphNode
-            where C : IGraphViewContext
+            where C : IGraphViewNodeContext
         {
-            var newNodeDatas = new EList<IGraphViewNodeData>();
-            
-            //Must redraw
-            if (graphNodes != null && graphView != null)
-            {
-                disposeGraphView();
-            }
+            var newNodeDataList = new EList<IGraphViewNodeData>();
             
             var actualGraphNodes = graphNodes ?? graphView.graphNodes.Cast<N>().ToList();
             if (actualGraphNodes.Count != 0)
@@ -85,35 +69,42 @@ namespace NovaLine.Script.Editor.Window.Context
                     childContext.saveData();
                     childContext.linkedData.pos = checkingGraphNode.pos;
 
-                    newNodeDatas.Add(childContext.linkedData);
+                    newNodeDataList.Add(childContext.linkedData);
                 }
             }
 
-            linkedData.nodeDataList = newNodeDatas;
-        }
-        protected virtual void saveEdgeData<ED>(List<IGraphEdge> graphEdges = null) where ED : IEdgeData, new()
-        {
-            var newEdgeDatas = new EList<IEdgeData>();
+            linkedData.nodeDataList = newNodeDataList;
             
             //Must redraw
-            if (graphEdges != null && graphView != null)
+            if (graphNodes != null && graphView != null)
             {
                 disposeGraphView();
             }
+        }
+        protected virtual void saveEdgeData<ED>(List<IGraphEdge> graphEdges = null) where ED : IEdgeData, new()
+        {
+            var newEdgeDataList = new EList<IEdgeData>();
             
             var actualGraphEdges = graphEdges ?? graphView.graphEdges?.Cast<IGraphEdge>().ToList();
             if (actualGraphEdges != null)
             {
                 foreach (var checkingGraphEdge in actualGraphEdges)
                 {
-                    var newEdgeData = new ED();
-                    newEdgeData.init(checkingGraphEdge.linkedElement);
-
-                    newEdgeDatas.Add(newEdgeData);
+                    var context = GetContext(checkingGraphEdge.guid, NovaElementType.SWITCHER);
+                    if (context is not EdgeContext edgeContext) continue;
+                    context.saveData();
+                    
+                    newEdgeDataList.Add(edgeContext.linkedData);
                 }
             }
 
-            linkedData.edgeDataList = newEdgeDatas;
+            linkedData.edgeDataList = newEdgeDataList;
+            
+            //Must redraw
+            if (graphEdges != null && graphView != null)
+            {
+                disposeGraphView();
+            }
         }
         public abstract void saveNodeData(List<GraphNode> graphNodes = null);
         public abstract void saveEdgeData(List<IGraphEdge> graphEdges = null);
@@ -146,7 +137,7 @@ namespace NovaLine.Script.Editor.Window.Context
                     graphView.addGraphNode(graphNode);
                 }
             }
-            if(!String.IsNullOrEmpty(linkedData.startGraphNodeGuid))graphView.setFirstNode(linkedData.startGraphNodeGuid,false);
+            if(!String.IsNullOrEmpty(linkedData.linkedElement.firstChildGuid)) graphView.setFirstNode(linkedData.linkedElement.firstChildGuid,false);
         }
         public virtual void drawEdge()
         {
@@ -154,16 +145,12 @@ namespace NovaLine.Script.Editor.Window.Context
             if (nodeEdgeDatas == null || nodeEdgeDatas.Count == 0) return;
             foreach (var nodeEdgeData in nodeEdgeDatas)
             {
-                var nodeGraphEdge = graphView.summonNewGraphEdge(nodeEdgeData.linkedSwitcher);
+                var nodeGraphEdge = graphView.summonNewGraphEdge(nodeEdgeData.linkedElement);
                 if (nodeGraphEdge != null) graphView.addGraphEdge(nodeGraphEdge);
             }
         }
-
-        public virtual IEdgeData findChildEdgeData(string guid)
-        {
-            return linkedData?.edgeDataList.Find(edgeData => edgeData.guid.Equals(guid));
-        }
-        protected abstract GV summonGraphView();
+        
+        protected abstract TGraphView summonGraphView();
 
         public void disposeGraphView()
         {
@@ -176,19 +163,17 @@ namespace NovaLine.Script.Editor.Window.Context
             graphView = default;
             hasDrawn = false;
         }
+        
     }
-    public interface IGraphViewContext : IGUID
+    public interface IGraphViewNodeContext : INovaContext
     {
-        public string title { get; }
-        public INovaGraphView graphView { get; set; }
-        public IGraphViewNodeData linkedData { get; set; }
-        public NovaElementType type { get; set; }
-        public CommandRegistry commandRegistry { get; set; }
-        public void saveData();
-        public void saveNodeData(List<GraphNode> graphNodes);
-        public void saveEdgeData(List<IGraphEdge> graphEdges);
-        public IEdgeData findChildEdgeData(string guid);
-        public void draw();
+        string title { get; }
+        INovaGraphView graphView { get; set; }
+        new IGraphViewNodeData linkedData { get; set; }
+        CommandRegistry commandRegistry { get; }
+        void saveNodeData(List<GraphNode> graphNodes);
+        void saveEdgeData(List<IGraphEdge> graphEdges);
+        void draw();
     }
     public class ContextInfo : Attribute
     {

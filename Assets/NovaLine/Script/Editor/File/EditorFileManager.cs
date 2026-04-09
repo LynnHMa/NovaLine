@@ -6,6 +6,7 @@ using System;
 using NovaLine.Script.Data;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.NovaWindow;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Element;
@@ -70,7 +71,7 @@ namespace NovaLine.Script.Editor.File
             CurrentPath = path;
 
             CreateGraphWindow();
-            LoadContextInWindow(new FlowchartContext(asset.data));
+            LoadContextInWindow(new FlowchartNodeContext(asset.data));
 
             return true;
         }
@@ -81,14 +82,14 @@ namespace NovaLine.Script.Editor.File
             if (Instance == null)
                 return;
 
-            if (RegisteredFlowchartContext?.linkedData == null || CurrentGraphViewContext?.linkedData == null)
+            if (RegisteredFlowchartNodeContext?.linkedData == null || CurrentGraphViewNodeContext?.linkedData == null)
                 return;
 
             if (string.IsNullOrEmpty(CurrentPath))
             {
                 CurrentPath = EditorUtility.SaveFilePanelInProject(
                     "Save Flowchart",
-                    RegisteredFlowchartContext.linkedData.name,
+                    RegisteredFlowchartNodeContext.linkedData.name,
                     "asset",
                     "Save Flowchart"
                 );
@@ -103,9 +104,9 @@ namespace NovaLine.Script.Editor.File
                 return;
             }
 
-            if (!CurrentGraphViewContext.guid.Equals(RegisteredFlowchartContext.guid)) CurrentGraphViewContext.saveData();
+            if (!CurrentGraphViewNodeContext.guid.Equals(RegisteredFlowchartNodeContext.guid)) CurrentGraphViewNodeContext.saveData();
 
-            RegisteredFlowchartContext.saveData();
+            RegisteredFlowchartNodeContext.saveData();
 
             if (currentAsset == null)
             {
@@ -113,12 +114,12 @@ namespace NovaLine.Script.Editor.File
 
                 if (currentAsset == null)
                 {
-                    currentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartContext.linkedData);
+                    currentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartNodeContext.linkedData);
                     AssetDatabase.CreateAsset(currentAsset, CurrentPath);
                 }
             }
 
-            currentAsset.data = RegisteredFlowchartContext.linkedData;
+            currentAsset.data = RegisteredFlowchartNodeContext.linkedData;
 
             EditorUtility.SetDirty(currentAsset);
 
@@ -135,7 +136,7 @@ namespace NovaLine.Script.Editor.File
 
             var flowchartData = asset.data;
             flowchartData.linkedElement.name = asset.name;
-            var flowchartContext = new FlowchartContext(flowchartData);
+            var flowchartContext = new FlowchartNodeContext(flowchartData);
 
             //Re-register all contexts
             var storedCurrentContextGuid = CurrentContextGuid;
@@ -145,8 +146,8 @@ namespace NovaLine.Script.Editor.File
             if (!flowchartContext.guid.Equals(storedCurrentContextGuid))
             {
                 var toOpenContext = GetContext(storedCurrentContextGuid, storedCurrentContextType);
-                if (toOpenContext == null) return;
-                LoadContextInWindow(toOpenContext);
+                if (toOpenContext is not IGraphViewNodeContext graphViewNodeContext) return;
+                LoadContextInWindow(graphViewNodeContext);
             }
         }
 

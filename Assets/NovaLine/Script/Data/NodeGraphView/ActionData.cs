@@ -43,10 +43,20 @@ namespace NovaLine.Script.Data.NodeGraphView
             clone.conditionAfterInvokeData.linkedElement = clone.linkedElement.conditionAfterInvoke;
             return clone;
         }
+
+        public override void updateLinkedElement(bool updateChildren = true)
+        {
+            if (updateChildren)
+            {
+                conditionBeforeInvokeData?.updateLinkedElement();
+                conditionAfterInvokeData?.updateLinkedElement();
+            }
+            base.updateLinkedElement(updateChildren);
+        }
         public override void registerLinkedElement()
         {
-            conditionBeforeInvokeData.registerLinkedElement();
-            conditionAfterInvokeData.registerLinkedElement();
+            conditionBeforeInvokeData?.registerLinkedElement();
+            conditionAfterInvokeData?.registerLinkedElement();
             base.registerLinkedElement();
         }
     }

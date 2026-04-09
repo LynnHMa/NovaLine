@@ -1,4 +1,5 @@
 ﻿using System;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Element;
 using UnityEngine;
 
@@ -70,15 +71,17 @@ namespace NovaLine.Script.Editor.Window.Command
                     ? ContextRegistry.GetContext(liveElement.parent.guid, liveElement.parent.type)
                     : null;
 
-                if (parentContext?.graphView != null)
+                if (parentContext is not IGraphViewNodeContext graphViewNodeContext) return;
+
+                if (graphViewNodeContext.graphView != null)
                 {
-                    var graphNode = parentContext.graphView.getExistingGraphNode(liveElement.guid, 1);
+                    var graphNode = graphViewNodeContext.graphView.getExistingGraphNode(liveElement.guid, 1);
                     if (graphNode != null) graphNode.linkedElementGuid = liveElement.guid;
 
-                    parentContext.graphView.update();
+                    graphViewNodeContext.graphView.update();
                 }
 
-                context.graphView?.update();
+                graphViewNodeContext.graphView?.update();
             }
             liveElement.ShowInInspector();
         }

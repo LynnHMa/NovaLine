@@ -1,5 +1,6 @@
 ﻿﻿using System;
-using UnityEngine;
+ using System.Collections;
+ using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Element.Switcher
@@ -14,6 +15,19 @@ namespace NovaLine.Script.Element.Switcher
         public NodeSwitcher(){ 
             var sc = new Condition("Switch Condition",this);
             switchConditionGuid = sc.guid;
+        }
+
+        public override IEnumerator next()
+        {
+            yield return switchCondition.waiting();
+            
+            var nextNode = tryToFindInputElement();
+            if (nextNode is Node node)
+            {
+                yield return node.run();
+            }
+            
+            yield return base.next();
         }
         public override string getTypeName()
         {

@@ -22,12 +22,11 @@ namespace NovaLine.Script.Element
         }
         public IEnumerator play()
         {
-            if(firstChild is not Node firstNode)
+            if(firstChild is Node firstNode)
             {
-                Debug.Log(666);
-                yield break;
+                yield return firstNode.run();
             }
-            yield return firstNode.run();
+
             yield return null;
         }
     }

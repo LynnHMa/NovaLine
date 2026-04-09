@@ -1,5 +1,8 @@
-﻿﻿using NovaLine.Script.Editor.Utils;
-using NovaLine.Script.Element.Switcher;
+﻿﻿using NovaLine.Script.Data.Edge;
+ using NovaLine.Script.Editor.Utils;
+ using NovaLine.Script.Editor.Window.Context.Edge;
+ using NovaLine.Script.Editor.Window.Context.GraphViewNode;
+ using NovaLine.Script.Element.Switcher;
 using UnityEngine;
 namespace NovaLine.Script.Editor.Graph.View
 {
@@ -29,14 +32,19 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             return summonAndConnectEdge<ActionGraphEdge>((ActionSwitcher)linkedSwitcher);
         }
-        public override IGraphViewContext summonNewChildGraphContext(NovaElement action, Vector2 pos)
+        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewChildGraphContext(new ActionData(action as NovaAction, pos));
+            return summonNewChildGraphViewNodeContext(new ActionData(linkedElement as NovaAction, pos));
         }
 
-        public override IGraphViewContext summonNewChildGraphContext(IGraphViewNodeData linkedData)
+        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
-            return new ActionContext(linkedData as ActionData);
+            return new ActionNodeContext(linkedData as ActionData);
+        }
+        
+        public override EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        {
+            return new EdgeContext(new ActionEdgeData(linkedSwitcher as ActionSwitcher));
         }
         protected override void updateNodes()
         {

@@ -1,6 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using NovaLine.Script.Action;
+using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
@@ -49,9 +52,21 @@ namespace NovaLine.Script.Element
             {
                 yield return firstAction.invoke();
             }
-            else yield break;
             
             yield return conditionAfterInvoke.waiting();
+
+            yield return null;
+
+            List<IEnumerator> switcherConditions = new();
+            foreach (var switcherConditionGuid in switchersGuidList)
+            {
+                if (FindElement(switcherConditionGuid) is NodeSwitcher nodeSwitcher)
+                {
+                    switcherConditions.Add(nodeSwitcher.next());
+                }
+            }
+            yield return switcherConditions.WhenAny();
+            
             yield return null;
         }
         public override string getTypeName()

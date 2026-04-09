@@ -2,7 +2,7 @@
 using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
 using NovaLine.Script.Editor.Utils.Scope;
-using NovaLine.Script.Editor.Window.Context;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Element;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
@@ -48,7 +48,7 @@ namespace NovaLine.Script.Editor.Window
         }
         private void tryRestoreAfterReload()
         {
-            if (CurrentGraphViewContext != null) return;
+            if (CurrentGraphViewNodeContext != null) return;
             EditorFileManager.RestoreAfterDomainReload();
         }
         private void onBeforeAssemblyReload()
@@ -71,7 +71,7 @@ namespace NovaLine.Script.Editor.Window
             var newDataAsset = EditorFileManager.CreateNewFlowchartAsset();
             if (newDataAsset == null) return;
             var newFlowchartData = newDataAsset.data;
-            var newContext = new FlowchartContext(newFlowchartData);
+            var newContext = new FlowchartNodeContext(newFlowchartData);
             EditorApplication.delayCall += () =>
             {
                 LoadContextInWindow(newContext);
@@ -81,14 +81,14 @@ namespace NovaLine.Script.Editor.Window
         public static void ExitGraphView()
         {
             EditorFileManager.SaveGraphWindowData();
-            if (CurrentGraphViewContext == null || LastGraphViewContext == null)
+            if (CurrentGraphViewNodeContext == null || LastGraphViewNodeContext == null)
             {
                 return;
             }
-            LoadContextInWindow(LastGraphViewContext, true);
+            LoadContextInWindow(LastGraphViewNodeContext, true);
         }
 
-        public static void LoadContextInWindow(IGraphViewContext context, bool isExiting = false)
+        public static void LoadContextInWindow(IGraphViewNodeContext context, bool isExiting = false)
         {
             var graphView = (GraphView)context.graphView;
             if (graphView == null) return;
@@ -96,18 +96,18 @@ namespace NovaLine.Script.Editor.Window
             if (Instance == null) CreateGraphWindow();
 
             //Register flowchart and its children
-            if (context is FlowchartContext flowchartContext && !isExiting)
+            if (context is FlowchartNodeContext flowchartContext && !isExiting)
             {
                 ClearContexts();
-                if(RegisteredFlowchartContext != null)
+                if(RegisteredFlowchartNodeContext != null)
                 {
-                    UnregisterContext(RegisteredFlowchartContext);
+                    UnregisterContext(RegisteredFlowchartNodeContext);
                 }
                 RegisterContext(flowchartContext);
                 context.graphView.setBackButtonVisible(false);
                 context.linkedData.registerLinkedElement();
             }
-            else if(context is not FlowchartContext)
+            else if(context is not FlowchartNodeContext)
             {
                 context.graphView.setBackButtonVisible(true);
                 context.graphView.OnRequestBackToParent = ExitGraphView;
@@ -120,7 +120,7 @@ namespace NovaLine.Script.Editor.Window
             if (isExiting)
             {
                 //Reselect the graph node or edge in parent graph view.
-                var presentContext = CurrentGraphViewContext;
+                var presentContext = CurrentGraphViewNodeContext;
                 if (presentContext != null)
                 {
                     if(presentContext is ConditionContext conditionContext)
@@ -175,11 +175,11 @@ namespace NovaLine.Script.Editor.Window
         }
         public static void UpdateContext()
         {
-            CurrentGraphViewContext?.graphView?.update();
+            CurrentGraphViewNodeContext?.graphView?.update();
 
             if (Instance == null) return;
 
-            Instance.titleContent.text = CurrentGraphViewContext?.title;
+            Instance.titleContent.text = CurrentGraphViewNodeContext?.title;
         }
         #endregion
     }

@@ -88,11 +88,11 @@ namespace NovaLine.Script.Editor.Graph.Port
 
                 if (isByHand)
                 {
-                    CurrentGraphViewContext.graphView.addGraphEdgeByHand(graphEdge);
+                    CurrentGraphViewNodeContext.graphView.addGraphEdgeByHand(graphEdge);
                 }
                 else
                 {
-                    CurrentGraphViewContext.graphView.addGraphEdge(graphEdge);
+                    CurrentGraphViewNodeContext.graphView.addGraphEdge(graphEdge);
                 }
 
             }
@@ -114,11 +114,11 @@ namespace NovaLine.Script.Editor.Graph.Port
 
                 if (isByHand)
                 {
-                    CurrentGraphViewContext.graphView.removeGraphEdgeByHand(graphEdge);
+                    CurrentGraphViewNodeContext.graphView.removeGraphEdgeByHand(graphEdge);
                 }
                 else
                 {
-                    CurrentGraphViewContext.graphView.removeGraphEdge(graphEdge);
+                    CurrentGraphViewNodeContext.graphView.removeGraphEdge(graphEdge);
                 }
 
                 graphEdge.RemoveFromHierarchy();

@@ -1,6 +1,5 @@
 ﻿using System;
 using NovaLine.Script.Element.Switcher;
-using UnityEngine;
 
 namespace NovaLine.Script.Data.Edge
 {
@@ -8,12 +7,12 @@ namespace NovaLine.Script.Data.Edge
     public class ActionEdgeData : EdgeData<ActionSwitcher>
     {
         public override string name => "Next Action";
-        public override string describtion => "The next action.";
+        public override string description => "The next action.";
 
         public ActionEdgeData()
         {
         }
-        public ActionEdgeData(ActionSwitcher switcher) : base(switcher)
+        public ActionEdgeData(ActionSwitcher element) : base(element)
         {
         }
     }

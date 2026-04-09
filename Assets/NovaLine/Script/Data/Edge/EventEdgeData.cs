@@ -7,12 +7,12 @@ namespace NovaLine.Script.Data.Edge
     public class EventEdgeData : EdgeData<EventSwitcher>
     {
         public override string name => "Next Event";
-        public override string describtion => "The next event.";
+        public override string description => "The next event.";
 
         public EventEdgeData()
         {
         }
-        public EventEdgeData(EventSwitcher switcher) : base(switcher)
+        public EventEdgeData(EventSwitcher element) : base(element)
         {
         }
     }

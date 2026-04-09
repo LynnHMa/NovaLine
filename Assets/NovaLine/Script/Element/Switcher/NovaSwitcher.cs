@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
@@ -37,26 +38,17 @@ namespace NovaLine.Script.Element.Switcher
 
         public virtual NovaElement tryToFindInputElement()
         {
-            if (parent == null) return null;
-            foreach (var childGuid in parent.childrenGuidList)
-            {
-                var child = FindElement(childGuid);
-                if (child.guid.Equals(_inputElementGuid)) return child;
-            }
-
-            return null;
+            return FindElement(inputElementGuid);
         }
 
         public virtual NovaElement tryToFindOutputElement()
         {
-            if (parent == null) return null;
-            foreach (var childGuid in parent.childrenGuidList)
-            {
-                var child = FindElement(childGuid);
-                if (child.guid.Equals(_outputElementGuid)) return child;
-            }
+            return FindElement(outputElementGuid);
+        }
 
-            return null;
+        public virtual IEnumerator next()
+        {
+            yield return null;
         }
 
         public override void setParent(NovaElement parent)

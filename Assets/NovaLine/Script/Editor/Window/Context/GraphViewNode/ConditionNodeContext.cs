@@ -1,22 +1,22 @@
-﻿using System.Collections.Generic;
+﻿﻿using System.Collections.Generic;
 using System.Linq;
-using NovaLine.Script.Editor.Graph.Node;
-using NovaLine.Script.Editor.Graph.View;
-using static NovaLine.Script.Editor.Window.Context.ContextInfo;
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.Graph.Edge;
+using NovaLine.Script.Editor.Graph.Node;
+using NovaLine.Script.Editor.Graph.View;
+using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 
-namespace NovaLine.Script.Editor.Window.Context
+namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     [ContextInfo(AsNode.False, AsGraphView.True)]
-    public class ConditionContext : GraphViewContext<ConditionGraphView, ConditionData>
+    public class ConditionContext : GraphViewNodeContext<ConditionGraphView, ConditionData>
     {
         public ConditionContext(ConditionData linkedData) : base(linkedData) { }
 
         public override void saveNodeData(List<GraphNode> graphNodes = null)
         {
-            saveNodeData<EventGraphNode, EventContext>(graphNodes == null ? null : graphNodes.Cast<EventGraphNode>().ToList());
+            saveNodeData<EventGraphNode, EventNodeContext>(graphNodes == null ? null : graphNodes.Cast<EventGraphNode>().ToList());
         }
 
         public override void saveEdgeData(List<IGraphEdge> graphEdges = null)

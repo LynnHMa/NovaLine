@@ -1,5 +1,6 @@
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Element.Event;
 using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils.Interface;
@@ -62,32 +63,25 @@ namespace NovaLine.Script.Editor.Utils
         }
         private void modifyInfo()
         {
-            try
-            {
-                var parentsProp = serializedObject.FindProperty("parentElements");
-                var selectedProp = serializedObject.FindProperty("selectedElement");
+            var parentsProp = serializedObject.FindProperty("parentElements");
+            var selectedProp = serializedObject.FindProperty("selectedElement");
 
-                //Draw parent elements
-                if (parentsProp.arraySize > 0)
+            //Draw parent elements
+            if (parentsProp.arraySize > 0)
+            {
+                EditorGUILayout.Space(15);
+
+                for (int i = 0; i < parentsProp.arraySize; i++)
                 {
-                    EditorGUILayout.Space(15);
+                    var parentItemProp = parentsProp.GetArrayElementAtIndex(i);
 
-                    for (int i = 0; i < parentsProp.arraySize; i++)
-                    {
-                        var parentItemProp = parentsProp.GetArrayElementAtIndex(i);
+                    drawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
 
-                        drawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
-
-                        EditorGUILayout.LabelField("↓", ARROW_STYLE);
-                    }
+                    EditorGUILayout.LabelField("↓", ARROW_STYLE);
                 }
-                //Draw selected element
-                drawElement(selectedProp, SELECTED_ELEMENT_STYLE);
             }
-            catch(Exception e)
-            {
-                Debug.LogError(e);
-            }
+            //Draw selected element
+            drawElement(selectedProp, SELECTED_ELEMENT_STYLE);
         }
         private void loadConditionContextDirect(Condition targetCondition, string fallbackName)
         {
@@ -97,8 +91,8 @@ namespace NovaLine.Script.Editor.Utils
                 return;
             }
 
-            var conditionContext = GetContext(targetCondition.guid, NovaElementType.CONDITION);
-            if (conditionContext != null)
+            var context = GetContext(targetCondition.guid, NovaElementType.CONDITION);
+            if (context is ConditionContext conditionContext)
             {
                 var actualConditionName = targetCondition.name;
                 
@@ -184,7 +178,7 @@ namespace NovaLine.Script.Editor.Utils
                     EditorGUILayout.Space(30);
                     if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
                     {
-                        var currentGraphView = CurrentGraphViewContext?.graphView;
+                        var currentGraphView = CurrentGraphViewNodeContext?.graphView;
                         if (currentGraphView != null)
                         {
                             currentGraphView.setFirstNode(NovaWindow.SelectedGraphNode);

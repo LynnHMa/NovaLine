@@ -9,15 +9,15 @@ namespace NovaLine.Script.Editor.Window
 {
     public class CommandRegistry
     {
-        public Stack<Command.Command> undoStack { get; set; } = new();
-        public Stack<Command.Command> redoStack { get; set; } = new();
+        public Stack<Command.Command> undoStack { get; } = new();
+        public Stack<Command.Command> redoStack { get; } = new();
         public bool isImporting { get; set; }
         private Stack<Command.Command> preparativeStack { get; } = new();
         public bool isRecordingCompoundCommand { get; set; }
         private List<Command.Command> recordedCommands { get; } = new();
-        private int _compoundDepth = 0;
+        private int _compoundDepth;
         
-        public static CommandRegistry Instance => CurrentGraphViewContext?.commandRegistry;
+        public static CommandRegistry Instance => CurrentGraphViewNodeContext?.commandRegistry;
         public static Stack<Command.Command> UndoStack => Instance?.undoStack;
         public static Stack<Command.Command> RedoStack => Instance?.redoStack;
 
@@ -29,24 +29,27 @@ namespace NovaLine.Script.Editor.Window
 
             EditorApplication.delayCall += () =>
             {
-                if (preparativeStack.Count >= 2)
+                switch (preparativeStack.Count)
                 {
-                    var toImports = new List<Command.Command>();
-                    while (preparativeStack.Count > 0)
+                    case >= 2:
                     {
-                        var toImport = preparativeStack.Pop();
-                        if (toImport != null)
+                        var toImports = new List<Command.Command>();
+                        while (preparativeStack.Count > 0)
                         {
-                            toImports.Add(toImport);
+                            var toImport = preparativeStack.Pop();
+                            if (toImport != null)
+                            {
+                                toImports.Add(toImport);
+                            }
                         }
-                    }
 
-                    var compoundCommand = new CompoundCommand(toImports);
-                    undoStack.Push(compoundCommand);
-                }
-                else if (preparativeStack.Count == 1)
-                {
-                    undoStack.Push(preparativeStack.Pop());
+                        var compoundCommand = new CompoundCommand(toImports);
+                        undoStack.Push(compoundCommand);
+                        break;
+                    }
+                    case 1:
+                        undoStack.Push(preparativeStack.Pop());
+                        break;
                 }
 
                 isImporting = false;
@@ -142,7 +145,7 @@ namespace NovaLine.Script.Editor.Window
         }
         private static bool tryCustomUndo()
         {
-            if (CurrentGraphViewContext != null)
+            if (CurrentGraphViewNodeContext != null)
             {
                 Undo();
                 return true;
@@ -151,7 +154,7 @@ namespace NovaLine.Script.Editor.Window
         }
         private static bool tryCustomRedo()
         {
-            if (CurrentGraphViewContext != null)
+            if (CurrentGraphViewNodeContext != null)
             {
                 Redo();
                 return true;

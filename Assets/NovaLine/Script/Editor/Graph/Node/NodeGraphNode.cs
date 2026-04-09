@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context;
+using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Element;
 using NovaLine.Script.Element.Switcher;
@@ -28,7 +29,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             if (evt.clickCount == 2)
             {
-                var nodeContext = (NodeContext)GetContext(this,NovaElementType.NODE);
+                var nodeContext = (NodeNodeContext)GetContext(this,NovaElementType.NODE);
 
                 if(nodeContext != null)
                 {

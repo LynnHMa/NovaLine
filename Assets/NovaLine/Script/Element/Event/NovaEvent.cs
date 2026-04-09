@@ -23,14 +23,12 @@ namespace NovaLine.Script.Element.Event
             if (parent is Condition parentCondition && parentCondition.conditionType == ConditionType.Sort)
             {
                 var firstSwitcherGuid = switchersGuidList.FirstOrDefault();
-                if (FindElement(firstSwitcherGuid) is not EventSwitcher firstSwitcher) yield break;
-                var nextElement = firstSwitcher.tryToFindInputElement();
-                if (nextElement is INovaEvent nextEvent)
+                if (FindElement(firstSwitcherGuid) is EventSwitcher firstSwitcher)
                 {
-                    yield return nextEvent.onEvent();
+                    yield return firstSwitcher.next();
                 }
             }
-            else yield return null;
+            yield return null;
         }
 
         public override string getTypeName()
