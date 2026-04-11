@@ -10,7 +10,7 @@ using UnityEngine;
 namespace NovaLine.Script.Action
 {
     [Serializable]
-    public class NovaAction : NovaElement,INovaAction,IHasConditionElement
+    public class NovaAction : NovaElement,INovaAction,IAroundConditionElement
     {
         [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
         [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;

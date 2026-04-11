@@ -9,7 +9,7 @@ namespace NovaLine.Script.Utils.Ext
 {
     public static class IEnumeratorExt
     {
-        private static FlowchartPlayer Player => FlowchartPlayer.Instance;
+        private static NovaPlayer Player => NovaPlayer.Instance;
         public static IEnumerator WhenAll(this IEnumerable<IEnumerator> routines)
         {
             var routineArray = routines as IEnumerator[] ?? routines.ToArray();

@@ -17,7 +17,6 @@ namespace NovaLine.Script.Element.Event
 
         public override IEnumerator onEvent()
         {
-            Debug.Log("Waiting Event");
             yield return new WaitForSeconds(second);
             
             yield return null;

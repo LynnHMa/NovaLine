@@ -24,6 +24,11 @@ namespace NovaLine.Script.Element.Switcher
             var nextNode = tryToFindInputElement();
             if (nextNode is Node node)
             {
+                foreach (var entity in EntityRegistry.InstantiatedEntities)
+                {
+                    if(entity?.gameObject == null) continue;
+                    entity.gameObject.SetActive(false);
+                }
                 yield return node.run();
             }
             

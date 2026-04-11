@@ -35,15 +35,8 @@ namespace NovaLine.Script.UI
             contentText.text = "";
             avatar.sprite = null;
         }
-        
-        public IEnumerator showCharacterDialogueCoroutine(Character character, string content,float showingSpeed = 0)
-        {
-            if(showingCoroutine != null) StopCoroutine(showingCoroutine);
-            showingCoroutine = StartCoroutine(showDialogueCoroutine(character?.avatar, character?.name, content, showingSpeed));
-            yield return showingCoroutine;
-        }
 
-        private IEnumerator showDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
+        public IEnumerator showDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
         {
             clearContent();
             showUI();

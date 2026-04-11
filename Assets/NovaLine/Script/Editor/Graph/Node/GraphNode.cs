@@ -8,6 +8,7 @@ using NovaLine.Script.Editor.Window;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Editor.Window.Command;
 using Editor.Utils.Ext;
+using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Scope;
 using static NovaLine.Script.NovaElementRegistry;
 

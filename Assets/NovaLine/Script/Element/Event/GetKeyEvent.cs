@@ -21,8 +21,10 @@ namespace NovaLine.Script.Element.Event
             while (!Input.GetKey(keyCode))
             {
                 yield return null;
-                break;
             }
+            
+            yield return null;
+            
             yield return base.onEvent();
         }
         public override string getTypeName()

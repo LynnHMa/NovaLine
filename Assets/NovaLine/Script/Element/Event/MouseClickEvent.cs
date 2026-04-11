@@ -16,7 +16,6 @@ namespace NovaLine.Script.Element.Event
 
         public override IEnumerator onEvent()
         {
-            Debug.Log("Mouse click Event");
             while (!Input.GetMouseButtonDown(mouse))
             {
                 yield return null;

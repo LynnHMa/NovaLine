@@ -2,7 +2,7 @@
 
 namespace NovaLine.Script.Utils.Interface
 {
-    public interface IHasConditionElement
+    public interface IAroundConditionElement
     {
         string conditionBeforeInvokeGuid { get; set; }
         string conditionAfterInvokeGuid { get; set; }

@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Scope;
+using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Command;
 using NovaLine.Script.Element;
 using UnityEditor;
 using UnityEngine;
-using static NovaLine.Script.Editor.Window.ContextRegistry;
 using static NovaLine.Script.NovaElementRegistry;
 
-namespace NovaLine.Script.Editor.Window
+namespace NovaLine.Script.Editor.Utils
 {
     public static class InspectorHelper
     {

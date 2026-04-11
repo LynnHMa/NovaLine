@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using NovaLine.Script.Element;
+﻿using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Editor.Utils
 {

@@ -32,10 +32,12 @@ namespace NovaLine.Script.Editor.Window
             {
                 var copiedData = JsonUtility.FromJson<CopyPasteData>(data);
                 if (GetContext(copiedData.linkedContextInfo.key,copiedData.linkedContextInfo.value) is not IGraphViewNodeContext parentContext) return;
+                if (CurrentGraphViewNodeContext == null || CurrentGraphViewNodeContext.type != parentContext.type) return;
                 var parentData = parentContext.linkedData;
-                var parentGraphView = parentContext.graphView;
+                
+                var currentGraphView = CurrentGraphViewNodeContext.graphView;
             
-                if (parentData == null || parentGraphView == null) return;
+                if (parentData == null || currentGraphView == null) return;
 
                 var copiedNodeGraphViewDataList = new List<IGraphViewNodeData>();
                 var pastedNodeGraphViewDataList = new List<IGraphViewNodeData>();
@@ -50,22 +52,21 @@ namespace NovaLine.Script.Editor.Window
                     copiedNodeGraphViewDataList.Add(copiedNodeGraphViewData);
                     pastedNodeGraphViewDataList.Add(pastedNodeGraphViewData);
                     
-                    var actualPos = parentGraphView.mousePos + pastedNodeGraphViewData.pos - copiedData.rootPos;
+                    var actualPos = currentGraphView.mousePos + pastedNodeGraphViewData.pos - copiedData.rootPos;
 
                     pastedNodeGraphViewData.pos = actualPos;
-                    var newContext = parentGraphView.summonNewChildGraphViewNodeContext(pastedNodeGraphViewData);
+                    var newContext = currentGraphView.summonNewChildGraphViewNodeContext(pastedNodeGraphViewData);
                     newContext.linkedData = pastedNodeGraphViewData;
-                    newContext.linkedData.linkedElement.parentGuid = parentGraphView.linkedElementGuid;
                     RegisterContext(newContext);
                     
                     CommandRegistry.Register(new AddNodeCommand(
-                        parentGraphView.linkedElementGuid,
-                        parentGraphView.linkedElement.type,
+                        currentGraphView.linkedElementGuid,
+                        currentGraphView.linkedElement.type,
                         pastedNodeGraphViewData.strongCopy() as IGraphViewNodeData));
                     
-                    pastedNodeGraphViewData.linkedElement.setParent(parentGraphView.linkedElement as NovaElement);
-                    var newGraphNode = parentGraphView.summonNewGraphNode(pastedNodeGraphViewData.linkedElement, actualPos);
-                    parentGraphView.addGraphNode(newGraphNode);
+                    pastedNodeGraphViewData.linkedElement.setParent(currentGraphView.linkedElement as NovaElement);
+                    var newGraphNode = currentGraphView.summonNewGraphNode(pastedNodeGraphViewData.linkedElement, actualPos);
+                    currentGraphView.addGraphNode(newGraphNode);
                 }
 
                 if (copiedNodeGraphViewDataList.Count == 0 || pastedNodeGraphViewDataList.Count == 0) return;
@@ -88,17 +89,17 @@ namespace NovaLine.Script.Editor.Window
                     pastedEdgeData.linkedElement.inputElementGuid = pastedNodeGraphViewDataList[inputElementIndex]?.linkedElement?.guid;
                     pastedEdgeData.linkedElement.outputElementGuid = pastedNodeGraphViewDataList[outputElementIndex]?.linkedElement?.guid;
 
-                    var newEdgeContext = parentGraphView.summonNewChildEdgeContext(pastedEdgeData);
+                    var newEdgeContext = currentGraphView.summonNewChildEdgeContext(pastedEdgeData);
                     RegisterContext(newEdgeContext);
-                    pastedEdgeData.linkedElement.setParent(parentGraphView.linkedElement as NovaElement);
+                    pastedEdgeData.linkedElement.setParent(currentGraphView.linkedElement as NovaElement);
                     
                     CommandRegistry.Register(new AddEdgeCommand(
-                        parentGraphView.linkedElementGuid,
-                        parentGraphView.linkedElement.type,
+                        currentGraphView.linkedElementGuid,
+                        currentGraphView.linkedElement.type,
                         pastedEdgeData.strongCopy() as IEdgeData));
                     
-                    var newGraphEdge = parentGraphView.summonNewGraphEdge(pastedEdgeData.linkedElement);
-                    parentGraphView.addGraphEdge(newGraphEdge);
+                    var newGraphEdge = currentGraphView.summonNewGraphEdge(pastedEdgeData.linkedElement);
+                    currentGraphView.addGraphEdge(newGraphEdge);
                 }
             }
         }

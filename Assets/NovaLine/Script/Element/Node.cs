@@ -12,7 +12,7 @@ using static NovaLine.Script.NovaElementRegistry;
 namespace NovaLine.Script.Element
 {
     [Serializable]
-    public class Node : NovaElement,IHasConditionElement
+    public class Node : NovaElement,IAroundConditionElement
     {
         [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
         [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;

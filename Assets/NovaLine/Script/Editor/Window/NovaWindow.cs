@@ -1,6 +1,7 @@
 ﻿using NovaLine.Script.Editor.File;
 using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
+using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Element;
@@ -9,7 +10,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
-using static NovaLine.Script.Editor.Window.InspectorHelper;
+using static NovaLine.Script.Editor.Utils.InspectorHelper;
 namespace NovaLine.Script.Editor.Window
 {
     public class NovaWindow : EditorWindow

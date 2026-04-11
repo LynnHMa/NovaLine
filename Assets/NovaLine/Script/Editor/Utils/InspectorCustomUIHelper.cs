@@ -1,6 +1,7 @@
 ﻿using NovaLine.Script.Element;
 using System;
 using System.Linq;
+using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Command;
 using UnityEditor;
@@ -8,15 +9,13 @@ using UnityEngine;
 
 namespace NovaLine.Script.Editor.Utils
 {
-    public static class SerializeReferenceUI
+    public static class InspectorCustomUIHelper
     {
-        public static void DrawTypeDropdown(SerializedProperty property, Type baseType, string label = "Type")
+        public static void DrawTypeDropdown(SerializedProperty property, Type baseType, string label = "")
         {
             EditorGUILayout.Space(30);
 
-            var derivedTypes = TypeCache.GetTypesDerivedFrom(baseType)
-                .Where(t => !t.IsAbstract && !t.IsInterface)
-                .ToList();
+            var derivedTypes = SubclassTypeHelper.GetSubTypes(baseType);
 
             derivedTypes.Reverse();
 
@@ -51,14 +50,14 @@ namespace NovaLine.Script.Editor.Utils
 
                     if (currentObj is NovaElement oldElement && newInstance is NovaElement newElement)
                     {
-                        string beforeJson = JsonUtility.ToJson(oldElement);
+                        var beforeJson = JsonUtility.ToJson(oldElement);
                         JsonUtility.FromJsonOverwrite(beforeJson, newElement);
-                        string afterJson = JsonUtility.ToJson(newElement);
+                        var afterJson = JsonUtility.ToJson(newElement);
                         
                         fixChildrenListReference(oldElement, newElement);
                         
-                        string parentContextGuid = oldElement.parent != null ? oldElement.parent.guid : oldElement.guid;
-                        NovaElementType contextType = oldElement.parent != null ? oldElement.parent.type : oldElement.type;
+                        var parentContextGuid = oldElement.parent != null ? oldElement.parent.guid : oldElement.guid;
+                        var contextType = oldElement.parent != null ? oldElement.parent.type : oldElement.type;
                         
                         CommandRegistry.Register(new InspectorElementChangeCommand(
                             parentContextGuid, contextType,
@@ -77,6 +76,18 @@ namespace NovaLine.Script.Editor.Utils
                         
                         refreshGraphNodeInfo();
                     }
+                    else if (currentObj != null)
+                    {
+                        string beforeJson = JsonUtility.ToJson(currentObj);
+                        JsonUtility.FromJsonOverwrite(beforeJson, newInstance);
+                        property.managedReferenceValue = newInstance;
+                        property.serializedObject.ApplyModifiedProperties();
+                    }
+                    else 
+                    {
+                        property.managedReferenceValue = newInstance;
+                        property.serializedObject.ApplyModifiedProperties();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -86,7 +97,7 @@ namespace NovaLine.Script.Editor.Utils
         }
         private static void fixChildrenListReference(NovaElement oldElement, NovaElement newElement)
         {
-            if (oldElement?.parent == null || oldElement.parent.childrenGuidList == null)
+            if (oldElement?.parent?.childrenGuidList == null)
                 return;
 
             for (int i = 0; i < oldElement.parent.childrenGuidList.Count; i++)

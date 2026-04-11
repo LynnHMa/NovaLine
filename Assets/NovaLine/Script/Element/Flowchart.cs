@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace NovaLine.Script.Element
 {
@@ -8,6 +8,7 @@ namespace NovaLine.Script.Element
     public class Flowchart : NovaElement
     {
         public override NovaElementType type => NovaElementType.FLOWCHART;
+        public List<Entity> entityPrefabs;
 
         public Flowchart()
         {
