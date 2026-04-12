@@ -37,7 +37,7 @@ namespace NovaLine.Script.Editor.Utils
                     return;
                 }
 
-                wrapper = ObjectInspectorWrapper.CreateInstance(novaElement.guid);
+                wrapper = ObjectInspectorWrapper.CreateInstance(novaElement.Guid);
                 snapshotAllElements();
                 Selection.activeObject = wrapper;
             }
@@ -74,39 +74,39 @@ namespace NovaLine.Script.Editor.Utils
             }
             
             var sel = FindElement(wrapper.selectedElementGuid);
-            if (sel != null) elementJsonCache[sel.guid] = JsonUtility.ToJson(sel);
+            if (sel != null) elementJsonCache[sel.Guid] = JsonUtility.ToJson(sel);
         }
         
         public static bool TryRegisterChange(NovaElement liveElement)
         {
-            if (liveElement?.guid == null) return false;
+            if (liveElement?.Guid == null) return false;
 
             var currentJson = JsonUtility.ToJson(liveElement);
 
-            var cachedJson = elementJsonCache.GetValueOrDefault(liveElement.guid, currentJson);
+            var cachedJson = elementJsonCache.GetValueOrDefault(liveElement.Guid, currentJson);
 
             if (currentJson == cachedJson) return false;
 
-            var contextGuid = liveElement.parent?.guid ?? liveElement.guid;
-            var contextType = liveElement.parent?.type ?? liveElement.type;
+            var contextGuid = liveElement.Parent?.Guid ?? liveElement.Guid;
+            var contextType = liveElement.Parent?.Type ?? liveElement.Type;
             
             string typeName = liveElement.GetType().AssemblyQualifiedName;
             
-            CommandRegistry.Register(new InspectorElementChangeCommand(
+            CommandRegistry.RegisterCommand(new InspectorElementChangeCommand(
                 contextGuid, contextType,
-                liveElement.guid, liveElement.type,
+                liveElement.Guid, liveElement.Type,
                 cachedJson, currentJson,
                 typeName, typeName));
 
-            elementJsonCache[liveElement.guid] = currentJson;
+            elementJsonCache[liveElement.Guid] = currentJson;
             UpdateScope.RequireUpdate();
             return true;
         }
         
         public static void UpdateCacheForSwappedElement(NovaElement newLiveElement)
         {
-            if (newLiveElement?.guid == null) return;
-            elementJsonCache[newLiveElement.guid] = JsonUtility.ToJson(newLiveElement);
+            if (newLiveElement?.Guid == null) return;
+            elementJsonCache[newLiveElement.Guid] = JsonUtility.ToJson(newLiveElement);
         }
     }
 }

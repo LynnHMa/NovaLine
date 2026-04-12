@@ -16,7 +16,7 @@ namespace NovaLine.Script.Element.Event
             this.keyCode = keyCode;
         }
 
-        public override IEnumerator onEvent()
+        public override IEnumerator OnEvent()
         {
             while (!Input.GetKey(keyCode))
             {
@@ -25,9 +25,9 @@ namespace NovaLine.Script.Element.Event
             
             yield return null;
             
-            yield return base.onEvent();
+            yield return base.OnEvent();
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Get Key Event]";
         }

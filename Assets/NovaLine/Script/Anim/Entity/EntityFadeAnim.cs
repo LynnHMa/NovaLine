@@ -5,15 +5,15 @@ using UnityEngine;
 namespace NovaLine.Script.Anim.Entity
 {
     [Serializable]
-    public class EntityFadeAnim : EntityAnim,LerpAnim
+    public class EntityFadeAnim : EntityAnim,ILerpAnim
     {
         public bool fadeIn = true;
         public float duration;
         
-        float LerpAnim.duration => duration;
-        protected override IEnumerator onPlay()
+        float ILerpAnim.Duration => duration;
+        protected override IEnumerator OnPlay()
         {
-            var spriteRenderer = linkedEntity?.spriteRenderer;
+            var spriteRenderer = LinkedEntity?.SpriteRenderer;
             if(spriteRenderer == null) yield break;
             
             var timer = fadeIn ? 0f : duration;
@@ -27,7 +27,7 @@ namespace NovaLine.Script.Anim.Entity
             
             spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, fadeIn ? 1f : 0f);
             
-            yield return base.onPlay();
+            yield return base.OnPlay();
         }
     }
 }

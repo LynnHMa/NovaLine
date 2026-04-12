@@ -9,7 +9,7 @@ namespace NovaLine.Script
 
         public static bool RegisterElement(NovaElement novaElement)
         {
-            return elementDictionary.TryAdd(novaElement.guid, novaElement);
+            return elementDictionary.TryAdd(novaElement.Guid, novaElement);
         }
 
         public static bool UnregisterElement(string guid)
@@ -30,7 +30,7 @@ namespace NovaLine.Script
                 elementDictionary.Remove(oldGuid);
 
             if (newElement != null)
-                elementDictionary[newElement.guid] = newElement;
+                elementDictionary[newElement.Guid] = newElement;
         }
         
         public static void Clear()

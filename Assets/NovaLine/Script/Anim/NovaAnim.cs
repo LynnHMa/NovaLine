@@ -12,25 +12,25 @@ namespace NovaLine.Script.Anim
         
         protected NovaAnim(){}
         
-        public virtual IEnumerator play()
+        public virtual IEnumerator Play()
         {
             yield return new WaitForSeconds(waitingSecondsBeforePlay);
             
-            yield return onPlay();
+            yield return OnPlay();
             
             yield return new WaitForSeconds(waitingSecondsAfterPlay);
 
             yield return null;
         }
 
-        protected virtual IEnumerator onPlay()
+        protected virtual IEnumerator OnPlay()
         {
             yield return null;
         }
     }
 
-    public interface LerpAnim
+    public interface ILerpAnim
     {
-        float duration { get; }
+        float Duration { get; }
     }
 }

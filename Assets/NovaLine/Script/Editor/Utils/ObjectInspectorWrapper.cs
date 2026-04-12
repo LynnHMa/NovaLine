@@ -10,8 +10,8 @@ namespace NovaLine.Script.Editor.Utils
         [SerializeReference] public List<NovaElement> parentElements = new();
         [SerializeReference] public NovaElement selectedElement;
         
-        public List<string> parentElementGuidList => parentElements.ConvertAll(e => e?.guid);
-        public string selectedElementGuid => selectedElement?.guid;
+        public List<string> parentElementGuidList => parentElements.ConvertAll(e => e?.Guid);
+        public string selectedElementGuid => selectedElement?.Guid;
 
         public new static ObjectInspectorWrapper CreateInstance(string elementGuid)
         {
@@ -23,14 +23,14 @@ namespace NovaLine.Script.Editor.Utils
             {
                 wrapper.selectedElement = selectedElement;
 
-                var p = selectedElement.parent;
+                var p = selectedElement.Parent;
                 while (p != null)
                 {
                     wrapper.parentElements.Add(p);
-                    p = p.parent;
+                    p = p.Parent;
                 }
                 wrapper.parentElements.Reverse();
-                wrapper.name = selectedElement.getActualName();
+                wrapper.name = selectedElement.GetActualName();
             }
 
             return wrapper;

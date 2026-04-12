@@ -9,8 +9,8 @@ namespace NovaLine.Script.Editor.Utils.Ext
         public EList(IEnumerable<T> source) : base(source) { }
         public new void Add(T e)
         {
-            if (e == null || e.guid == null) return;
-            if (Get(e.guid) == null) base.Add(e);
+            if (e == null || e.Guid == null) return;
+            if (Get(e.Guid) == null) base.Add(e);
         }
         public void Remove(string guid)
         {
@@ -19,12 +19,12 @@ namespace NovaLine.Script.Editor.Utils.Ext
         public T Get(string guid)
         {
             if (guid == null) return default;
-            return Find(c => c != null && c.guid != null && c.guid.Equals(guid));
+            return Find(c => c != null && c.Guid != null && c.Guid.Equals(guid));
         }
 
         public new void Insert(int index, T e)
         {
-            RemoveAll(c => c.guid.Equals(e.guid));
+            RemoveAll(c => c.Guid.Equals(e.Guid));
             base.Insert(index, e);
         }
     }

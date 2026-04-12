@@ -9,14 +9,14 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
     public class ActionGraphEdge : GraphEdge<NovaAction, ActionSwitcher>
     {
-        protected override Color themedColor => ColorExt.ACTION_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
         public ActionGraphEdge()
         {
         }
-        public override ActionSwitcher generateNewLinkedElement()
+        public override ActionSwitcher GenerateNewLinkedElement()
         {
-            linkedElement = new ActionSwitcher();
-            return linkedElement;
+            LinkedElement = new ActionSwitcher();
+            return LinkedElement;
         }
     }
 }

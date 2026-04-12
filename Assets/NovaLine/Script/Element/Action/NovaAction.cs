@@ -15,67 +15,67 @@ namespace NovaLine.Script.Action
         [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
         [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;
         
-        public ActionType actionType = ActionType.Sort;
+        public ActionType ActionType = ActionType.Sort;
         
-        public Condition conditionBeforeInvoke => FindElement(conditionBeforeInvokeGuid) as Condition;
-        public Condition conditionAfterInvoke => FindElement(conditionAfterInvokeGuid) as Condition;
-        public string conditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
-        public string conditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
+        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGuid) as Condition;
+        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
+        public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
+        public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
 
-        public override NovaElementType type => NovaElementType.ACTION;
+        public override NovaElementType Type => NovaElementType.ACTION;
         public NovaAction()
         {
             var conditionBefore = new Condition("Before Invoke",this);
             var conditionAfter = new Condition("After Invoke",this);
-            conditionAfterInvokeGuid = conditionAfter.guid;
-            conditionBeforeInvokeGuid = conditionBefore.guid;
+            ConditionAfterInvokeGuid = conditionAfter.Guid;
+            ConditionBeforeInvokeGuid = conditionBefore.Guid;
         }
         public NovaAction(string name) : this()
         {
             this.name = name;
         }
-        public virtual IEnumerator invoke()
+        public virtual IEnumerator Invoke()
         {
-            yield return conditionBeforeInvoke.waiting();
+            yield return ConditionBeforeInvoke.Waiting();
 
-            yield return onInvoke();
+            yield return OnInvoke();
 
-            yield return conditionAfterInvoke.waiting();
+            yield return ConditionAfterInvoke.Waiting();
 
             yield return null;
             
-            var firstSwitcherGuid = switchersGuidList.FirstOrDefault();
+            var firstSwitcherGuid = SwitchersGuidList.FirstOrDefault();
             if (FindElement(firstSwitcherGuid) is ActionSwitcher firstSwitcher)
             {
-                yield return firstSwitcher.next();
+                yield return firstSwitcher.Next();
             }
 
             yield return null;
         }
 
-        protected virtual IEnumerator onInvoke()
+        protected virtual IEnumerator OnInvoke()
         {
             yield return null;
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Default Action]";
         }
 
-        public override NovaElement copy()
+        public override NovaElement Copy()
         {
-            var clone = base.copy();
+            var clone = base.Copy();
             if (clone is not NovaAction action) return clone;
-            action.conditionBeforeInvokeGuid = conditionBeforeInvoke.copy().guid;
-            action.conditionAfterInvokeGuid = conditionAfterInvoke.copy().guid;
-            action.conditionBeforeInvoke.parentGuid = action.guid;
-            action.conditionAfterInvoke.parentGuid = action.guid;
+            action.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
+            action.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
+            action.ConditionBeforeInvoke.ParentGuid = action.Guid;
+            action.ConditionAfterInvoke.ParentGuid = action.Guid;
             return action;
         }
     }
     public interface INovaAction
     {
-        IEnumerator invoke();
+        IEnumerator Invoke();
     }
 }
 public enum ActionType

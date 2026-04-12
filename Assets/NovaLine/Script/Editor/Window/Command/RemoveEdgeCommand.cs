@@ -16,25 +16,25 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGuid, contextType)
         {
-            type = CommandType.Remove_Edge;
+            Type = CommandType.Remove_Edge;
             this.linkedDataList.AddRange(linkedDataList);
         }
-        public override void onUndo()
+        public override void OnUndo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphEdgeByCommand(linkedData);
+                linkedGraphView.AddGraphEdgeByCommand(linkedData);
             }
         }
-        public override void onRedo()
+        public override void OnRedo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphEdgeByCommand(linkedData);
+                linkedGraphView.RemoveGraphEdgeByCommand(linkedData);
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not RemoveEdgeCommand removeEdgeCommand) return;
             linkedDataList.AddRange(removeEdgeCommand.linkedDataList);

@@ -9,7 +9,7 @@ namespace NovaLine.Script.Element.Event
     [Serializable]
     public class NovaEvent : NovaElement,INovaEvent
     {
-        public override NovaElementType type => NovaElementType.EVENT;
+        public override NovaElementType Type => NovaElementType.EVENT;
 
         public NovaEvent()
         {
@@ -18,26 +18,26 @@ namespace NovaLine.Script.Element.Event
         {
             this.name = name;
         }
-        public virtual IEnumerator onEvent()
+        public virtual IEnumerator OnEvent()
         {
-            if (parent is Condition parentCondition && parentCondition.conditionType == ConditionType.Sort)
+            if (Parent is Condition parentCondition && parentCondition.ConditionType == ConditionType.Sort)
             {
-                var firstSwitcherGuid = switchersGuidList.FirstOrDefault();
+                var firstSwitcherGuid = SwitchersGuidList.FirstOrDefault();
                 if (FindElement(firstSwitcherGuid) is EventSwitcher firstSwitcher)
                 {
-                    yield return firstSwitcher.next();
+                    yield return firstSwitcher.Next();
                 }
             }
             yield return null;
         }
 
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Default Event]";
         }
     }
     public interface INovaEvent
     {
-        IEnumerator onEvent();
+        IEnumerator OnEvent();
     }
 }

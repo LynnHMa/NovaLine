@@ -9,20 +9,20 @@ namespace NovaLine.Script.Element.Switcher
     [Serializable]
     public class EventSwitcher : NovaSwitcher
     {
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Event Edge]";
         }
         
-        public override IEnumerator next()
+        public override IEnumerator Next()
         {
             var nextAction = tryToFindInputElement();
             if (nextAction is NovaEvent novaEvent)
             {
-                yield return novaEvent.onEvent();
+                yield return novaEvent.OnEvent();
             }
             
-            yield return base.next();
+            yield return base.Next();
         }
     }
 }

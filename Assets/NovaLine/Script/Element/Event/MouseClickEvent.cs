@@ -14,7 +14,7 @@ namespace NovaLine.Script.Element.Event
             this.mouse = mouse;
         }
 
-        public override IEnumerator onEvent()
+        public override IEnumerator OnEvent()
         {
             while (!Input.GetMouseButtonDown(mouse))
             {
@@ -23,9 +23,9 @@ namespace NovaLine.Script.Element.Event
 
             yield return null;
             
-            yield return base.onEvent();
+            yield return base.OnEvent();
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Mouse Click Event]";
         }

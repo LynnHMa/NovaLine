@@ -1,11 +1,11 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Editor.Utils.Ext;
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window.Command;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
@@ -32,10 +32,10 @@ namespace NovaLine.Script.Editor.Window
             {
                 var copiedData = JsonUtility.FromJson<CopyPasteData>(data);
                 if (GetContext(copiedData.linkedContextInfo.key,copiedData.linkedContextInfo.value) is not IGraphViewNodeContext parentContext) return;
-                if (CurrentGraphViewNodeContext == null || CurrentGraphViewNodeContext.type != parentContext.type) return;
-                var parentData = parentContext.linkedData;
+                if (CurrentGraphViewNodeContext == null || CurrentGraphViewNodeContext.Type != parentContext.Type) return;
+                var parentData = parentContext.LinkedData;
                 
-                var currentGraphView = CurrentGraphViewNodeContext.graphView;
+                var currentGraphView = CurrentGraphViewNodeContext.GraphView;
             
                 if (parentData == null || currentGraphView == null) return;
 
@@ -45,28 +45,28 @@ namespace NovaLine.Script.Editor.Window
                 {
                     var nodeGraphViewDataGuid = copiedData.nodeGraphViewDataGuids[i];
                     
-                    var copiedNodeGraphViewData = getChildNodeGraphViewData(parentData, nodeGraphViewDataGuid);
+                    var copiedNodeGraphViewData = GetChildNodeGraphViewData(parentData, nodeGraphViewDataGuid);
                     var pastedNodeGraphViewData = (IGraphViewNodeData)copiedNodeGraphViewData?.copy();
                     if(copiedNodeGraphViewData == null || pastedNodeGraphViewData == null) continue;
                     
                     copiedNodeGraphViewDataList.Add(copiedNodeGraphViewData);
                     pastedNodeGraphViewDataList.Add(pastedNodeGraphViewData);
                     
-                    var actualPos = currentGraphView.mousePos + pastedNodeGraphViewData.pos - copiedData.rootPos;
+                    var actualPos = currentGraphView.MousePos + pastedNodeGraphViewData.pos - copiedData.rootPos;
 
                     pastedNodeGraphViewData.pos = actualPos;
-                    var newContext = currentGraphView.summonNewChildGraphViewNodeContext(pastedNodeGraphViewData);
-                    newContext.linkedData = pastedNodeGraphViewData;
+                    var newContext = currentGraphView.SummonNewChildGraphViewNodeContext(pastedNodeGraphViewData);
+                    newContext.LinkedData = pastedNodeGraphViewData;
                     RegisterContext(newContext);
                     
-                    CommandRegistry.Register(new AddNodeCommand(
-                        currentGraphView.linkedElementGuid,
-                        currentGraphView.linkedElement.type,
+                    CommandRegistry.RegisterCommand(new AddNodeCommand(
+                        currentGraphView.LinkedElementGuid,
+                        currentGraphView.LinkedElement.Type,
                         pastedNodeGraphViewData.strongCopy() as IGraphViewNodeData));
                     
-                    pastedNodeGraphViewData.linkedElement.setParent(currentGraphView.linkedElement as NovaElement);
-                    var newGraphNode = currentGraphView.summonNewGraphNode(pastedNodeGraphViewData.linkedElement, actualPos);
-                    currentGraphView.addGraphNode(newGraphNode);
+                    pastedNodeGraphViewData.linkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
+                    var newGraphNode = currentGraphView.SummonNewGraphNode(pastedNodeGraphViewData.linkedElement, actualPos);
+                    currentGraphView.AddGraphNode(newGraphNode);
                 }
 
                 if (copiedNodeGraphViewDataList.Count == 0 || pastedNodeGraphViewDataList.Count == 0) return;
@@ -74,32 +74,32 @@ namespace NovaLine.Script.Editor.Window
                 for (var j = 0; j < copiedData.edgeDataGuids.Count; j++)
                 {
                     var edgeDataGuid = copiedData.edgeDataGuids[j];
-                    var copiedEdgeData = getChildEdgeData(parentData, edgeDataGuid);
+                    var copiedEdgeData = GetChildEdgeData(parentData, edgeDataGuid);
                     if (copiedEdgeData == null) continue;
                     var pastedEdgeData = (IEdgeData)copiedEdgeData.copy();
                     if (pastedEdgeData == null) continue;
 
                     var inputElementIndex = copiedNodeGraphViewDataList.FindIndex(copiedNodeGraphViewData =>
-                        copiedNodeGraphViewData.guid.Equals(copiedEdgeData.linkedElement.inputElementGuid));
+                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.linkedElement.inputElementGuid));
                     var outputElementIndex = copiedNodeGraphViewDataList.FindIndex(copiedNodeGraphViewData =>
-                        copiedNodeGraphViewData.guid.Equals(copiedEdgeData.linkedElement.outputElementGuid));
+                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.linkedElement.outputElementGuid));
                     
                     if(inputElementIndex < 0 || inputElementIndex >= copiedNodeGraphViewDataList.Count || outputElementIndex < 0 || outputElementIndex >= copiedNodeGraphViewDataList.Count) continue;
                     
-                    pastedEdgeData.linkedElement.inputElementGuid = pastedNodeGraphViewDataList[inputElementIndex]?.linkedElement?.guid;
-                    pastedEdgeData.linkedElement.outputElementGuid = pastedNodeGraphViewDataList[outputElementIndex]?.linkedElement?.guid;
+                    pastedEdgeData.linkedElement.inputElementGuid = pastedNodeGraphViewDataList[inputElementIndex]?.linkedElement?.Guid;
+                    pastedEdgeData.linkedElement.outputElementGuid = pastedNodeGraphViewDataList[outputElementIndex]?.linkedElement?.Guid;
 
-                    var newEdgeContext = currentGraphView.summonNewChildEdgeContext(pastedEdgeData);
+                    var newEdgeContext = currentGraphView.SummonNewChildEdgeContext(pastedEdgeData);
                     RegisterContext(newEdgeContext);
-                    pastedEdgeData.linkedElement.setParent(currentGraphView.linkedElement as NovaElement);
+                    pastedEdgeData.linkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
                     
-                    CommandRegistry.Register(new AddEdgeCommand(
-                        currentGraphView.linkedElementGuid,
-                        currentGraphView.linkedElement.type,
+                    CommandRegistry.RegisterCommand(new AddEdgeCommand(
+                        currentGraphView.LinkedElementGuid,
+                        currentGraphView.LinkedElement.Type,
                         pastedEdgeData.strongCopy() as IEdgeData));
                     
-                    var newGraphEdge = currentGraphView.summonNewGraphEdge(pastedEdgeData.linkedElement);
-                    currentGraphView.addGraphEdge(newGraphEdge);
+                    var newGraphEdge = currentGraphView.SummonNewGraphEdge(pastedEdgeData.linkedElement);
+                    currentGraphView.AddGraphEdge(newGraphEdge);
                 }
             }
         }
@@ -109,14 +109,14 @@ namespace NovaLine.Script.Editor.Window
             return !String.IsNullOrEmpty(data);
         }
 
-        private static IGraphViewNodeData getChildNodeGraphViewData(IGraphViewNodeData parentData,string guid)
+        private static IGraphViewNodeData GetChildNodeGraphViewData(IGraphViewNodeData parentData,string guid)
         {
-            return parentData.nodeDataList.Find(nodeData => nodeData.guid.Equals(guid));
+            return parentData.nodeDataList.Find(nodeData => nodeData.Guid.Equals(guid));
         }
 
-        private static IEdgeData getChildEdgeData(IGraphViewNodeData parentData, string guid)
+        private static IEdgeData GetChildEdgeData(IGraphViewNodeData parentData, string guid)
         {
-            return parentData.edgeDataList.Find(edgeData => edgeData.guid.Equals(guid));
+            return parentData.edgeDataList.Find(edgeData => edgeData.Guid.Equals(guid));
         }
     }
 
@@ -130,7 +130,7 @@ namespace NovaLine.Script.Editor.Window
         
         public CopyPasteData(IEnumerable<GraphElement> selectedElements)
         {
-            linkedContextInfo = new(CurrentGraphViewNodeContext.guid, CurrentGraphViewNodeContext.type);
+            linkedContextInfo = new(CurrentGraphViewNodeContext.Guid, CurrentGraphViewNodeContext.Type);
             if (selectedElements == null || selectedElements.Count() == 0) return;
 
             var elements = selectedElements.OrderBy(e => e.GetPosition().y).ThenBy(e => e.GetPosition().x).ToList();
@@ -146,11 +146,11 @@ namespace NovaLine.Script.Editor.Window
                 }
                 else if (element is IGraphEdge graphEdge)
                 {
-                    edgeDataGuids.Add(graphEdge.guid);
+                    edgeDataGuids.Add(graphEdge.Guid);
                 }
             }
             
-            var parentData = CurrentGraphViewNodeContext?.linkedData;
+            var parentData = CurrentGraphViewNodeContext?.LinkedData;
             if (parentData?.edgeDataList != null)
             {
                 foreach (var edgeData in parentData.edgeDataList)
@@ -161,7 +161,7 @@ namespace NovaLine.Script.Editor.Window
                     if (selectedNodeGuids.Contains(sw.inputElementGuid) &&
                         selectedNodeGuids.Contains(sw.outputElementGuid))
                     {
-                        edgeDataGuids.Add(edgeData.guid);
+                        edgeDataGuids.Add(edgeData.Guid);
                     }
                 }
             }

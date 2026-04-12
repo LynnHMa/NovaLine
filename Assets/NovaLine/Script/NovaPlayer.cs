@@ -1,13 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Data;
 using NovaLine.Script.Element;
 using NovaLine.Script.UI;
+using UnityEditor;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script
 {
+    [ExecuteAlways]
     public class NovaPlayer : MonoBehaviour
     {
         public static NovaPlayer Instance { get; private set; }
@@ -19,9 +22,17 @@ namespace NovaLine.Script
         public List<FlowchartDataAsset> flowchartList = new();
         
         [Header("Misc")]
+        public Canvas UICanvas;
         public Transform entityStorage;
+
         private void Awake()
         {
+            UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
+            if(UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
+            PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            
+            if (!Application.isPlaying) return;
+            
             if (Instance == null)
             {
                 Instance = this;
@@ -42,23 +53,32 @@ namespace NovaLine.Script
             for (var i = 0; i < flowchartList.Count; i++)
             {
                 var flowchartDataAsset = flowchartList[i];
-                yield return playFromFlowchart(flowchartDataAsset);
+                yield return PlayFromFlowchart(flowchartDataAsset);
             }
         }
 
-        public static IEnumerator playFromFlowchart(FlowchartDataAsset playAsset)
+        public static void ResetScene()
+        {
+            foreach (var entity in EntityRegistry.InstantiatedEntities)
+            {
+                if(entity?.gameObject == null) continue;
+                entity.gameObject.SetActive(false);
+            }
+            Instance.dialogUI.gameObject.SetActive(false);
+        }
+        public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)
         {
             playAsset.data.registerLinkedElement();
-            if (FindElement(playAsset.data.guid) is Flowchart flowchart)
+            if (FindElement(playAsset.data.Guid) is Flowchart flowchart)
             {
-                yield return flowchart.play();
+                yield return flowchart.Play();
             }
         }
 
-        public static IEnumerator playFromNode(Node node)
+        public static IEnumerator PlayFromNode(Node node)
         {
             //todo register linked data element
-            yield return node.run();
+            yield return node.Run();
         }
     }
 }

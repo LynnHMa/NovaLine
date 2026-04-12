@@ -11,20 +11,20 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
     public class ActionNodeContext : GraphViewNodeContext<IObjectEditor, ActionData>
     {
         public ActionNodeContext(ActionData linkedData) : base(linkedData) { }
-        public override void saveData()
+        public override void SaveData()
         {
         }
 
-        public override void saveNodeData(List<GraphNode> graphNodes = null)
+        public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
         }
 
-        public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
+        public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {
         }
 
         //No action graph view
-        protected override IObjectEditor summonGraphView()
+        protected override IObjectEditor SummonGraphView()
         {
             return null;
         }

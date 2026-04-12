@@ -15,16 +15,16 @@ namespace NovaLine.Script.Element.Event
             this.second = second;
         }
 
-        public override IEnumerator onEvent()
+        public override IEnumerator OnEvent()
         {
             yield return new WaitForSeconds(second);
             
             yield return null;
             
-            yield return base.onEvent();
+            yield return base.OnEvent();
         }
 
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Waiting Event]";
         }

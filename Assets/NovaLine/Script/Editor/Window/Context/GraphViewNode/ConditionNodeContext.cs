@@ -14,19 +14,19 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
     {
         public ConditionContext(ConditionData linkedData) : base(linkedData) { }
 
-        public override void saveNodeData(List<GraphNode> graphNodes = null)
+        public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
-            saveNodeData<EventGraphNode, EventNodeContext>(graphNodes == null ? null : graphNodes.Cast<EventGraphNode>().ToList());
+            SaveNodeData<EventGraphNode, EventNodeContext>(graphNodes == null ? null : graphNodes.Cast<EventGraphNode>().ToList());
         }
 
-        public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
+        public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {
-            saveEdgeData<EventEdgeData>(graphEdges);
+            SaveEdgeData<EventEdgeData>(graphEdges);
         }
 
-        protected override ConditionGraphView summonGraphView()
+        protected override ConditionGraphView SummonGraphView()
         {
-            return new ConditionGraphView(linkedData.guid);
+            return new ConditionGraphView(LinkedData.Guid);
         }
     }
 }

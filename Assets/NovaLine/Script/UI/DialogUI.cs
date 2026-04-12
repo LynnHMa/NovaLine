@@ -8,38 +8,37 @@ namespace NovaLine.Script.UI
     public class DialogUI : MonoBehaviour
     {
         public static DialogUI Instance { get;private set; }
+        public Coroutine ShowingCoroutine { get; set; }
         public Image avatar;
         public Text nameText;
         public Text contentText;
         
-        public Coroutine showingCoroutine { get; set; }
-
         private void Awake()
         {
             Instance = this;
         }
 
-        public void showUI()
+        public void ShowUI()
         {
             gameObject.SetActive(true);
         }
-        public void hideUI()
+        public void HideUI()
         {
-            StopCoroutine(showingCoroutine);
+            StopCoroutine(ShowingCoroutine);
             gameObject.SetActive(false);
         }
 
-        public void clearContent()
+        public void ClearContent()
         {
             nameText.text = "";
             contentText.text = "";
             avatar.sprite = null;
         }
 
-        public IEnumerator showDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
+        public IEnumerator ShowDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
         {
-            clearContent();
-            showUI();
+            ClearContent();
+            ShowUI();
             avatar.sprite = avatarSprite;
             nameText.text = name;
 

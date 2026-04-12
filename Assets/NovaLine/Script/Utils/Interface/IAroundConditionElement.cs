@@ -4,10 +4,10 @@ namespace NovaLine.Script.Utils.Interface
 {
     public interface IAroundConditionElement
     {
-        string conditionBeforeInvokeGuid { get; set; }
-        string conditionAfterInvokeGuid { get; set; }
+        string ConditionBeforeInvokeGuid { get; set; }
+        string ConditionAfterInvokeGuid { get; set; }
 
-        Condition conditionBeforeInvoke { get; }
-        Condition conditionAfterInvoke { get; }
+        Condition ConditionBeforeInvoke { get; }
+        Condition ConditionAfterInvoke { get; }
     }
 }

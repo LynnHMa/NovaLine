@@ -5,7 +5,7 @@ namespace NovaLine.Script.Utils.Interface
 {
     public interface IHasConditionData
     {
-        public ConditionData conditionBeforeInvokeData { get; set; }
-        public ConditionData conditionAfterInvokeData { get; set; }
+        public ConditionData ConditionBeforeInvokeData { get; set; }
+        public ConditionData ConditionAfterInvokeData { get; set; }
     }
 }

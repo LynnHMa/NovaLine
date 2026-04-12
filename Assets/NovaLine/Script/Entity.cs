@@ -10,35 +10,35 @@ namespace NovaLine.Script
 {
     public class Entity : MonoBehaviour
     {
-        public EntityAnimPlayer animPlayer { get; set; }
-        public SpriteRenderer spriteRenderer { get; set; }
+        public EntityAnimPlayer AnimPlayer { get; set; }
+        public SpriteRenderer SpriteRenderer { get; set; }
         public new string name;
         public string description;
 
         private void Awake()
         {
-            animPlayer = new(this);
-            spriteRenderer = GetComponent<SpriteRenderer>();
+            AnimPlayer = new(this);
+            SpriteRenderer = GetComponent<SpriteRenderer>();
         }
     }
     
     public class EntityAnimPlayer
     {
-        public Entity linkedEntity { get; }
+        public Entity LinkedEntity { get; }
 
         public EntityAnimPlayer(Entity linkedEntity)
         {
-            this.linkedEntity = linkedEntity;
+            LinkedEntity = linkedEntity;
         }
 
-        public IEnumerator playAll(List<NovaWrapper<EntityAnim>> anims)
+        public IEnumerator PlayAll(List<NovaWrapper<EntityAnim>> anims)
         {
             for (var i = 0; i < anims.Count; i++)
             {
                 var animWrapper = anims[i];
-                var anim = animWrapper.value;
-                anim.linkedEntity = linkedEntity;
-                yield return anim?.play();
+                var anim = animWrapper.Value;
+                anim.LinkedEntity = LinkedEntity;
+                yield return anim?.Play();
             }
         }
     }

@@ -14,37 +14,37 @@ namespace NovaLine.Script.Editor.Graph.Edge
     using static NovaLine.Script.Editor.Window.ContextRegistry;
     public class GraphEdge<PE, EE> : Edge, IGraphEdge where PE : NovaElement where EE : NovaSwitcher
     {
-        protected virtual Color themedColor => Color.green;
-        public virtual EE linkedElement { get; set; }
-        public virtual string guid => linkedElement?.guid;
+        protected virtual Color ThemedColor => Color.green;
+        public virtual EE LinkedElement { get; set; }
+        public virtual string Guid => LinkedElement?.Guid;
 
         private readonly VisualElement arrowElement;
 
         private const float arrowWidth = 32f;
         private const float arrowHeightHalf = 8f;
 
-        NovaSwitcher IGraphEdge.linkedElement { get => linkedElement; set => linkedElement = value as EE; }
-        string IGUID.guid => guid;
-        public new GraphPort<PE, EE> input
+        NovaSwitcher IGraphEdge.LinkedElement { get => LinkedElement; set => LinkedElement = value as EE; }
+        string IGUID.Guid => Guid;
+        public GraphPort<PE, EE> Input
         {
-            get => base.input as GraphPort<PE, EE>;
+            get => input as GraphPort<PE, EE>;
             set
             {
-                if (base.input != value)
+                if (input != value)
                 {
-                    base.input = value;
+                    input = value;
                 }
             }
         }
 
-        public new GraphPort<PE, EE> output
+        public GraphPort<PE, EE> Output
         {
-            get => base.output as GraphPort<PE, EE>;
+            get => output as GraphPort<PE, EE>;
             set
             {
-                if (base.output != value)
+                if (output != value)
                 {
-                    base.output = value;
+                    output = value;
                 }
             }
         }
@@ -63,7 +63,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
                     borderRightWidth = 0,
                     borderTopColor = new StyleColor(Color.clear),
                     borderBottomColor = new StyleColor(Color.clear),
-                    borderLeftColor = new StyleColor(themedColor),
+                    borderLeftColor = new StyleColor(ThemedColor),
                     position = Position.Absolute
                 },
                 pickingMode = PickingMode.Ignore
@@ -75,7 +75,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
         public override bool UpdateEdgeControl()
         {
             var result = base.UpdateEdgeControl();
-            updateArrow();
+            UpdateArrow();
             return result;
         }
 
@@ -85,9 +85,9 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
             NovaWindow.SelectedGraphEdge = this;
 
-            if (linkedElement == null) return;
+            if (LinkedElement == null) return;
 
-            linkedElement.ShowInInspector();
+            LinkedElement.ShowInInspector();
         }
         public override void OnUnselected()
         {
@@ -95,14 +95,14 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
             NovaWindow.SelectedGraphEdge = null;
 
-            var activeRoot = (NovaElement)CurrentGraphViewNodeContext?.graphView?.linkedElement;
+            var activeRoot = (NovaElement)CurrentGraphViewNodeContext?.GraphView?.LinkedElement;
 
             if (activeRoot == null) return;
 
             activeRoot.ShowInInspector();
         }
 
-        public virtual void updateArrow()
+        public virtual void UpdateArrow()
         {
             if (edgeControl?.controlPoints == null || edgeControl.controlPoints.Length < 4) return;
 
@@ -119,10 +119,10 @@ namespace NovaLine.Script.Editor.Graph.Edge
             arrowElement.style.top = position.y - arrowHeightHalf;
 
             arrowElement.transform.rotation = Quaternion.Euler(0, 0, angle);
-            arrowElement.style.borderLeftColor = new StyleColor(themedColor);
+            arrowElement.style.borderLeftColor = new StyleColor(ThemedColor);
         }
 
-        public virtual EE generateNewLinkedElement()
+        public virtual EE GenerateNewLinkedElement()
         {
             return default;
         }
@@ -149,7 +149,6 @@ namespace NovaLine.Script.Editor.Graph.Edge
     }
     public interface IGraphEdge : IGUID
     {
-        public NovaSwitcher linkedElement { get; set; }
-        public new string guid => linkedElement?.guid;
+        public NovaSwitcher LinkedElement { get; set; }
     }
 }

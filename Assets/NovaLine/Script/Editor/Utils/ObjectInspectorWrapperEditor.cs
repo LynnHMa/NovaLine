@@ -59,14 +59,14 @@ namespace NovaLine.Script.Editor.Utils
         {
             serializedObject.Update();
 
-            modifyInfo();
+            ModifyInfo();
 
             serializedObject.ApplyModifiedProperties();
 
-            interceptUndoRedo();
+            InterceptUndoRedo();
         }
 
-        private void modifyInfo()
+        private void ModifyInfo()
         {
             var parentsProp = serializedObject.FindProperty("parentElements");
             var selectedProp = serializedObject.FindProperty("selectedElement");
@@ -80,17 +80,17 @@ namespace NovaLine.Script.Editor.Utils
                 {
                     var parentItemProp = parentsProp.GetArrayElementAtIndex(i);
 
-                    drawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
+                    DrawElement(parentItemProp, SELECTED_PARENT_ELEMENT_STYLE);
 
                     EditorGUILayout.LabelField("↓", ARROW_STYLE);
                 }
             }
 
             //Draw selected element
-            drawElement(selectedProp, SELECTED_ELEMENT_STYLE);
+            DrawElement(selectedProp, SELECTED_ELEMENT_STYLE);
         }
 
-        private static void loadConditionContextDirect(Condition targetCondition, string fallbackName)
+        private static void LoadConditionContextDirect(Condition targetCondition, string fallbackName)
         {
             if (targetCondition == null)
             {
@@ -98,7 +98,7 @@ namespace NovaLine.Script.Editor.Utils
                 return;
             }
 
-            var context = GetContext(targetCondition.guid, NovaElementType.CONDITION);
+            var context = GetContext(targetCondition.Guid, NovaElementType.CONDITION);
             if (context is ConditionContext conditionContext)
             {
                 var actualConditionName = targetCondition.name;
@@ -113,14 +113,14 @@ namespace NovaLine.Script.Editor.Utils
             }
         }
 
-        private static void drawElement(SerializedProperty selectedProp, GUIStyle style)
+        private static void DrawElement(SerializedProperty selectedProp, GUIStyle style)
         {
             if (selectedProp == null) return;
             if (selectedProp.managedReferenceValue is NovaElement selectedElement)
             {
                 EditorGUILayout.Space(30);
 
-                EditorGUILayout.LabelField(selectedElement.getActualName(), style);
+                EditorGUILayout.LabelField(selectedElement.GetActualName(), style);
 
                 switch (selectedElement)
                 {
@@ -135,7 +135,7 @@ namespace NovaLine.Script.Editor.Utils
                 selectedProp.isExpanded = true;
 
                 SerializedProperty iterator = selectedProp.Copy();
-                drawProperty(iterator,selectedElement);
+                DrawProperty(iterator,selectedElement);
 
                 EditorGUILayout.Space(15);
                 if (selectedElement is IAroundConditionElement or NodeSwitcher)
@@ -146,12 +146,12 @@ namespace NovaLine.Script.Editor.Utils
                         EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
                         EditorGUILayout.BeginHorizontal();
                         GUI.enabled = false;
-                        string displayName = conditionObj != null ? conditionObj.getActualName() : "Null / 未分配";
+                        string displayName = conditionObj != null ? conditionObj.GetActualName() : "Null / 未分配";
                         EditorGUILayout.TextField(displayName);
                         GUI.enabled = true;
                         if (GUILayout.Button("Edit", GUILayout.Width(60), GUILayout.Height(20)))
                         {
-                            loadConditionContextDirect(conditionObj, fallbackName);
+                            LoadConditionContextDirect(conditionObj, fallbackName);
                         }
 
                         EditorGUILayout.EndHorizontal();
@@ -161,10 +161,10 @@ namespace NovaLine.Script.Editor.Utils
                     switch (selectedElement)
                     {
                         case IAroundConditionElement conditionElement:
-                            DrawConditionUI("Condition Before Invoke", conditionElement.conditionBeforeInvoke,
+                            DrawConditionUI("Condition Before Invoke", conditionElement.ConditionBeforeInvoke,
                                 $"Before Invoke");
                             EditorGUILayout.Space(10);
-                            DrawConditionUI("Condition After Invoke", conditionElement.conditionAfterInvoke,
+                            DrawConditionUI("Condition After Invoke", conditionElement.ConditionAfterInvoke,
                                 $"After Invoke");
                             break;
                         case NodeSwitcher nodeSwitcher:
@@ -175,18 +175,18 @@ namespace NovaLine.Script.Editor.Utils
                 }
 
                 if (NovaWindow.SelectedGraphNode != null &&
-                    NovaWindow.SelectedGraphNode.linkedElement.guid.Equals(selectedElement.guid) &&
+                    NovaWindow.SelectedGraphNode.linkedElement.Guid.Equals(selectedElement.Guid) &&
                     NovaWindow.SelectedGraphNode.inputContainer.childCount != 0 &&
                     NovaWindow.SelectedGraphNode.outputContainer.childCount != 0)
                 {
                     EditorGUILayout.Space(30);
                     if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
                     {
-                        var currentGraphView = CurrentGraphViewNodeContext?.graphView;
+                        var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
                         if (currentGraphView != null)
                         {
-                            currentGraphView.setFirstNode(NovaWindow.SelectedGraphNode);
-                            currentGraphView.update();
+                            currentGraphView.SetFirstNode(NovaWindow.SelectedGraphNode);
+                            currentGraphView.Update();
                             SaveScope.RequireSave();
                         }
                     }
@@ -196,9 +196,9 @@ namespace NovaLine.Script.Editor.Utils
             }
         }
 
-        private static void drawEntityDropDown(SerializedProperty prop,object actualParentObject)
+        private static void DrawEntityDropDown(SerializedProperty prop,object actualParentObject)
         {
-            if (actualParentObject is not EntityAction entityAction || entityAction.parent.parent is not Flowchart flowchart) return;
+            if (actualParentObject is not EntityAction entityAction || entityAction.Parent.Parent is not Flowchart flowchart) return;
             var entityPrefabs = flowchart.entityPrefabs;
             var entityDisplayNameList = new string[entityPrefabs.Count];
             for (var i = 0; i < entityPrefabs.Count; i++)
@@ -207,11 +207,11 @@ namespace NovaLine.Script.Editor.Utils
             }
             var newIndex = EditorGUILayout.Popup("Entity",prop.intValue,entityDisplayNameList);
             Undo.RecordObject(prop.serializedObject.targetObject, "Set Entity");
-            entityAction.entityIndex = newIndex;
+            entityAction.EntityIndex = newIndex;
             prop.intValue = newIndex;
             prop.serializedObject.ApplyModifiedProperties();
         }
-        private static void drawProperty(SerializedProperty iterator, object actualParentObject)
+        private static void DrawProperty(SerializedProperty iterator, object actualParentObject)
         {
             SerializedProperty endProperty = iterator.GetEndProperty();
 
@@ -222,17 +222,17 @@ namespace NovaLine.Script.Editor.Utils
                     if (SerializedProperty.EqualContents(iterator, endProperty))
                         break;
                     
-                    if (shouldShow(iterator, actualParentObject))
+                    if (ShouldShow(iterator, actualParentObject))
                     {
                         EditorGUILayout.Space(10);
 
                         switch (iterator.name)
                         {
                             case "anims" when iterator.isArray:
-                                drawAnimList(iterator);
+                                DrawAnimList(iterator);
                                 break;
                             case "entity":
-                                drawEntityDropDown(iterator,actualParentObject);
+                                DrawEntityDropDown(iterator,actualParentObject);
                                 break;
                             default:
                                 EditorGUILayout.PropertyField(iterator, true);
@@ -243,7 +243,7 @@ namespace NovaLine.Script.Editor.Utils
                 } while (iterator.NextVisible(false));
             }
         }
-        private static void drawAnimList(SerializedProperty listProp)
+        private static void DrawAnimList(SerializedProperty listProp)
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Anim List", EditorStyles.boldLabel);
@@ -285,7 +285,7 @@ namespace NovaLine.Script.Editor.Utils
                     EditorGUILayout.Space(5);
                     EditorGUI.indentLevel++;
                     
-                    drawProperty(valueProp.Copy(), valueProp.managedReferenceValue);
+                    DrawProperty(valueProp.Copy(), valueProp.managedReferenceValue);
                     
                     EditorGUI.indentLevel--;
                     EditorGUILayout.Space(5);
@@ -299,11 +299,11 @@ namespace NovaLine.Script.Editor.Utils
             GUI.backgroundColor = new Color(0.4f, 1f, 0.4f);
             if (GUILayout.Button("+ Add Anim", GUILayout.Height(30)))
             {
-                showAddAnimMenu(listProp); 
+                ShowAddAnimMenu(listProp); 
             }
             GUI.backgroundColor = Color.white;
         }
-        private static void showAddAnimMenu(SerializedProperty listProp)
+        private static void ShowAddAnimMenu(SerializedProperty listProp)
         {
             var menu = new GenericMenu();
             var types = SubclassTypeHelper.GetSubTypes(typeof(EntityAnim));
@@ -326,7 +326,7 @@ namespace NovaLine.Script.Editor.Utils
             }
             menu.ShowAsContext();
         }
-        private static void interceptUndoRedo()
+        private static void InterceptUndoRedo()
         {
             Event e = Event.current;
 
@@ -360,7 +360,7 @@ namespace NovaLine.Script.Editor.Utils
                 }
             }
         }
-        private static bool shouldShow(SerializedProperty property, object actualParentObject)
+        private static bool ShouldShow(SerializedProperty property, object actualParentObject)
         {
             if (actualParentObject == null) return true;
             

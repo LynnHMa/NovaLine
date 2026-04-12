@@ -19,8 +19,8 @@ namespace NovaLine.Script.Data
             set => _linkedElement = value; 
         }
         public virtual string name => linkedElement?.name;
-        public virtual string description => linkedElement?.describtion;
-        public virtual string guid => linkedElement?.guid;
+        public virtual string description => linkedElement?.description;
+        public virtual string Guid => linkedElement?.Guid;
         public virtual Vector2 pos { get => _pos; set => _pos = value; }
         public Vector2 getPos() => _pos;
 

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using Editor.Utils.Ext;
 using System.Collections.Generic;
 using System;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Editor.Window.Command
@@ -15,28 +15,28 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public MoveNodeCommand(string contextGuid, NovaElementType contextType, List<KeyValue<NovaElement, PosKeyValue>> situations) : base(contextGuid, contextType)
         {
-            type = CommandType.Move_Node;
+            Type = CommandType.Move_Node;
             movedGraphNodeInfo = situations;
         }
 
-        public override void onUndo()
+        public override void OnUndo()
         {
             foreach(var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.oldPos,false);
+                linkedGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.oldPos,false);
             }
         }
-        public override void onRedo()
+        public override void OnRedo()
         {
             foreach (var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                linkedGraphView.moveGraphNode(graphNodeInfo.key?.guid, keyValue.newPos,false);
+                linkedGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.newPos,false);
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not MoveNodeCommand moveNodeCommand) return;
             movedGraphNodeInfo.AddRange(moveNodeCommand.movedGraphNodeInfo);

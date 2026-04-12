@@ -10,6 +10,7 @@ namespace NovaLine.Script.Element.Action
     [Serializable]
     public class DialogAction : NovaAction
     {
+        private DialogUI dialogUI => DialogUI.Instance;
         public Sprite avatar;
 
         public string characterName;
@@ -20,13 +21,14 @@ namespace NovaLine.Script.Element.Action
         [ShowInInspectorIf(nameof(showInstantly),false)]
         public float speed = 50;
 
-        protected override IEnumerator onInvoke()
+        protected override IEnumerator OnInvoke()
         {
-            yield return DialogUI.Instance.showDialogueCoroutine(avatar,characterName,content,showInstantly ? 0 : speed);
-            yield return base.onInvoke();
+            dialogUI?.gameObject.SetActive(true);
+            yield return dialogUI?.ShowDialogueCoroutine(avatar,characterName,content,showInstantly ? 0 : speed);
+            yield return base.OnInvoke();
         }
 
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Dialog Action]";
         }

@@ -36,7 +36,7 @@ namespace NovaLine.Script.Editor.File
         }
 
         private static FlowchartDataAsset _currentAsset;
-        private static FlowchartDataAsset currentAsset
+        private static FlowchartDataAsset CurrentAsset
         {
             get
             {
@@ -67,7 +67,7 @@ namespace NovaLine.Script.Editor.File
                 return false;
             }
 
-            currentAsset = asset;
+            CurrentAsset = asset;
             CurrentPath = path;
 
             CreateGraphWindow();
@@ -82,14 +82,14 @@ namespace NovaLine.Script.Editor.File
             if (Instance == null)
                 return;
 
-            if (RegisteredFlowchartNodeContext?.linkedData == null || CurrentGraphViewNodeContext?.linkedData == null)
+            if (RegisteredFlowchartNodeContext?.LinkedData == null || CurrentGraphViewNodeContext?.LinkedData == null)
                 return;
 
             if (string.IsNullOrEmpty(CurrentPath))
             {
                 CurrentPath = EditorUtility.SaveFilePanelInProject(
                     "Save Flowchart",
-                    RegisteredFlowchartNodeContext.linkedData.name,
+                    RegisteredFlowchartNodeContext.LinkedData.name,
                     "asset",
                     "Save Flowchart"
                 );
@@ -104,24 +104,24 @@ namespace NovaLine.Script.Editor.File
                 return;
             }
 
-            if (!CurrentGraphViewNodeContext.guid.Equals(RegisteredFlowchartNodeContext.guid)) CurrentGraphViewNodeContext.saveData();
+            if (!CurrentGraphViewNodeContext.Guid.Equals(RegisteredFlowchartNodeContext.Guid)) CurrentGraphViewNodeContext.SaveData();
 
-            RegisteredFlowchartNodeContext.saveData();
+            RegisteredFlowchartNodeContext.SaveData();
 
-            if (currentAsset == null)
+            if (CurrentAsset == null)
             {
-                currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
+                CurrentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
 
-                if (currentAsset == null)
+                if (CurrentAsset == null)
                 {
-                    currentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartNodeContext.linkedData);
-                    AssetDatabase.CreateAsset(currentAsset, CurrentPath);
+                    CurrentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartNodeContext.LinkedData);
+                    AssetDatabase.CreateAsset(CurrentAsset, CurrentPath);
                 }
             }
 
-            currentAsset.data = RegisteredFlowchartNodeContext.linkedData;
+            CurrentAsset.data = RegisteredFlowchartNodeContext.LinkedData;
 
-            EditorUtility.SetDirty(currentAsset);
+            EditorUtility.SetDirty(CurrentAsset);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -131,7 +131,7 @@ namespace NovaLine.Script.Editor.File
         {
             var path = CurrentPath;
             if (string.IsNullOrEmpty(path)) return;
-            var asset = currentAsset;
+            var asset = CurrentAsset;
             if (asset == null) return;
 
             var flowchartData = asset.data;
@@ -143,7 +143,7 @@ namespace NovaLine.Script.Editor.File
             var storedCurrentContextType = CurrentContextType;
             LoadContextInWindow(flowchartContext);
 
-            if (!flowchartContext.guid.Equals(storedCurrentContextGuid))
+            if (!flowchartContext.Guid.Equals(storedCurrentContextGuid))
             {
                 var toOpenContext = GetContext(storedCurrentContextGuid, storedCurrentContextType);
                 if (toOpenContext is not IGraphViewNodeContext graphViewNodeContext) return;
@@ -170,7 +170,7 @@ namespace NovaLine.Script.Editor.File
                 AssetDatabase.CreateAsset(dataAsset, path);
                 AssetDatabase.SaveAssets();
 
-                currentAsset = dataAsset;
+                CurrentAsset = dataAsset;
                 CurrentPath = path;
 
                 return dataAsset;

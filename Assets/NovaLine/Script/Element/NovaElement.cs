@@ -22,123 +22,123 @@ namespace NovaLine.Script.Element
         [NonSerialized] private List<string> _switchersGuidList = new();
         
         public string name;
-        [TextArea] public string describtion;
+        [TextArea] public string description;
 
-        public virtual NovaElement parent => FindElement(_parentGuid);
-        public virtual NovaElement firstChild => FindElement(_firstChildGuid);
-        public virtual string parentGuid
+        public virtual NovaElement Parent => FindElement(_parentGuid);
+        public virtual NovaElement FirstChild => FindElement(_firstChildGuid);
+        public virtual string ParentGuid
         {
             get => _parentGuid;
             set => _parentGuid = value;
         }
-        public string firstChildGuid
+        public string FirstChildGuid
         {
             get => _firstChildGuid;
             set => _firstChildGuid = value;
         }
-        public virtual List<string> childrenGuidList 
+        public virtual List<string> ChildrenGuidList 
         { 
             get => _childrenGuidList; 
             set => _childrenGuidList = value; 
         }
-        public virtual string guid
+        public virtual string Guid
         {
             get => _guid; 
             set => _guid = value;
         }
-        public virtual List<string> switchersGuidList 
+        public virtual List<string> SwitchersGuidList 
         { 
             get => _switchersGuidList; 
             set => _switchersGuidList = value; 
         }
-        public virtual NovaElementType type 
+        public virtual NovaElementType Type 
         {
             get => _type; 
             set => _type = value; 
         }
 
-        string INovaElement.parentGuid
+        string INovaElement.ParentGuid
         {
-            get => parentGuid; 
-            set => parentGuid = value;
+            get => ParentGuid; 
+            set => ParentGuid = value;
         }
         public NovaElement() {
-            guid = Guid.NewGuid().ToString();
+            Guid = System.Guid.NewGuid().ToString();
             RegisterElement(this);
         }
         public virtual void onGraphConnect(INovaSwitcher graphEdge)
         {
-            if (switchersGuidList == null) switchersGuidList = new();
-            if (!switchersGuidList.Contains(graphEdge.guid))
+            SwitchersGuidList ??= new();
+            if (!SwitchersGuidList.Contains(graphEdge.Guid))
             {
-                switchersGuidList.Add(graphEdge.guid);
+                SwitchersGuidList.Add(graphEdge.Guid);
             }
         }
         public virtual void onGraphDisconnect(INovaSwitcher graphEdge)
         {
-            if (switchersGuidList == null) switchersGuidList = new();
-            switchersGuidList.Remove(graphEdge.guid);
+            SwitchersGuidList ??= new();
+            SwitchersGuidList.Remove(graphEdge.Guid);
         }
 
         public static INovaElement getRootElement(INovaElement novaElement,int maxLayer = 1)
         {
             if (maxLayer <= 0) return novaElement;
-            return novaElement.parent != null ? getRootElement(novaElement.parent,maxLayer - 1) : novaElement;
+            return novaElement.Parent != null ? getRootElement(novaElement.Parent,maxLayer - 1) : novaElement;
         }
 
-        public virtual string getTypeName()
+        public virtual string GetTypeName()
         {
             return "[Default]";
         }
-        public virtual string getActualName()
+        public virtual string GetActualName()
         {
-            return getTypeName() + " " + name;
+            return GetTypeName() + " " + name;
         }
 
-        public virtual NovaElement strongCopy()
+        public virtual NovaElement StrongCopy()
         {
             var data = JsonUtility.ToJson(this);
             var clone = (NovaElement)Activator.CreateInstance(GetType());
-            UnregisterElement(clone.guid);
+            UnregisterElement(clone.Guid);
             JsonUtility.FromJsonOverwrite(data, clone);
             return clone;
         }
 
-        public virtual NovaElement copy()
+        public virtual NovaElement Copy()
         {
-            var clone = strongCopy();
-            clone.guid = Guid.NewGuid().ToString();
+            var clone = StrongCopy();
+            clone.Guid = System.Guid.NewGuid().ToString();
             RegisterElement(clone);
             return clone;
         }
 
-        public virtual void setParent(NovaElement parent)
+        public virtual void SetParent(NovaElement parent)
         {
-            if (this.parent != null)
+            if (this.Parent != null)
             {
-                this.parent.childrenGuidList?.Remove(guid);
+                this.Parent.ChildrenGuidList?.Remove(Guid);
             }
 
-            parentGuid = parent != null ? parent.guid : "";
+            ParentGuid = parent != null ? parent.Guid : "";
 
             if (parent == null) return;
 
-            parent.childrenGuidList ??= new List<string>();
-            if (!parent.childrenGuidList.Contains(guid))
+            parent.ChildrenGuidList ??= new List<string>();
+            if (!parent.ChildrenGuidList.Contains(Guid))
             {
-                parent.childrenGuidList.Add(guid);
+                parent.ChildrenGuidList.Add(Guid);
             }
         }
     }
     public interface INovaElement : IGUID
     {
-        public NovaElement parent { get;}
-        public string parentGuid { get; set; }
-        public NovaElement firstChild { get;}
-        public string firstChildGuid { get; set; }
-        public NovaElementType type { get; set; }
-        public NovaElement strongCopy();
-        public NovaElement copy();
+        public NovaElement Parent { get;}
+        public string ParentGuid { get; set; }
+        public NovaElement FirstChild { get;}
+        public string FirstChildGuid { get; set; }
+        public NovaElementType Type { get; set; }
+        public NovaElement StrongCopy();
+        public NovaElement Copy();
     }
     public enum NovaElementType
     {

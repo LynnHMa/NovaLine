@@ -9,14 +9,14 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
     public class EventGraphEdge : GraphEdge<NovaEvent, EventSwitcher>
     {
-        protected override Color themedColor => ColorExt.EVENT_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
         public EventGraphEdge()
         {
         }
-        public override EventSwitcher generateNewLinkedElement()
+        public override EventSwitcher GenerateNewLinkedElement()
         {
-            linkedElement = new EventSwitcher();
-            return linkedElement;
+            LinkedElement = new EventSwitcher();
+            return LinkedElement;
         }
     }
 }

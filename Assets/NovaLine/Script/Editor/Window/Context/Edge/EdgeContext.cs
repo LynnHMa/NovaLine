@@ -9,13 +9,13 @@ namespace NovaLine.Script.Editor.Window.Context.Edge
     {
         public EdgeContext(IEdgeData linkedData) : base(linkedData){}
 
-        public override void saveData()
+        public override void SaveData()
         {
-            if (linkedData is NodeEdgeData nodeEdgeData)
+            if (LinkedData is NodeEdgeData nodeEdgeData)
             {
-                if (GetContext(nodeEdgeData.switchConditionData.guid,NovaElementType.CONDITION) is ConditionContext switchConditionContext)
+                if (GetContext(nodeEdgeData.switchConditionData.Guid,NovaElementType.CONDITION) is ConditionContext switchConditionContext)
                 {
-                    switchConditionContext.saveData();
+                    switchConditionContext.SaveData();
                 }
             }
         }

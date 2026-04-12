@@ -25,7 +25,7 @@ namespace NovaLine.Script.Editor.Window.Command
             string beforeTypeName, string afterTypeName)
             : base(contextGuid, contextType)
         {
-            type = CommandType.Inspector_Change;
+            Type = CommandType.Inspector_Change;
             targetElementGuid = targetGuid;
             targetElementType = targetType;
             this.beforeJson   = beforeJson;
@@ -34,10 +34,10 @@ namespace NovaLine.Script.Editor.Window.Command
             this.afterTypeName  = afterTypeName;
         }
 
-        public override void onUndo() => applyState(beforeJson, beforeTypeName);
-        public override void onRedo() => applyState(afterJson, afterTypeName);
+        public override void OnUndo() => ApplyState(beforeJson, beforeTypeName);
+        public override void OnRedo() => ApplyState(afterJson, afterTypeName);
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not InspectorElementChangeCommand other) return;
         
@@ -46,20 +46,20 @@ namespace NovaLine.Script.Editor.Window.Command
             afterJson = other.afterJson;
         }
     
-        private void applyState(string json, string targetTypeName)
+        private void ApplyState(string json, string targetTypeName)
         {
             var context = ContextRegistry.GetContext(targetElementGuid, targetElementType);
-            var liveElement = context?.linkedData?.linkedElement;
+            var liveElement = context?.LinkedData?.linkedElement;
             if (liveElement == null) return;
 
-            Type targetType = Type.GetType(targetTypeName);
+            Type targetType = System.Type.GetType(targetTypeName);
 
             if (targetType != null && liveElement.GetType() != targetType)
             {
                 NovaElement newInstance = (NovaElement)Activator.CreateInstance(targetType);
                 JsonUtility.FromJsonOverwrite(json, newInstance);
                 
-                NovaElementRegistry.ReplaceElement(liveElement.guid,newInstance);
+                NovaElementRegistry.ReplaceElement(liveElement.Guid,newInstance);
                 ContextRegistry.ReplaceLinkedElement(newInstance);
                 
                 InspectorHelper.UpdateCacheForSwappedElement(newInstance);
@@ -68,21 +68,21 @@ namespace NovaLine.Script.Editor.Window.Command
             {
                 JsonUtility.FromJsonOverwrite(json, liveElement);
 
-                var parentContext = liveElement.parent != null
-                    ? ContextRegistry.GetContext(liveElement.parent.guid, liveElement.parent.type)
+                var parentContext = liveElement.Parent != null
+                    ? ContextRegistry.GetContext(liveElement.Parent.Guid, liveElement.Parent.Type)
                     : null;
 
                 if (parentContext is not IGraphViewNodeContext graphViewNodeContext) return;
 
-                if (graphViewNodeContext.graphView != null)
+                if (graphViewNodeContext.GraphView != null)
                 {
-                    var graphNode = graphViewNodeContext.graphView.getExistingGraphNode(liveElement.guid, 1);
-                    if (graphNode != null) graphNode.linkedElementGuid = liveElement.guid;
+                    var graphNode = graphViewNodeContext.GraphView.GetExistingGraphNode(liveElement.Guid, 1);
+                    if (graphNode != null) graphNode.linkedElementGuid = liveElement.Guid;
 
-                    graphViewNodeContext.graphView.update();
+                    graphViewNodeContext.GraphView.Update();
                 }
 
-                graphViewNodeContext.graphView?.update();
+                graphViewNodeContext.GraphView?.Update();
             }
             liveElement.ShowInInspector();
         }

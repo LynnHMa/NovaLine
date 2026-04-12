@@ -14,67 +14,67 @@ namespace NovaLine.Script.Editor.Graph.View
 {
     public class ConditionGraphView : NovaGraphView<EventGraphNode,Condition,NovaEvent,EventSwitcher>
     {
-        protected override Color themedColor => ColorExt.EVENT_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
         public ConditionGraphView(string linkedConditionGuid) : base(linkedConditionGuid) { }
-        protected override void setEdgeUnpassable(GraphEdge<NovaEvent, EventSwitcher> edge)
+        protected override void SetEdgeUnpassable(GraphEdge<NovaEvent, EventSwitcher> edge)
         {
             if (edge == null) return;
             edge.style.opacity = 0.2f;
         }
-        public override EventGraphNode summonNewGraphNode(Vector2 pos)
+        public override EventGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var actualName = (linkedElement.childrenGuidList.Count + 1).ToString();
+            var actualName = (LinkedElement.ChildrenGuidList.Count + 1).ToString();
             var newEvent = new NovaEvent(actualName);
             var newActionGraphNode = new EventGraphNode(newEvent, pos);
             return newActionGraphNode;
         }
-        public override EventGraphNode summonNewGraphNode(NovaEvent novaEvent, Vector2 pos)
+        public override EventGraphNode SummonNewGraphNode(NovaEvent novaEvent, Vector2 pos)
         {
             return new EventGraphNode(novaEvent, pos);
         }
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewChildGraphViewNodeContext(new EventData(linkedElement as NovaEvent,pos));
+            return SummonNewChildGraphViewNodeContext(new EventData(linkedElement as NovaEvent,pos));
         }
 
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
             return new EventNodeContext(linkedData as EventData);
         }
         
-        public override EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        public override EdgeContext SummonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
         {
             return new EdgeContext(new EventEdgeData(linkedSwitcher as EventSwitcher));
         }
         
-        public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
+        public override IGraphEdge SummonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
-            return summonAndConnectEdge<EventGraphEdge>((EventSwitcher)linkedSwitcher);
+            return SummonAndConnectEdge<EventGraphEdge>((EventSwitcher)linkedSwitcher);
         }
-        protected override void updateNodes()
+        protected override void UpdateNodes()
         {
-            if (linkedElement?.conditionType != ConditionType.Sort)
+            if (LinkedElement?.ConditionType != ConditionType.Sort)
             {
-                foreach (var eventGraphNode in graphNodes.Values)
+                foreach (var eventGraphNode in GraphNodes.Values)
                 {
                     if (eventGraphNode == null) continue;
-                    setNodePassable(eventGraphNode);
-                    eventGraphNode.update();
+                    SetNodePassable(eventGraphNode);
+                    eventGraphNode.Update();
                 }
             }
-            else base.updateNodes();
+            else base.UpdateNodes();
         }
-        protected override void updateEdges()
+        protected override void UpdateEdges()
         {
-            if(linkedElement?.conditionType != ConditionType.Sort)
+            if(LinkedElement?.ConditionType != ConditionType.Sort)
             {
-                foreach(var graphEdge in graphEdges.Values)
+                foreach(var graphEdge in GraphEdges.Values)
                 {
                     if (graphEdge is not EventGraphEdge eventEdge) continue;
-                    setEdgeUnpassable(eventEdge);
+                    SetEdgeUnpassable(eventEdge);
                 }
             }
-            else base.updateEdges();
+            else base.UpdateEdges();
         }
     }
 }

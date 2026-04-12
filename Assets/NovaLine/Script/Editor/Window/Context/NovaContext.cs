@@ -6,26 +6,26 @@ namespace NovaLine.Script.Editor.Window.Context
 {
     public abstract class NovaContext<TLinkedData> : INovaContext where TLinkedData : INovaData
     {
-        protected NovaWindow window => NovaWindow.Instance;
-        public string guid => linkedData.guid;
-        public NovaElementType type => linkedData?.linkedElement?.type ?? NovaElementType.NONE;
-        public TLinkedData linkedData { get; set; }
+        protected NovaWindow Window => NovaWindow.Instance;
+        public string Guid => LinkedData.Guid;
+        public NovaElementType Type => LinkedData?.linkedElement?.Type ?? NovaElementType.NONE;
+        public TLinkedData LinkedData { get; set; }
         
-        INovaData INovaContext.linkedData { get => linkedData; set => linkedData = (TLinkedData)value; }
-        NovaElementType INovaContext.type => type;
+        INovaData INovaContext.LinkedData { get => LinkedData; set => LinkedData = (TLinkedData)value; }
+        NovaElementType INovaContext.Type => Type;
         
         protected NovaContext(TLinkedData linkedData)
         {
-            this.linkedData = linkedData;
+            LinkedData = linkedData;
         }
 
-        public abstract void saveData();
+        public abstract void SaveData();
     }
 
     public interface INovaContext : IGUID
     {
-        NovaElementType type { get; }
-        void saveData();
-        INovaData linkedData { get; set; }
+        NovaElementType Type { get; }
+        void SaveData();
+        INovaData LinkedData { get; set; }
     }
 }

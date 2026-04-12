@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using NovaLine.Script.Data.Edge;
-using NovaLine.Script.Editor.Graph.Edge;
-using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Element;
-using NovaLine.Script.Element.Switcher;
-using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Window.Command
 {
@@ -19,25 +15,25 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public AddEdgeCommand(string contextGuid, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGuid, contextType)
         {
-            type = CommandType.Add_Edge;
+            Type = CommandType.Add_Edge;
             this.linkedDataList.AddRange(linkedDataList);
         }
-        public override void onUndo()
+        public override void OnUndo()
         {
             foreach(var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphEdgeByCommand(linkedData);
+                linkedGraphView.RemoveGraphEdgeByCommand(linkedData);
             }
         }
-        public override void onRedo() 
+        public override void OnRedo() 
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphEdgeByCommand(linkedData);
+                linkedGraphView.AddGraphEdgeByCommand(linkedData);
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not AddEdgeCommand addEdgeCommand) return;
             linkedDataList.AddRange(addEdgeCommand.linkedDataList);

@@ -3,7 +3,7 @@
     using UnityEngine;
     using System;
 
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
     public class ShowInInspectorIfAttribute : PropertyAttribute
     {
         public string ConditionField { get; }

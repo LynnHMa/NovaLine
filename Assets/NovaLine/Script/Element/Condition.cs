@@ -10,8 +10,8 @@ namespace NovaLine.Script.Element
     [Serializable]
     public class Condition : NovaElement
     {
-        public ConditionType conditionType = ConditionType.All;
-        public override NovaElementType type => NovaElementType.CONDITION;
+        public ConditionType ConditionType = ConditionType.All;
+        public override NovaElementType Type => NovaElementType.CONDITION;
 
         public Condition()
         {
@@ -19,16 +19,16 @@ namespace NovaLine.Script.Element
         public Condition(string name,NovaElement parent)
         {
             this.name = name;
-            setParent(parent);
+            SetParent(parent);
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Condition]";
         }
-        public IEnumerator waiting()
+        public IEnumerator Waiting()
         {
-            var routines = getRoutines();
-            switch (conditionType)
+            var routines = GetRoutines();
+            switch (ConditionType)
             {
                 case ConditionType.All:
                     yield return routines.WhenAll();
@@ -37,29 +37,29 @@ namespace NovaLine.Script.Element
                     yield return routines.WhenAny();
                     break;
                 case ConditionType.Sort:
-                    var firstEvent = firstChild as NovaEvent;
-                    yield return firstEvent?.onEvent();
+                    var firstEvent = FirstChild as NovaEvent;
+                    yield return firstEvent?.OnEvent();
                     break;
             }
 
             yield return null;
         }
         
-        private List<IEnumerator> getRoutines()
+        private List<IEnumerator> GetRoutines()
         {
             List<IEnumerator> routines = new();
-            foreach(var childGuid in childrenGuidList)
+            foreach(var childGuid in ChildrenGuidList)
             {
                 var child = FindElement(childGuid);
                 if (child is not NovaEvent novaEvent) continue;
-                routines.Add(novaEvent.onEvent());
+                routines.Add(novaEvent.OnEvent());
             }
             return routines;
         }
 
-        public override void setParent(NovaElement parent)
+        public override void SetParent(NovaElement parent)
         {
-            parentGuid = parent != null ? parent.guid : "";
+            ParentGuid = parent != null ? parent.Guid : "";
         }
     }
     public enum ConditionType

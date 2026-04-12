@@ -14,10 +14,10 @@ namespace NovaLine.Script.Editor.Graph.Port
 
     public class GraphPort<PE,EE> : Port where EE : NovaSwitcher where PE : NovaElement
     {
-        public PE ownerElement { get; set; }
+        public PE OwnerElement { get; set; }
         public GraphPort(Orientation portOrientation, Direction portDirection, Capacity portCapacity, Type type,PE ownerElement) : base(portOrientation, portDirection, portCapacity, type)
         {
-            this.ownerElement = ownerElement;
+            OwnerElement = ownerElement;
         }
         public static GraphPort<PE,EE> Create<ED>(Orientation orientation, Direction direction, Capacity capacity, Type type, PE ownerElement,Color color,string portName) where ED : GraphEdge<PE,EE>, new()
         {
@@ -37,7 +37,7 @@ namespace NovaLine.Script.Editor.Graph.Port
                 inputPortLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             }
 
-            port.ownerElement = ownerElement;
+            port.OwnerElement = ownerElement;
             port.AddManipulator(port.m_EdgeConnector);
             return port;
         }
@@ -57,15 +57,15 @@ namespace NovaLine.Script.Editor.Graph.Port
 
             T graphEdge = new T
             {
-                output = ((direction == Direction.Output) ? this : targetPort),
-                input = ((direction == Direction.Input) ? this : targetPort),
-                linkedElement = linkedSwitcher
+                Output = ((direction == Direction.Output) ? this : targetPort),
+                Input = ((direction == Direction.Input) ? this : targetPort),
+                LinkedElement = linkedSwitcher
             };
 
-            graphEdge.input = targetPort;
-            graphEdge.output = this;
-            connect(graphEdge,false);
-            targetPort.connect(graphEdge,false);
+            graphEdge.Input = targetPort;
+            graphEdge.Output = this;
+            Connect(graphEdge,false);
+            targetPort.Connect(graphEdge,false);
             return graphEdge;
         }
 
@@ -73,26 +73,26 @@ namespace NovaLine.Script.Editor.Graph.Port
         public override void Connect(Edge edge)
         {
             base.Connect(edge);
-            connect(edge, true);
+            Connect(edge, true);
         }
-        public void connect(Edge edge,bool isByHand)
+        public void Connect(Edge edge,bool isByHand)
         {
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
-                if (graphEdge.linkedElement == null) graphEdge.generateNewLinkedElement();
-                if (graphEdge.linkedElement == null || graphEdge.input.ownerElement.guid == ownerElement.guid) return;
-                graphEdge.linkedElement.outputElementGuid = ownerElement.guid;
-                graphEdge.linkedElement.inputElementGuid = graphEdge.input.ownerElement.guid;
+                if (graphEdge.LinkedElement == null) graphEdge.GenerateNewLinkedElement();
+                if (graphEdge.LinkedElement == null || graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
+                graphEdge.LinkedElement.outputElementGuid = OwnerElement.Guid;
+                graphEdge.LinkedElement.inputElementGuid = graphEdge.Input.OwnerElement.Guid;
 
-                ownerElement.onGraphConnect(graphEdge.linkedElement);
+                OwnerElement.onGraphConnect(graphEdge.LinkedElement);
 
                 if (isByHand)
                 {
-                    CurrentGraphViewNodeContext.graphView.addGraphEdgeByHand(graphEdge);
+                    CurrentGraphViewNodeContext.GraphView.AddGraphEdgeByHand(graphEdge);
                 }
                 else
                 {
-                    CurrentGraphViewNodeContext.graphView.addGraphEdge(graphEdge);
+                    CurrentGraphViewNodeContext.GraphView.AddGraphEdge(graphEdge);
                 }
 
             }
@@ -101,24 +101,24 @@ namespace NovaLine.Script.Editor.Graph.Port
         //Disconnect by hand
         public override void Disconnect(Edge edge)
         {
-            disconnect(edge, true);
+            Disconnect(edge, true);
         }
-        public void disconnect(Edge edge,bool isByHand)
+        public void Disconnect(Edge edge,bool isByHand)
         {
             if (!connections.Contains(edge)) return;
             base.Disconnect(edge);
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
-                if (graphEdge.input.ownerElement.guid == ownerElement.guid) return;
-                ownerElement.onGraphDisconnect(graphEdge.linkedElement);
+                if (graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
+                OwnerElement.onGraphDisconnect(graphEdge.LinkedElement);
 
                 if (isByHand)
                 {
-                    CurrentGraphViewNodeContext.graphView.removeGraphEdgeByHand(graphEdge);
+                    CurrentGraphViewNodeContext.GraphView.RemoveGraphEdgeByHand(graphEdge);
                 }
                 else
                 {
-                    CurrentGraphViewNodeContext.graphView.removeGraphEdge(graphEdge);
+                    CurrentGraphViewNodeContext.GraphView.RemoveGraphEdge(graphEdge);
                 }
 
                 graphEdge.RemoveFromHierarchy();
@@ -174,8 +174,8 @@ namespace NovaLine.Script.Editor.Graph.Port
                 graphView.AddElement(e);
                 if(e is ED ed && edge is ED ed2)
                 {
-                    ed2.input.Connect(ed);
-                    ed2.output.Connect(ed);
+                    ed2.Input.Connect(ed);
+                    ed2.Output.Connect(ed);
                 }
             }
         }

@@ -54,27 +54,27 @@ namespace NovaLine.Script.Editor.Utils
                         JsonUtility.FromJsonOverwrite(beforeJson, newElement);
                         var afterJson = JsonUtility.ToJson(newElement);
                         
-                        fixChildrenListReference(oldElement, newElement);
+                        FixChildrenListReference(oldElement, newElement);
                         
-                        var parentContextGuid = oldElement.parent != null ? oldElement.parent.guid : oldElement.guid;
-                        var contextType = oldElement.parent != null ? oldElement.parent.type : oldElement.type;
+                        var parentContextGuid = oldElement.Parent != null ? oldElement.Parent.Guid : oldElement.Guid;
+                        var contextType = oldElement.Parent != null ? oldElement.Parent.Type : oldElement.Type;
                         
-                        CommandRegistry.Register(new InspectorElementChangeCommand(
+                        CommandRegistry.RegisterCommand(new InspectorElementChangeCommand(
                             parentContextGuid, contextType,
-                            oldElement.guid, oldElement.type,
+                            oldElement.Guid, oldElement.Type,
                             beforeJson, afterJson,
                             oldElement.GetType().AssemblyQualifiedName,
                             newElement.GetType().AssemblyQualifiedName
                         ));
                         
-                        NovaElementRegistry.ReplaceElement(oldElement.guid,newElement);
+                        NovaElementRegistry.ReplaceElement(oldElement.Guid,newElement);
                         ContextRegistry.ReplaceLinkedElement(oldElement);
                         InspectorHelper.UpdateCacheForSwappedElement(newElement);
                         
                         property.managedReferenceValue = newElement;
                         property.serializedObject.ApplyModifiedProperties();
                         
-                        refreshGraphNodeInfo();
+                        RefreshGraphNodeInfo();
                     }
                     else if (currentObj != null)
                     {
@@ -95,23 +95,23 @@ namespace NovaLine.Script.Editor.Utils
                 }
             }
         }
-        private static void fixChildrenListReference(NovaElement oldElement, NovaElement newElement)
+        private static void FixChildrenListReference(NovaElement oldElement, NovaElement newElement)
         {
-            if (oldElement?.parent?.childrenGuidList == null)
+            if (oldElement?.Parent?.ChildrenGuidList == null)
                 return;
 
-            for (int i = 0; i < oldElement.parent.childrenGuidList.Count; i++)
+            for (int i = 0; i < oldElement.Parent.ChildrenGuidList.Count; i++)
             {
-                oldElement.parent.childrenGuidList[i] = newElement.guid;
+                oldElement.Parent.ChildrenGuidList[i] = newElement.Guid;
             }
         }
 
-        private static void refreshGraphNodeInfo()
+        private static void RefreshGraphNodeInfo()
         {
-            var graphView = ContextRegistry.CurrentGraphViewNodeContext?.graphView;
+            var graphView = ContextRegistry.CurrentGraphViewNodeContext?.GraphView;
             if (graphView == null) return;
 
-            graphView.update();
+            graphView.Update();
         }
     }
 }

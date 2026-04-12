@@ -8,14 +8,14 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
     public class NodeGraphEdge : GraphEdge<Node,NodeSwitcher>
     {
-        protected override Color themedColor => ColorExt.NODE_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.NODE_THEMED_COLOR;
         public NodeGraphEdge()
         {
         }
-        public override NodeSwitcher generateNewLinkedElement()
+        public override NodeSwitcher GenerateNewLinkedElement()
         {
-            linkedElement = new NodeSwitcher();
-            return linkedElement;
+            LinkedElement = new NodeSwitcher();
+            return LinkedElement;
         }
     }
 }

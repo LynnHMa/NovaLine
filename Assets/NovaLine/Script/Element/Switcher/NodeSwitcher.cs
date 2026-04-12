@@ -14,36 +14,31 @@ namespace NovaLine.Script.Element.Switcher
         public string switchConditionGuid{ get => _switchConditionGuid; set => _switchConditionGuid = value; }
         public NodeSwitcher(){ 
             var sc = new Condition("Switch Condition",this);
-            switchConditionGuid = sc.guid;
+            switchConditionGuid = sc.Guid;
         }
 
-        public override IEnumerator next()
+        public override IEnumerator Next()
         {
-            yield return switchCondition.waiting();
+            yield return switchCondition.Waiting();
             
             var nextNode = tryToFindInputElement();
             if (nextNode is Node node)
             {
-                foreach (var entity in EntityRegistry.InstantiatedEntities)
-                {
-                    if(entity?.gameObject == null) continue;
-                    entity.gameObject.SetActive(false);
-                }
-                yield return node.run();
+                yield return node.Run();
             }
             
-            yield return base.next();
+            yield return base.Next();
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Node Edge]";
         }
-        public override NovaElement copy()
+        public override NovaElement Copy()
         {
-            if (base.copy() is not NodeSwitcher clone) return null;
+            if (base.Copy() is not NodeSwitcher clone) return null;
             
-            clone.switchConditionGuid = switchCondition.copy().guid;
-            clone.switchCondition.parentGuid = clone.guid;
+            clone.switchConditionGuid = switchCondition.Copy().Guid;
+            clone.switchCondition.ParentGuid = clone.Guid;
             
             return clone;
         }

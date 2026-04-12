@@ -9,34 +9,35 @@ namespace NovaLine.Script.Editor.Window
 {
     public class CommandRegistry
     {
-        public Stack<Command.Command> undoStack { get; } = new();
-        public Stack<Command.Command> redoStack { get; } = new();
-        public bool isImporting { get; set; }
-        private Stack<Command.Command> preparativeStack { get; } = new();
-        public bool isRecordingCompoundCommand { get; set; }
-        private List<Command.Command> recordedCommands { get; } = new();
         private int _compoundDepth;
         
-        public static CommandRegistry Instance => CurrentGraphViewNodeContext?.commandRegistry;
+        public readonly Stack<Command.Command> undoStack = new();
+        public readonly Stack<Command.Command> redoStack = new();
+        public bool IsImporting { get; set; }
+        private Stack<Command.Command> PreparativeStack { get; } = new();
+        public bool IsRecordingCompoundCommand { get; set; }
+        private List<Command.Command> RecordedCommands { get; } = new();
+        
+        public static CommandRegistry Instance => CurrentGraphViewNodeContext?.CommandRegistry;
         public static Stack<Command.Command> UndoStack => Instance?.undoStack;
         public static Stack<Command.Command> RedoStack => Instance?.redoStack;
 
-        public void importPreparativeStack()
+        public void ImportPreparativeStack()
         {
-            if (isImporting) return;
+            if (IsImporting) return;
 
-            isImporting = true;
+            IsImporting = true;
 
             EditorApplication.delayCall += () =>
             {
-                switch (preparativeStack.Count)
+                switch (PreparativeStack.Count)
                 {
                     case >= 2:
                     {
                         var toImports = new List<Command.Command>();
-                        while (preparativeStack.Count > 0)
+                        while (PreparativeStack.Count > 0)
                         {
-                            var toImport = preparativeStack.Pop();
+                            var toImport = PreparativeStack.Pop();
                             if (toImport != null)
                             {
                                 toImports.Add(toImport);
@@ -48,62 +49,62 @@ namespace NovaLine.Script.Editor.Window
                         break;
                     }
                     case 1:
-                        undoStack.Push(preparativeStack.Pop());
+                        undoStack.Push(PreparativeStack.Pop());
                         break;
                 }
 
-                isImporting = false;
+                IsImporting = false;
             };
         }
-        public void register(Command.Command command)
+        public void Register(Command.Command command)
         {
-            if (isRecordingCompoundCommand)
+            if (IsRecordingCompoundCommand)
             {
                 //Debug.Log("[Register Recorded Compound Command] " + command.type);
-                recordedCommands.Add(command);
+                RecordedCommands.Add(command);
             }
             else
             {
                 //Debug.Log("[Register Command] " + command.type);
                 
-                preparativeStack?.Push(command);
+                PreparativeStack?.Push(command);
 
-                if (preparativeStack?.Count != 0 && !isImporting)
+                if (PreparativeStack?.Count != 0 && !IsImporting)
                 {
-                    importPreparativeStack();
+                    ImportPreparativeStack();
                 }
                 
                 redoStack?.Clear();
             }
         }
 
-        public void beginRecordingCompoundCommand()
+        public void BeginRecordingCompoundCommand()
         {
             if (_compoundDepth == 0)
             {
-                recordedCommands.Clear(); // 只在最外层才清空
+                RecordedCommands.Clear(); // 只在最外层才清空
             }
             _compoundDepth++;
-            isRecordingCompoundCommand = true;
+            IsRecordingCompoundCommand = true;
         }
 
-        public void endRecordingCompoundCommand()
+        public void EndRecordingCompoundCommand()
         {
             _compoundDepth--;
             if (_compoundDepth > 0) return; // 还在外层 scope 里，不提前结束
 
-            isRecordingCompoundCommand = false;
-            if (recordedCommands.Count > 0)
+            IsRecordingCompoundCommand = false;
+            if (RecordedCommands.Count > 0)
             {
-                var compoundCommand = new CompoundCommand(new List<Command.Command>(recordedCommands));
-                recordedCommands.Clear();
-                register(compoundCommand);
+                var compoundCommand = new CompoundCommand(new List<Command.Command>(RecordedCommands));
+                RecordedCommands.Clear();
+                Register(compoundCommand);
             }
         }
-        public static void Register(Command.Command command)
+        public static void RegisterCommand(Command.Command command)
         {
             if (command == null) return;
-            Instance?.register(command);
+            Instance?.Register(command);
         }
         public static void Undo()
         {
@@ -112,7 +113,7 @@ namespace NovaLine.Script.Editor.Window
             var undo = UndoStack?.Pop();
             if (undo != null)
             {
-                undo.undo();
+                undo.Undo();
                 RedoStack?.Push(undo);
             }
         }
@@ -123,27 +124,27 @@ namespace NovaLine.Script.Editor.Window
             var redo = RedoStack?.Pop();
             if (redo != null)
             {
-                redo.redo();
+                redo.Redo();
                 UndoStack?.Push(redo);
             }
         }
 
         [Shortcut("NovaLine/Undo", typeof(NovaWindow), KeyCode.Z, ShortcutModifiers.Action)]
-        private static void undoOverride()
+        private static void UndoOverride()
         {
-            if (tryCustomUndo()) return;
+            if (TryCustomUndo()) return;
 
             UnityEditor.Undo.PerformUndo();
         }
 
         [Shortcut("NovaLine/Redo", typeof(NovaWindow), KeyCode.Y, ShortcutModifiers.Action)]
-        private static void redoOverride()
+        private static void RedoOverride()
         {
-            if (tryCustomRedo()) return;
+            if (TryCustomRedo()) return;
 
             UnityEditor.Undo.PerformRedo();
         }
-        private static bool tryCustomUndo()
+        private static bool TryCustomUndo()
         {
             if (CurrentGraphViewNodeContext != null)
             {
@@ -152,7 +153,7 @@ namespace NovaLine.Script.Editor.Window
             }
             return false;
         }
-        private static bool tryCustomRedo()
+        private static bool TryCustomRedo()
         {
             if (CurrentGraphViewNodeContext != null)
             {

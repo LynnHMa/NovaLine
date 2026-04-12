@@ -7,8 +7,8 @@ using NovaLine.Script.Utils.Interface;
 using NovaLine.Script.Editor.Window;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Editor.Window.Command;
-using Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using static NovaLine.Script.NovaElementRegistry;
 
@@ -21,7 +21,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         private bool _isMoving = false;
         private IVisualElementScheduledItem _moveSettleTimer;
         
-        protected virtual Color themedColor => Color.white;
+        protected virtual Color ThemedColor => Color.white;
         public virtual Vector2 pos
         {
             get => _pos;
@@ -29,20 +29,20 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
 
         public virtual string linkedElementGuid { get; set; }
-        public virtual string guid => linkedElement?.guid;
-        public virtual NovaElementType type => linkedElement != null ? linkedElement.type : NovaElementType.NONE;
+        public virtual string guid => linkedElement?.Guid;
+        public virtual NovaElementType type => linkedElement != null ? linkedElement.Type : NovaElementType.NONE;
         public virtual NovaElement linkedElement => FindElement(linkedElementGuid);
-        public override string title => linkedElement?.getActualName();
+        public override string title => linkedElement?.GetActualName();
 
         public bool isPassable = true;
 
-        string IGUID.guid => guid;
+        string IGUID.Guid => guid;
 
         protected GraphNode()
         {
-            removePort();
+            RemovePort();
 
-            RegisterCallback<MouseDownEvent>(onDoubleClick);
+            RegisterCallback<MouseDownEvent>(OnDoubleClick);
 
             var titleLabel = this.Q<Label>("title-label");
             if (titleLabel != null)
@@ -69,7 +69,7 @@ namespace NovaLine.Script.Editor.Graph.Node
             if (collapseButton != null)
                 collapseButton.style.display = DisplayStyle.None;
 
-            Color.RGBToHSV(themedColor, out float h, out float s, out float v);
+            Color.RGBToHSV(ThemedColor, out float h, out float s, out float v);
 
             Color titleColor = Color.HSVToRGB(h, s * 0.85f, v * 0.75f);
             Color dividerColor = Color.HSVToRGB(h, s * 0.70f, v * 1.00f);
@@ -114,7 +114,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
         protected GraphNode(NovaElement linkedElement, Vector2 pos) : this()
         {
-            linkedElementGuid = linkedElement?.guid;
+            linkedElementGuid = linkedElement?.Guid;
             SetPosition(pos,false);
         }
         
@@ -122,7 +122,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             if (registerCommand)
             {
-                CommandRegistry.Register(buildMoveCommand(this.pos, pos));
+                CommandRegistry.RegisterCommand(buildMoveCommand(this.pos, pos));
             }
 
             _pos = pos;
@@ -163,14 +163,14 @@ namespace NovaLine.Script.Editor.Graph.Node
                 
                 if (_posWhenStartMoving != _pos)
                 {
-                    CommandRegistry.Register(buildMoveCommand(_posWhenStartMoving, _pos));
+                    CommandRegistry.RegisterCommand(buildMoveCommand(_posWhenStartMoving, _pos));
                 }
             }
         }
         protected virtual MoveNodeCommand buildMoveCommand(Vector2 oldPos, Vector2 newPos)
         {
-            if (linkedElement?.parent == null) return null;
-            return new MoveNodeCommand(linkedElement.parentGuid, linkedElement.parent.type, new KeyValue<NovaElement, PosKeyValue>(linkedElement, new PosKeyValue(oldPos, newPos)));
+            if (linkedElement?.Parent == null) return null;
+            return new MoveNodeCommand(linkedElement.ParentGuid, linkedElement.Parent.Type, new KeyValue<NovaElement, PosKeyValue>(linkedElement, new PosKeyValue(oldPos, newPos)));
         }
         public override void OnSelected()
         {
@@ -185,28 +185,28 @@ namespace NovaLine.Script.Editor.Graph.Node
             base.OnUnselected();
             NovaWindow.SelectedGraphNode = null;
 
-            var rootElement = (NovaElement)CurrentGraphViewNodeContext?.graphView?.linkedElement;
+            var rootElement = (NovaElement)CurrentGraphViewNodeContext?.GraphView?.LinkedElement;
 
             if (rootElement == null) return;
 
             rootElement.ShowInInspector();
         }
-        public virtual string getType()
+        public virtual string GetType()
         {
             return "[Default]";
         }
-        public virtual void addPort()
+        public virtual void AddPort()
         {
             RefreshExpandedState();
             RefreshPorts();
         }
-        public virtual void removePort()
+        public virtual void RemovePort()
         {
             if (inputContainer.childCount > 0 && outputContainer.childCount > 0)
             {
                 var input = inputContainer[0] as UnityEditor.Experimental.GraphView.Port;
                 var output = outputContainer[0] as UnityEditor.Experimental.GraphView.Port;
-                var currentGraphView = CurrentGraphViewNodeContext?.graphView;
+                var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
                 if (currentGraphView != null)
                 {
                     using (new CommandScope())
@@ -217,7 +217,7 @@ namespace NovaLine.Script.Editor.Graph.Node
                             var ei = inputConnections[i] as IGraphEdge;
                             if (ei != null)
                             {
-                                currentGraphView.removeGraphEdgeByHand(ei);
+                                currentGraphView.RemoveGraphEdgeByHand(ei);
                             }
                         }
 
@@ -227,7 +227,7 @@ namespace NovaLine.Script.Editor.Graph.Node
                             var eo = outputConnections[i] as IGraphEdge;
                             if (eo != null)
                             {
-                                currentGraphView.removeGraphEdgeByHand(eo);
+                                currentGraphView.RemoveGraphEdgeByHand(eo);
                             }
                         }
                     }
@@ -244,7 +244,7 @@ namespace NovaLine.Script.Editor.Graph.Node
             Label startBadge = new Label("Start");
             startBadge.name = "StartBadgeNode";
             startBadge.style.backgroundColor = Color.white;
-            startBadge.style.color = themedColor;
+            startBadge.style.color = ThemedColor;
             startBadge.style.paddingLeft = 10;
             startBadge.style.paddingRight = 10;
             startBadge.style.borderBottomLeftRadius = 5;
@@ -266,17 +266,17 @@ namespace NovaLine.Script.Editor.Graph.Node
             }
         }
 
-        public virtual void update()
+        public virtual void Update()
         {
-            title = linkedElement?.getActualName();
+            title = linkedElement?.GetActualName();
         }
 
-        protected virtual void onDoubleClick(MouseDownEvent evt)
+        protected virtual void OnDoubleClick(MouseDownEvent evt)
         {
         }
     }
     public interface IGraphNode : IGUID
     {
-        void update();
+        void Update();
     }
 }

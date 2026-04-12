@@ -10,12 +10,12 @@ namespace NovaLine.Script.Editor.Utils.Scope
         {
             handlingRegistry = CommandRegistry.Instance;
             if (handlingRegistry == null) return;
-            handlingRegistry.beginRecordingCompoundCommand();
+            handlingRegistry.BeginRecordingCompoundCommand();
         }
         public void Dispose()
         {
             if (handlingRegistry == null) return;
-            handlingRegistry.endRecordingCompoundCommand();
+            handlingRegistry.EndRecordingCompoundCommand();
         }
     }
 }

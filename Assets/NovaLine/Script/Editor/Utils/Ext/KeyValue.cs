@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Editor.Utils.Ext
+namespace NovaLine.Script.Editor.Utils.Ext
 {
     [Serializable]
     public class KeyValue<K, V>

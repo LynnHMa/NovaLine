@@ -11,41 +11,41 @@ namespace NovaLine.Script.Editor.Graph.Node
 {
     public class ActionGraphNode : GraphNode
     {
-        protected override Color themedColor => ColorExt.ACTION_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
         public ActionGraphNode(NovaElement linkedElement, Vector2 pos) : base(linkedElement, pos)
         {
-            addPort();
+            AddPort();
         }
-        public override string getType()
+        public override string GetType()
         {
             return "[Action]";
         }
-        public override void addPort()
+        public override void AddPort()
         {
             if (linkedElement is not NovaAction action) return;
 
-            if (action.actionType == ActionType.Meanwhile) return;
+            if (action.ActionType == ActionType.Meanwhile) return;
 
-            var input = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, themedColor,"In");
-            var output = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, themedColor,"Out");
+            var input = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, ThemedColor,"In");
+            var output = GraphPort<NovaAction,ActionSwitcher>.Create<ActionGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), action, ThemedColor,"Out");
 
             inputContainer.Add(input);
             outputContainer.Add(output);
 
-            base.addPort();
+            base.AddPort();
         }
-        public override void update()
+        public override void Update()
         {
-            base.update();
+            base.Update();
             if (linkedElement is NovaAction novaAction)
             {
-                if (novaAction.actionType == ActionType.Meanwhile && inputContainer.childCount > 0)
+                if (novaAction.ActionType == ActionType.Meanwhile && inputContainer.childCount > 0)
                 {
-                    removePort();
+                    RemovePort();
                 }
-                else if (novaAction.actionType == ActionType.Sort && inputContainer.childCount == 0)
+                else if (novaAction.ActionType == ActionType.Sort && inputContainer.childCount == 0)
                 {
-                    addPort();
+                    AddPort();
                 }
             }
         }

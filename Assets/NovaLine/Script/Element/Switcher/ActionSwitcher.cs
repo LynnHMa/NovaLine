@@ -8,20 +8,20 @@ namespace NovaLine.Script.Element.Switcher
     [Serializable]
     public class ActionSwitcher : NovaSwitcher
     {
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Action Edge]";
         }
 
-        public override IEnumerator next()
+        public override IEnumerator Next()
         {
             var nextAction = tryToFindInputElement();
             if (nextAction is NovaAction action)
             {
-                yield return action.invoke();
+                yield return action.Invoke();
             }
             
-            yield return base.next();
+            yield return base.Next();
         }
     }
 }

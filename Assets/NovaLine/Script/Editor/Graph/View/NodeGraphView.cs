@@ -14,46 +14,46 @@ namespace NovaLine.Script.Editor.Graph.View
 
     public class NodeGraphView : NovaGraphView<ActionGraphNode,Node,NovaAction,ActionSwitcher>
     {
-        protected override Color themedColor => ColorExt.ACTION_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
         public NodeGraphView(string linkedNodeGuid) : base(linkedNodeGuid) { }
-        public override ActionGraphNode summonNewGraphNode(Vector2 pos)
+        public override ActionGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var actualName = (linkedElement.childrenGuidList.Count + 1).ToString();
+            var actualName = (LinkedElement.ChildrenGuidList.Count + 1).ToString();
             var newAction = new NovaAction(actualName);
             var newActionGraphNode = new ActionGraphNode(newAction, pos);
             return newActionGraphNode;
         }
-        public override ActionGraphNode summonNewGraphNode(NovaAction novaAction, Vector2 pos)
+        public override ActionGraphNode SummonNewGraphNode(NovaAction novaAction, Vector2 pos)
         {
             return new ActionGraphNode(novaAction, pos);
         }        
-        public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
+        public override IGraphEdge SummonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
-            return summonAndConnectEdge<ActionGraphEdge>((ActionSwitcher)linkedSwitcher);
+            return SummonAndConnectEdge<ActionGraphEdge>((ActionSwitcher)linkedSwitcher);
         }
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewChildGraphViewNodeContext(new ActionData(linkedElement as NovaAction, pos));
+            return SummonNewChildGraphViewNodeContext(new ActionData(linkedElement as NovaAction, pos));
         }
 
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
             return new ActionNodeContext(linkedData as ActionData);
         }
         
-        public override EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        public override EdgeContext SummonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
         {
             return new EdgeContext(new ActionEdgeData(linkedSwitcher as ActionSwitcher));
         }
-        protected override void updateNodes()
+        protected override void UpdateNodes()
         {
-            base.updateNodes();
+            base.UpdateNodes();
 
-            foreach(var graphNode in graphNodes.Values)
+            foreach(var graphNode in GraphNodes.Values)
             {
-                if(graphNode.linkedElement is NovaAction action && action.actionType == ActionType.Meanwhile)
+                if(graphNode.linkedElement is NovaAction action && action.ActionType == ActionType.Meanwhile)
                 {
-                    setNodePassable(graphNode);
+                    SetNodePassable(graphNode);
                 }
             }
         }

@@ -15,25 +15,25 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public RemoveNodeCommand(string contextGuid, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGuid, contextType)
         {
-            type = CommandType.Remove_Node;
+            Type = CommandType.Remove_Node;
             this.linkedDataList.AddRange(linkedDataList);
         }
-        public override void onUndo()
+        public override void OnUndo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphNodeByCommand(linkedData);
+                linkedGraphView.AddGraphNodeByCommand(linkedData);
             }
         }
-        public override void onRedo()
+        public override void OnRedo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphNodeByCommand(linkedData);
+                linkedGraphView.RemoveGraphNodeByCommand(linkedData);
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not RemoveNodeCommand removeNodeCommand) return;
             linkedDataList.AddRange(removeNodeCommand.linkedDataList);

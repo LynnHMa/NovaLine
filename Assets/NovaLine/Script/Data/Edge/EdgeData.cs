@@ -23,18 +23,18 @@ namespace NovaLine.Script.Data.Edge
         public override void registerLinkedElement()
         {
             if (linkedElement == null) return;
-            var toReg = linkedElement.strongCopy() as TLinkedSwitcher;
+            var toReg = linkedElement.StrongCopy() as TLinkedSwitcher;
             NovaElementRegistry.RegisterElement(toReg);
         }
         public override void updateLinkedElement(bool updateChildren = true)
         {
-            linkedElement = NovaElementRegistry.FindElement(linkedElement.guid) as TLinkedSwitcher;
+            linkedElement = NovaElementRegistry.FindElement(linkedElement.Guid) as TLinkedSwitcher;
         }
         
         public override INovaData copy()
         {
             if (base.copy() is not EdgeData<TLinkedSwitcher> clone) return null;
-            clone.linkedElement = (TLinkedSwitcher)linkedElement.copy();
+            clone.linkedElement = (TLinkedSwitcher)linkedElement.Copy();
             return clone;
         }
     }

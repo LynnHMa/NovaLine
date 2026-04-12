@@ -1,5 +1,5 @@
 ﻿using System;
-using Editor.Utils.Ext;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Editor.Window.Command
@@ -10,21 +10,21 @@ namespace NovaLine.Script.Editor.Window.Command
         public KeyValue<string,string> firstNodeKeyValue;
         public SetFirstNodeCommand(string contextGuid, NovaElementType contextType, string oldFirstNodeGuid,string newFirstNodeGuid) : base(contextGuid, contextType)
         {
-            type = CommandType.Set_First_Node;
+            Type = CommandType.Set_First_Node;
             firstNodeKeyValue = new(oldFirstNodeGuid, newFirstNodeGuid);
         }
 
-        public override void onUndo()
+        public override void OnUndo()
         {
-            linkedGraphView.setFirstNode(firstNodeKeyValue.key ?? "", false);
+            linkedGraphView.SetFirstNode(firstNodeKeyValue.key ?? "", false);
         }
 
-        public override void onRedo()
+        public override void OnRedo()
         {
-            linkedGraphView.setFirstNode(firstNodeKeyValue.value ?? "", false);
+            linkedGraphView.SetFirstNode(firstNodeKeyValue.value ?? "", false);
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not SetFirstNodeCommand setFirstNodeCommand) return;
             firstNodeKeyValue.value = setFirstNodeCommand.firstNodeKeyValue.value;

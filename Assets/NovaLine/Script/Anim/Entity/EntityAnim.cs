@@ -2,6 +2,6 @@
 {
     public class EntityAnim : NovaAnim
     {
-        public Script.Entity linkedEntity { get; set; }
+        public Script.Entity LinkedEntity { get; set; }
     }
 }

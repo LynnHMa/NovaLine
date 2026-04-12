@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Editor.Utils.Ext;
 using System.Collections.Generic;
 using NovaLine.Script.Editor.Graph.Node;
 using System;
@@ -18,26 +17,26 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public AddNodeCommand(string contextGuid, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGuid, contextType)
         {
-            type = CommandType.Add_Node;
+            Type = CommandType.Add_Node;
             this.linkedDataList.AddRange(linkedDataList);
         }
 
-        public override void onUndo()
+        public override void OnUndo()
         {
             foreach(var linkedData in linkedDataList)
             {
-                linkedGraphView.removeGraphNodeByCommand(linkedData);
+                linkedGraphView.RemoveGraphNodeByCommand(linkedData);
             }
         }
-        public override void onRedo()
+        public override void OnRedo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.addGraphNodeByCommand(linkedData);
+                linkedGraphView.AddGraphNodeByCommand(linkedData);
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not AddNodeCommand addNodeCommand) return;
             linkedDataList.AddRange(addNodeCommand.linkedDataList);

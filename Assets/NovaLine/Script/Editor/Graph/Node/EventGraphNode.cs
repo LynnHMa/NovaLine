@@ -11,26 +11,26 @@ namespace NovaLine.Script.Editor.Graph.Node
 {
     public class EventGraphNode : GraphNode
     {
-        protected override Color themedColor => ColorExt.EVENT_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
         public EventGraphNode(NovaElement linkedElement, Vector2 pos) : base(linkedElement, pos)
         {
-            addPort();
+            AddPort();
         }
-        public override string getType()
+        public override string GetType()
         {
             return "[Event]";
         }
-        public override void addPort()
+        public override void AddPort()
         {
             if (linkedElement is not NovaEvent novaEvent) return;
 
-            var input = GraphPort<NovaEvent,EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, themedColor,"In");
-            var output = GraphPort<NovaEvent, EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, themedColor,"Out");
+            var input = GraphPort<NovaEvent,EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, ThemedColor,"In");
+            var output = GraphPort<NovaEvent, EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, ThemedColor,"Out");
 
             inputContainer.Add(input);
             outputContainer.Add(output);
 
-            base.addPort();
+            base.AddPort();
         }
     }
 }

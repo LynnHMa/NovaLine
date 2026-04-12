@@ -7,8 +7,9 @@ namespace NovaLine.Script.Element
     [Serializable]
     public class Flowchart : NovaElement
     {
-        public override NovaElementType type => NovaElementType.FLOWCHART;
         public List<Entity> entityPrefabs;
+        
+        public override NovaElementType Type => NovaElementType.FLOWCHART;
 
         public Flowchart()
         {
@@ -17,15 +18,15 @@ namespace NovaLine.Script.Element
         {
             this.name = name;
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Flowchart]";
         }
-        public IEnumerator play()
+        public IEnumerator Play()
         {
-            if(firstChild is Node firstNode)
+            if(FirstChild is Node firstNode)
             {
-                yield return firstNode.run();
+                yield return firstNode.Run();
             }
 
             yield return null;

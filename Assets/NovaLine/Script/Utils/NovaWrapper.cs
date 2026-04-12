@@ -8,7 +8,7 @@ namespace NovaLine.Script.Utils
     {
         [SerializeReference] private T _value;
 
-        public T value
+        public T Value
         {
             get => _value;
             set => _value = value;
@@ -16,7 +16,7 @@ namespace NovaLine.Script.Utils
         public NovaWrapper(){}
         public NovaWrapper(T value)
         {
-            this.value = value;
+            Value = value;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace NovaLine.Script.Element.Switcher
         [SerializeField, HideInInspector] private string _inputElementGuid;
         [SerializeField, HideInInspector] private string _outputElementGuid;
 
-        public override NovaElementType type => NovaElementType.SWITCHER;
+        public override NovaElementType Type => NovaElementType.SWITCHER;
         public string inputElementGuid  { get => _inputElementGuid;  set => _inputElementGuid  = value; }
         public string outputElementGuid { get => _outputElementGuid; set => _outputElementGuid = value; }
         public NovaSwitcher()
@@ -20,13 +20,13 @@ namespace NovaLine.Script.Element.Switcher
             name = "Next Node";
         }
 
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Edge]";
         }
-        public override NovaElement copy()
+        public override NovaElement Copy()
         {
-            var clone = base.copy() as NovaSwitcher;
+            var clone = base.Copy() as NovaSwitcher;
             if (clone == null) return null;
             
             //Waiting to be written by CopyPasteHelper.
@@ -46,14 +46,14 @@ namespace NovaLine.Script.Element.Switcher
             return FindElement(outputElementGuid);
         }
 
-        public virtual IEnumerator next()
+        public virtual IEnumerator Next()
         {
             yield return null;
         }
 
-        public override void setParent(NovaElement parent)
+        public override void SetParent(NovaElement parent)
         {
-            parentGuid = parent != null ? parent.guid : "";
+            ParentGuid = parent != null ? parent.Guid : "";
         }
     }
     public interface INovaSwitcher : IGUID

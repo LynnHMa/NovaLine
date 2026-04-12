@@ -1,7 +1,7 @@
-﻿using Editor.Utils.Ext;
-using NovaLine.Script.Editor.Graph.View;
+﻿using NovaLine.Script.Editor.Graph.View;
 using NovaLine.Script.Element;
 using System;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
@@ -11,10 +11,10 @@ namespace NovaLine.Script.Editor.Window.Command
     [Serializable]
     public abstract class Command : ICommand
     {
-        public CommandType type = CommandType.None;
         public KeyValue<string, NovaElementType> linkedContextInfo;
 
-        protected INovaGraphView linkedGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.graphView;
+        public CommandType Type = CommandType.None;
+        protected INovaGraphView linkedGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.GraphView;
 
         protected Command() { }
         protected Command(string contextGuid,NovaElementType contextType)
@@ -22,9 +22,9 @@ namespace NovaLine.Script.Editor.Window.Command
             linkedContextInfo = new(contextGuid, contextType);
         }
 
-        CommandType ICommand.type { get => type; set => type = value; }
+        CommandType ICommand.Type { get => Type; set => Type = value; }
 
-        public void undo()
+        public void Undo()
         {
             if (linkedGraphView == null) return;
             
@@ -32,12 +32,12 @@ namespace NovaLine.Script.Editor.Window.Command
             using (new UpdateScope())
             using (new SaveScope())
             {
-                onUndo();
+                OnUndo();
             }
-            linkedGraphView?.update();
+            linkedGraphView?.Update();
         }
 
-        public void redo()
+        public void Redo()
         {
             if (linkedGraphView == null) return;
             
@@ -45,22 +45,22 @@ namespace NovaLine.Script.Editor.Window.Command
             using (new UpdateScope())
             using (new SaveScope())
             {
-                onRedo();
+                OnRedo();
             }
-            linkedGraphView?.update();
+            linkedGraphView?.Update();
         }
 
-        public abstract void onUndo();
+        public abstract void OnUndo();
 
-        public abstract void onRedo();
-        public abstract void merge(Command congenericCommand);
+        public abstract void OnRedo();
+        public abstract void Merge(Command congenericCommand);
     }
     public interface ICommand
     {
-        public CommandType type { get; set; }
-        void undo();
-        void redo();
-        void merge(Command congenericCommand);
+        public CommandType Type { get; set; }
+        void Undo();
+        void Redo();
+        void Merge(Command congenericCommand);
     }
     public enum CommandType
     {

@@ -14,35 +14,35 @@ namespace NovaLine.Script.Editor.Graph.View
 
     public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Flowchart,Node,NodeSwitcher>
     {
-        protected override Color themedColor => ColorExt.NODE_THEMED_COLOR;
+        protected override Color ThemedColor => ColorExt.NODE_THEMED_COLOR;
         public FlowchartGraphView(string linkedFlowchartGuid) : base(linkedFlowchartGuid) { }
-        public override NodeGraphNode summonNewGraphNode(Vector2 pos)
+        public override NodeGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var newNode = new Node((linkedElement.childrenGuidList.Count + 1).ToString());
+            var newNode = new Node((LinkedElement.ChildrenGuidList.Count + 1).ToString());
             return new NodeGraphNode(newNode, pos);
         }
-        public override NodeGraphNode summonNewGraphNode(Node node, Vector2 pos)
+        public override NodeGraphNode SummonNewGraphNode(Node node, Vector2 pos)
         {
             return new NodeGraphNode(node, pos);
         }
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(NovaElement linkedElement, Vector2 pos)
         {
-            return summonNewChildGraphViewNodeContext(new NodeData(linkedElement as Node, pos));
+            return SummonNewChildGraphViewNodeContext(new NodeData(linkedElement as Node, pos));
         }
 
-        public override IGraphViewNodeContext summonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
+        public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
             return new NodeNodeContext(linkedData as NodeData);
         }
         
-        public override EdgeContext summonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
+        public override EdgeContext SummonNewChildEdgeContext(NovaSwitcher linkedSwitcher)
         {
             return new EdgeContext(new NodeEdgeData(linkedSwitcher as NodeSwitcher));
         }
         
-        public override IGraphEdge summonNewGraphEdge(NovaSwitcher linkedSwitcher)
+        public override IGraphEdge SummonNewGraphEdge(NovaSwitcher linkedSwitcher)
         {
-            return summonAndConnectEdge<NodeGraphEdge>((NodeSwitcher)linkedSwitcher);
+            return SummonAndConnectEdge<NodeGraphEdge>((NodeSwitcher)linkedSwitcher);
         }
     }
 }

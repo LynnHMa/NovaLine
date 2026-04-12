@@ -24,15 +24,15 @@ namespace NovaLine.Script.Editor.Window
             Instance = this;
             Undo.willFlushUndoRecord += OnInspectorObjValueChange;
             Undo.undoRedoPerformed += OnInspectorObjValueChange;
-            AssemblyReloadEvents.beforeAssemblyReload += onBeforeAssemblyReload;
-            EditorApplication.delayCall += tryRestoreAfterReload;
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            EditorApplication.delayCall += TryRestoreAfterReload;
         }
         private void OnDisable()
         {
             Undo.willFlushUndoRecord -= OnInspectorObjValueChange;
             Undo.undoRedoPerformed -= OnInspectorObjValueChange;
-            AssemblyReloadEvents.beforeAssemblyReload -= onBeforeAssemblyReload;
-            EditorApplication.delayCall -= tryRestoreAfterReload;
+            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            EditorApplication.delayCall -= TryRestoreAfterReload;
 
             if (!EditorApplication.isCompiling)
             {
@@ -47,12 +47,12 @@ namespace NovaLine.Script.Editor.Window
                 ClearContexts();
             };
         }
-        private void tryRestoreAfterReload()
+        private void TryRestoreAfterReload()
         {
             if (CurrentGraphViewNodeContext != null) return;
             EditorFileManager.RestoreAfterDomainReload();
         }
-        private void onBeforeAssemblyReload()
+        private void OnBeforeAssemblyReload()
         {
             if (!EditorApplication.isCompiling)
             {
@@ -91,7 +91,7 @@ namespace NovaLine.Script.Editor.Window
 
         public static void LoadContextInWindow(IGraphViewNodeContext context, bool isExiting = false)
         {
-            var graphView = (GraphView)context.graphView;
+            var graphView = (GraphView)context.GraphView;
             if (graphView == null) return;
 
             if (Instance == null) CreateGraphWindow();
@@ -105,18 +105,18 @@ namespace NovaLine.Script.Editor.Window
                     UnregisterContext(RegisteredFlowchartNodeContext);
                 }
                 RegisterContext(flowchartContext);
-                context.graphView.setBackButtonVisible(false);
-                context.linkedData.registerLinkedElement();
+                context.GraphView.SetBackButtonVisible(false);
+                context.LinkedData.registerLinkedElement();
             }
             else if(context is not FlowchartNodeContext)
             {
-                context.graphView.setBackButtonVisible(true);
-                context.graphView.OnRequestBackToParent = ExitGraphView;
+                context.GraphView.SetBackButtonVisible(true);
+                context.GraphView.OnRequestBackToParent = ExitGraphView;
             }
 
             Instance.rootVisualElement.Clear();
 
-            Debug.Log($"Loaded {context.linkedData.nodeDataList.Count} nodes , {context.linkedData.edgeDataList.Count} edges! Data name: {context.linkedData.name}");
+            Debug.Log($"Loaded {context.LinkedData.nodeDataList.Count} nodes , {context.LinkedData.edgeDataList.Count} edges! Data name: {context.LinkedData.name}");
 
             if (isExiting)
             {
@@ -126,16 +126,16 @@ namespace NovaLine.Script.Editor.Window
                 {
                     if(presentContext is ConditionContext conditionContext)
                     {
-                        if (!context.graphView.selectGraphNode(conditionContext.linkedData.linkedElement.parent.guid))
+                        if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.linkedElement.Parent.Guid))
                         {
-                            context.graphView.selectGraphEdge(conditionContext.linkedData.linkedElement.parent.guid);
+                            context.GraphView.SelectGraphEdge(conditionContext.LinkedData.linkedElement.Parent.Guid);
                         }
                     }
                     else
                     {
-                        if (!context.graphView.selectGraphNode(presentContext.guid))
+                        if (!context.GraphView.SelectGraphNode(presentContext.Guid))
                         {
-                            context.graphView.selectGraphEdge(presentContext.guid);
+                            context.GraphView.SelectGraphEdge(presentContext.Guid);
                         }
                     }
 
@@ -148,7 +148,7 @@ namespace NovaLine.Script.Editor.Window
                 //Multi condition contexts are not allowed,so we need to clean all other them.
                 if (context is ConditionContext)
                 {
-                    LoadedGraphViewContexts.RemoveAll(toRemove => toRemove.type == NovaElementType.CONDITION);
+                    LoadedGraphViewContexts.RemoveAll(toRemove => toRemove.Type == NovaElementType.CONDITION);
                 }
 
                 //Let's load new context :)
@@ -158,29 +158,29 @@ namespace NovaLine.Script.Editor.Window
                 SelectedGraphNode = null;
 
                 //Update linked element of current context.
-                var linkedContextElement = context.linkedData.linkedElement;
+                var linkedContextElement = context.LinkedData.linkedElement;
                 linkedContextElement?.ShowInInspector();
 
                 //Init the context.
-                context.draw();
+                context.Draw();
             }
         
             //Add this graph view to opened window,make sure u can see it.
             Instance.rootVisualElement.Add(graphView);
             graphView.StretchToParentSize();
 
-            EditorFileManager.CurrentContextGuid = context.guid;
-            EditorFileManager.CurrentContextType = context.type;
+            EditorFileManager.CurrentContextGuid = context.Guid;
+            EditorFileManager.CurrentContextType = context.Type;
         
             UpdateScope.RequireUpdate();
         }
         public static void UpdateContext()
         {
-            CurrentGraphViewNodeContext?.graphView?.update();
+            CurrentGraphViewNodeContext?.GraphView?.Update();
 
             if (Instance == null) return;
 
-            Instance.titleContent.text = CurrentGraphViewNodeContext?.title;
+            Instance.titleContent.text = CurrentGraphViewNodeContext?.Title;
         }
         #endregion
     }

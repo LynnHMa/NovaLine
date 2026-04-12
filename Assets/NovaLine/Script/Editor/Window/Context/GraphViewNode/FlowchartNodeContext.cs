@@ -13,22 +13,22 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
     public class FlowchartNodeContext : GraphViewNodeContext<FlowchartGraphView, FlowchartData>
     {
         public FlowchartNodeContext(FlowchartData linkedData) : base(linkedData) { }
-        public override void saveData()
+        public override void SaveData()
         {
-            base.saveData();
-            linkedData.updateLinkedElement();
+            base.SaveData();
+            LinkedData.updateLinkedElement();
         }
-        public override void saveNodeData(List<GraphNode> graphNodes = null)
+        public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
-            saveNodeData<NodeGraphNode, NodeNodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
+            SaveNodeData<NodeGraphNode, NodeNodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
         }
-        public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
+        public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {
-            saveEdgeData<NodeEdgeData>(graphEdges);
+            SaveEdgeData<NodeEdgeData>(graphEdges);
         }
-        protected override FlowchartGraphView summonGraphView()
+        protected override FlowchartGraphView SummonGraphView()
         {
-            return new FlowchartGraphView(linkedData.guid);
+            return new FlowchartGraphView(LinkedData.Guid);
         }
     }
 }

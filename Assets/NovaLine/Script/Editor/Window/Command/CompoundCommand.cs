@@ -10,7 +10,7 @@ namespace NovaLine.Script.Editor.Window.Command
         public List<Command> commands = new();
         public CompoundCommand(List<Command> commands)
         {
-            type = CommandType.Compound;
+            Type = CommandType.Compound;
             
             foreach (var command in commands)
             {
@@ -20,33 +20,33 @@ namespace NovaLine.Script.Editor.Window.Command
                     this.commands.Add(command);
             }
 
-            mergeCongenericCommand();
+            MergeCongenericCommand();
 
             if (linkedContextInfo == null && this.commands.Count > 0)
                 linkedContextInfo = this.commands[0].linkedContextInfo;
         }
-        public override void onUndo()
+        public override void OnUndo()
         {
             for (var i = commands.Count - 1; i >= 0; i--)
             {
                 var command = commands[i];
-                command.onUndo();
+                command.OnUndo();
             }
         }
-        public override void onRedo()
+        public override void OnRedo()
         {
             for (var i = commands.Count - 1; i >= 0; i--)
             {
                 var command = commands[i];
-                command.onRedo();
+                command.OnRedo();
             }
         }
         //Merge congeneric command
-        private void mergeCongenericCommand()
+        private void MergeCongenericCommand()
         {
             if (commands != null && commands.Count > 1)
             {
-                commands.Sort((x, y) => x.type.CompareTo(y.type));
+                commands.Sort((x, y) => x.Type.CompareTo(y.Type));
                 var commandsStack = new Stack<Command>(commands);
                 commands.Clear();
                 while (commandsStack.Count > 0)
@@ -55,10 +55,10 @@ namespace NovaLine.Script.Editor.Window.Command
                     if (firstCommand != null)
                     {
                         if (linkedContextInfo == null) linkedContextInfo = firstCommand.linkedContextInfo;
-                        while (commandsStack.Count > 0 && firstCommand.type == commandsStack.Peek().type)
+                        while (commandsStack.Count > 0 && firstCommand.Type == commandsStack.Peek().Type)
                         {
                             var selectedCommand = commandsStack.Pop();
-                            if (selectedCommand != null) firstCommand.merge(selectedCommand);
+                            if (selectedCommand != null) firstCommand.Merge(selectedCommand);
                         }
                     }
                     commands.Add(firstCommand);
@@ -66,11 +66,11 @@ namespace NovaLine.Script.Editor.Window.Command
             }
         }
 
-        public override void merge(Command congenericCommand)
+        public override void Merge(Command congenericCommand)
         {
             if (congenericCommand is not CompoundCommand compoundCommand) return;
             commands.AddRange(compoundCommand.commands);
-            mergeCongenericCommand();
+            MergeCongenericCommand();
         }
     }
 }

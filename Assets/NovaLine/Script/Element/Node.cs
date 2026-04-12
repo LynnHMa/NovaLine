@@ -17,70 +17,71 @@ namespace NovaLine.Script.Element
         [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
         [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;
         
-        public Condition conditionBeforeInvoke => FindElement(conditionBeforeInvokeGuid) as Condition;
-        public Condition conditionAfterInvoke => FindElement(conditionAfterInvokeGuid) as Condition;
+        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGuid) as Condition;
+        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
 
-        public override NovaElementType type => NovaElementType.NODE;
-        public string conditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
-        public string conditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
+        public override NovaElementType Type => NovaElementType.NODE;
+        public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
+        public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
         public Node()
         {
             var conditionBefore = new Condition("Before Invoke",this);
             var conditionAfter = new Condition("After Invoke",this);
-            conditionAfterInvokeGuid = conditionAfter.guid;
-            conditionBeforeInvokeGuid = conditionBefore.guid;
+            ConditionAfterInvokeGuid = conditionAfter.Guid;
+            ConditionBeforeInvokeGuid = conditionBefore.Guid;
         }
         public Node(string name) : this()
         {
             this.name = name;
         }
 
-        public IEnumerator run()
+        public IEnumerator Run()
         {
-            yield return conditionBeforeInvoke.waiting();
-            foreach (var childGuid in childrenGuidList)
+            NovaPlayer.ResetScene();
+            yield return ConditionBeforeInvoke.Waiting();
+            foreach (var childGuid in ChildrenGuidList)
             {
                 var child = FindElement(childGuid);
                 if(child is not NovaAction action) continue;
-                if (action.actionType == ActionType.Meanwhile)
+                if (action.ActionType == ActionType.Meanwhile)
                 {
-                    action.invoke().StartCoroutine();
+                    action.Invoke().StartCoroutine();
                 }
             }
 
-            if (firstChild is NovaAction firstAction)
+            if (FirstChild is NovaAction firstAction)
             {
-                yield return firstAction.invoke();
+                yield return firstAction.Invoke();
             }
             
-            yield return conditionAfterInvoke.waiting();
+            yield return ConditionAfterInvoke.Waiting();
 
             yield return null;
 
             List<IEnumerator> switcherConditions = new();
-            foreach (var switcherConditionGuid in switchersGuidList)
+            foreach (var switcherConditionGuid in SwitchersGuidList)
             {
                 if (FindElement(switcherConditionGuid) is NodeSwitcher nodeSwitcher)
                 {
-                    switcherConditions.Add(nodeSwitcher.next());
+                    switcherConditions.Add(nodeSwitcher.Next());
                 }
             }
             yield return switcherConditions.WhenAny();
             
             yield return null;
         }
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Node]";
         }
-        public override NovaElement copy()
+        public override NovaElement Copy()
         {
-            var clone = base.copy();
+            var clone = base.Copy();
             if (clone is not Node node) return clone;
-            node.conditionBeforeInvokeGuid = conditionBeforeInvoke.copy().guid;
-            node.conditionAfterInvokeGuid = conditionAfterInvoke.copy().guid;
-            node.conditionBeforeInvoke.parentGuid = node.guid;
-            node.conditionAfterInvoke.parentGuid = node.guid;
+            node.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
+            node.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
+            node.ConditionBeforeInvoke.ParentGuid = node.Guid;
+            node.ConditionAfterInvoke.ParentGuid = node.Guid;
             return node;
         }
     }

@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Utils;
+using NovaLine.Script.Utils.Attribute;
 using NovaLine.Script.Utils.Interface;
+using UnityEngine;
 
 namespace NovaLine.Script.Element.Action
 {
@@ -14,28 +16,31 @@ namespace NovaLine.Script.Element.Action
         private int _entityIndex;
         
         //Just an inspector tag
-        public int entity;
+        public int entity = -1;
+        public Vector3 position;
+        public Vector3 scale;
+        public Quaternion rotation;
         public List<NovaWrapper<EntityAnim>> anims;
 
-        public int entityIndex
+        public int EntityIndex
         {
             get => _entityIndex;
             set => _entityIndex = value;
         }
-        protected override IEnumerator onInvoke()
+        protected override IEnumerator OnInvoke()
         {
-            var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(entityIndex);
+            var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(EntityIndex);
             
             if(instantiatedEntity == null) yield break;
 
             instantiatedEntity.gameObject.SetActive(true);
             
-            yield return instantiatedEntity.animPlayer?.playAll(anims);
+            yield return instantiatedEntity.AnimPlayer?.PlayAll(anims);
             
-            yield return base.onInvoke();
+            yield return base.OnInvoke();
         }
 
-        public override string getTypeName()
+        public override string GetTypeName()
         {
             return "[Entity Action]";
         }

@@ -13,17 +13,17 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
     public class NodeNodeContext : GraphViewNodeContext<NodeGraphView, NodeData>
     {
         public NodeNodeContext(NodeData linkedData) : base(linkedData) { }
-        public override void saveNodeData(List<GraphNode> graphNodes = null)
+        public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
-            saveNodeData<ActionGraphNode, ActionNodeContext>(graphNodes == null ? null : graphNodes.Cast<ActionGraphNode>().ToList());
+            SaveNodeData<ActionGraphNode, ActionNodeContext>(graphNodes == null ? null : graphNodes.Cast<ActionGraphNode>().ToList());
         }
-        public override void saveEdgeData(List<IGraphEdge> graphEdges = null)
+        public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {
-            saveEdgeData<ActionEdgeData>(graphEdges);
+            SaveEdgeData<ActionEdgeData>(graphEdges);
         }
-        protected override NodeGraphView summonGraphView()
+        protected override NodeGraphView SummonGraphView()
         {
-            return new NodeGraphView(linkedData.guid);
+            return new NodeGraphView(LinkedData.Guid);
         }
     }
 }
