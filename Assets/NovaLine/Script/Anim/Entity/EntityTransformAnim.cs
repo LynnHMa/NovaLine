@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Attribute;
+using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 
 namespace NovaLine.Script.Anim.Entity
@@ -9,27 +11,11 @@ namespace NovaLine.Script.Anim.Entity
     public class EntityTransformAnim : EntityAnim,ILerpAnim
     {
         public float duration;
-        
-        public bool move;
-        [ShowInInspectorIf("move",true)]
-        public Vector3 startPos;
-        [ShowInInspectorIf("move",true)]
-        public Vector3 endPos;
-        
-        public bool scale;
-        [ShowInInspectorIf("move",true)]
-        public Vector3 startScale;
-        [ShowInInspectorIf("scale",true)]
-        public Vector3 endScale;
-        
-        public bool rotate;
-        [ShowInInspectorIf("move",true)]
-        public Quaternion startRot;
-        [ShowInInspectorIf("rotate",true)]
-        public Quaternion endRot;
+
+        public TransformChecker startTransform;
+        public TransformChecker endTransform;
         
         float ILerpAnim.Duration => duration;
-
         protected override IEnumerator OnPlay()
         {
             if(LinkedEntity == null) yield break;
@@ -37,15 +23,15 @@ namespace NovaLine.Script.Anim.Entity
             while (timer < duration)
             {
                 var t = timer / duration;
-                if(move) LinkedEntity.transform.localPosition = Vector3.Lerp(startPos, endPos, t);
-                if(scale) LinkedEntity.transform.localScale = Vector3.Lerp(startScale, endScale, t);
-                if(rotate) LinkedEntity.transform.localRotation = Quaternion.Lerp(startRot, endRot, t);
+                LinkedEntity.transform.localPosition = Vector3.Lerp(startTransform.position, endTransform.position, t);
+                LinkedEntity.transform.localScale = Vector3.Lerp(startTransform.scale, endTransform.scale, t);
+                LinkedEntity.transform.localRotation = Quaternion.Lerp(startTransform.rotation, endTransform.rotation, t);
                 timer += Time.deltaTime;
                 yield return null;
             }
-            if(move) LinkedEntity.transform.localPosition = endPos;
-            if(scale) LinkedEntity.transform.localScale = endScale;
-            if(rotate) LinkedEntity.transform.localRotation = endRot;
+            LinkedEntity.transform.localPosition = endTransform.position;
+            LinkedEntity.transform.localScale = endTransform.scale;
+            LinkedEntity.transform.localRotation = endTransform.rotation;
             yield return base.OnPlay();
         }
     }

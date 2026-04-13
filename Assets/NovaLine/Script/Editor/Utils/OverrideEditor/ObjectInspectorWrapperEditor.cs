@@ -1,33 +1,40 @@
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
+using NovaLine.Script.Element;
 using NovaLine.Script.Element.Action;
 using NovaLine.Script.Element.Event;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Attribute;
 using NovaLine.Script.Utils.Interface;
-using Unity.VisualScripting;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace NovaLine.Script.Editor.Utils
+namespace NovaLine.Script.Editor.Utils.OverrideEditor
 {
-    using UnityEditor;
-    using UnityEngine;
-    using NovaLine.Script.Element;
-    using NovaLine.Script.Action;
-    using System;
-    using static NovaLine.Script.Editor.Window.ContextRegistry;
+    using static Window.ContextRegistry;
 
-    [CustomEditor(typeof(ObjectInspectorWrapper))]
-    public class ObjectInspectorWrapperEditor : Editor
+    [UnityEditor.CustomEditor(typeof(ObjectInspectorWrapper))]
+    public class ObjectInspectorWrapperEditor : UnityEditor.Editor
     {
         private static GUIStyle SELECTED_ELEMENT_STYLE;
 
         private static GUIStyle SELECTED_PARENT_ELEMENT_STYLE;
 
-        private static GUIStyle ARROW_STYLE;
-
+        private static GUIStyle ARROW_STYLE; 
+        
+        private static readonly Dictionary<string, Vector2> _scrollPositionCache = new();
+        
+        private ScrollView _inspectorScrollView;
+        private string _currentElementGuid;
+        private bool _hasRestoredScroll = false;
         private void OnEnable()
         {
             SELECTED_ELEMENT_STYLE = new GUIStyle()
@@ -53,10 +60,37 @@ namespace NovaLine.Script.Editor.Utils
                 normal = new GUIStyleState() { textColor = ColorExt.ACTION_THEMED_COLOR },
                 alignment = TextAnchor.MiddleCenter
             };
+            
+            var wrapper = target as ObjectInspectorWrapper;
+            _currentElementGuid = wrapper?.selectedElement?.Guid;
+            _hasRestoredScroll = false;
+            EditorApplication.delayCall += HookInspectorScrollView;
         }
 
         public override void OnInspectorGUI()
         {
+            if (_inspectorScrollView != null && !string.IsNullOrEmpty(_currentElementGuid))
+            {
+                if (!_hasRestoredScroll)
+                {
+                    if (_scrollPositionCache.TryGetValue(_currentElementGuid, out Vector2 savedPos))
+                    {
+                        _inspectorScrollView.scrollOffset = savedPos;
+                        if (_inspectorScrollView.contentContainer.layout.height >= savedPos.y)
+                        {
+                            _hasRestoredScroll = true;
+                        }
+                    }
+                    else
+                    {
+                        _hasRestoredScroll = true;
+                    }
+                }
+                else
+                {
+                    _scrollPositionCache[_currentElementGuid] = _inspectorScrollView.scrollOffset;
+                }
+            }
             serializedObject.Update();
 
             ModifyInfo();
@@ -85,11 +119,28 @@ namespace NovaLine.Script.Editor.Utils
                     EditorGUILayout.LabelField("↓", ARROW_STYLE);
                 }
             }
-
+            
             //Draw selected element
             DrawElement(selectedProp, SELECTED_ELEMENT_STYLE);
         }
-
+        private void HookInspectorScrollView()
+        {
+            if (target == null) return;
+            
+            var allWindows = Resources.FindObjectsOfTypeAll<EditorWindow>();
+            foreach (var window in allWindows)
+            {
+                if (window.GetType().Name == "InspectorWindow")
+                {
+                    var scrollView = window.rootVisualElement?.Q<ScrollView>();
+                    if (scrollView != null)
+                    {
+                        _inspectorScrollView = scrollView;
+                        break;
+                    }
+                }
+            }
+        }
         private static void LoadConditionContextDirect(Condition targetCondition, string fallbackName)
         {
             if (targetCondition == null)
@@ -121,7 +172,10 @@ namespace NovaLine.Script.Editor.Utils
                 EditorGUILayout.Space(30);
 
                 EditorGUILayout.LabelField(selectedElement.GetActualName(), style);
+                
+                selectedProp.isExpanded = true;
 
+                //Add drop down of modifying related type
                 switch (selectedElement)
                 {
                     case NovaAction:
@@ -131,13 +185,12 @@ namespace NovaLine.Script.Editor.Utils
                         InspectorCustomUIHelper.DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
                         break;
                 }
-
-                selectedProp.isExpanded = true;
-
-                SerializedProperty iterator = selectedProp.Copy();
-                DrawProperty(iterator,selectedElement);
+                
+                DrawProperty(selectedProp,selectedElement);
 
                 EditorGUILayout.Space(15);
+                
+                //Add a button of entering related condition graph view
                 if (selectedElement is IAroundConditionElement or NodeSwitcher)
                 {
                     void DrawConditionUI(string label, Condition conditionObj, string fallbackName)
@@ -149,10 +202,13 @@ namespace NovaLine.Script.Editor.Utils
                         string displayName = conditionObj != null ? conditionObj.GetActualName() : "Null / 未分配";
                         EditorGUILayout.TextField(displayName);
                         GUI.enabled = true;
+                        
+                        GUI.backgroundColor = ColorExt.EVENT_THEMED_COLOR;
                         if (GUILayout.Button("Edit", GUILayout.Width(60), GUILayout.Height(20)))
                         {
                             LoadConditionContextDirect(conditionObj, fallbackName);
                         }
+                        GUI.backgroundColor = Color.white;
 
                         EditorGUILayout.EndHorizontal();
                         EditorGUILayout.EndVertical();
@@ -172,14 +228,19 @@ namespace NovaLine.Script.Editor.Utils
                             EditorGUILayout.Space(10);
                             break;
                     }
+                    
+                    EditorGUILayout.Space(15);
                 }
-
+                
+                //Add a button of setting first node 
                 if (NovaWindow.SelectedGraphNode != null &&
                     NovaWindow.SelectedGraphNode.linkedElement.Guid.Equals(selectedElement.Guid) &&
                     NovaWindow.SelectedGraphNode.inputContainer.childCount != 0 &&
                     NovaWindow.SelectedGraphNode.outputContainer.childCount != 0)
                 {
                     EditorGUILayout.Space(30);
+                    
+                    GUI.backgroundColor = NovaWindow.SelectedGraphNode.ThemedColor;
                     if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
                     {
                         var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
@@ -190,57 +251,73 @@ namespace NovaLine.Script.Editor.Utils
                             SaveScope.RequireSave();
                         }
                     }
+                    GUI.backgroundColor = Color.white;
 
                     EditorGUILayout.Space(30);
                 }
             }
         }
 
-        private static void DrawEntityDropDown(SerializedProperty prop,object actualParentObject)
+        private static void DrawEntitySelectorDropDown(SerializedProperty prop,object actualParentObject)
         {
             if (actualParentObject is not EntityAction entityAction || entityAction.Parent.Parent is not Flowchart flowchart) return;
             var entityPrefabs = flowchart.entityPrefabs;
-            var entityDisplayNameList = new string[entityPrefabs.Count];
+            var entityDisplayNameList = new List<string>();
             for (var i = 0; i < entityPrefabs.Count; i++)
             {
-                entityDisplayNameList[i] = $"[{i}] {entityPrefabs[i].name}";
+                var prefab = entityPrefabs[i];
+                if(prefab == null) continue;
+                entityDisplayNameList.Add($"[{i}] {entityPrefabs[i].name}");
             }
-            var newIndex = EditorGUILayout.Popup("Entity",prop.intValue,entityDisplayNameList);
+            var entityDisplayNameArray = entityDisplayNameList.ToArray();
+            var newIndex = entityDisplayNameArray.Length == 0 ? -1 : EditorGUILayout.Popup("Entity",prop.intValue,entityDisplayNameArray);
             Undo.RecordObject(prop.serializedObject.targetObject, "Set Entity");
-            entityAction.EntityIndex = newIndex;
+            entityAction.entity = newIndex;
             prop.intValue = newIndex;
             prop.serializedObject.ApplyModifiedProperties();
         }
-        private static void DrawProperty(SerializedProperty iterator, object actualParentObject)
+        private static void DrawProperty(SerializedProperty selectedProp, object actualParentObject)
         {
-            SerializedProperty endProperty = iterator.GetEndProperty();
-
-            if (iterator.NextVisible(true))
+            SerializedProperty endChildProp = selectedProp.GetEndProperty();
+            if (selectedProp.NextVisible(true))
             {
                 do
                 {
-                    if (SerializedProperty.EqualContents(iterator, endProperty))
+                    if (SerializedProperty.EqualContents(selectedProp, endChildProp))
                         break;
                     
-                    if (ShouldShow(iterator, actualParentObject))
+                    if (ShouldShow(selectedProp, actualParentObject))
                     {
+                        selectedProp.isExpanded = true;
+                        
                         EditorGUILayout.Space(10);
 
-                        switch (iterator.name)
+                        var isEntityActionAnimArray = selectedProp.name.Equals("anims") && selectedProp.isArray;
+                        var isEntitySelector = selectedProp.name.Equals("entity");
+                        if (isEntityActionAnimArray)
                         {
-                            case "anims" when iterator.isArray:
-                                DrawAnimList(iterator);
-                                break;
-                            case "entity":
-                                DrawEntityDropDown(iterator,actualParentObject);
-                                break;
-                            default:
-                                EditorGUILayout.PropertyField(iterator, true);
-                                break;
+                            DrawAnimList(selectedProp);
                         }
+                        else if (isEntitySelector)
+                        {
+                            DrawEntitySelectorDropDown(selectedProp,actualParentObject);
+                        }
+                        else
+                        {
+                            EditorGUILayout.PropertyField(selectedProp, true);
+                            var tcFieldInfo = actualParentObject?.GetType().GetField(
+                                selectedProp.name,
+                                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                            if (tcFieldInfo?.FieldType == typeof(TransformChecker))
+                            {
+                                var transformChecker = (TransformChecker)tcFieldInfo.GetValue(actualParentObject);
+                                DrawEntityActionTransformCheckerEditingButton(selectedProp,transformChecker);
+                            }
+                        }
+
                     }
 
-                } while (iterator.NextVisible(false));
+                } while (selectedProp.NextVisible(false));
             }
         }
         private static void DrawAnimList(SerializedProperty listProp)
@@ -263,9 +340,9 @@ namespace NovaLine.Script.Editor.Utils
                     InspectorCustomUIHelper.DrawTypeDropdown(valueProp, typeof(EntityAnim));
                 }
 
-                GUILayout.FlexibleSpace(); 
-                
-                GUI.backgroundColor = new Color(1f, 0.4f, 0.4f);
+                GUILayout.FlexibleSpace();
+
+                GUI.backgroundColor = ColorExt.LIGHT_RED;
                 if (GUILayout.Button("X", EditorStyles.toolbarButton, GUILayout.Width(30)))
                 {
                     GUI.backgroundColor = Color.white;
@@ -296,7 +373,7 @@ namespace NovaLine.Script.Editor.Utils
             }
             
             EditorGUILayout.Space(5);
-            GUI.backgroundColor = new Color(0.4f, 1f, 0.4f);
+            GUI.backgroundColor = ColorExt.LIGHT_GREEN;
             if (GUILayout.Button("+ Add Anim", GUILayout.Height(30)))
             {
                 ShowAddAnimMenu(listProp); 
@@ -325,6 +402,26 @@ namespace NovaLine.Script.Editor.Utils
                 });
             }
             menu.ShowAsContext();
+        }
+
+        private static void DrawEntityActionTransformCheckerEditingButton(SerializedProperty prop,TransformChecker transformChecker)
+        {
+            EditorGUILayout.Space(10);
+            
+            GUI.backgroundColor = Color.cyan;
+            if (GUILayout.Button("Edit " + prop.displayName, GUILayout.Height(25)))
+            {
+                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.linkedElement;
+                if (editingFlowchart != null && InspectorHelper.InspectorNovaElementWrapper.selectedElement is EntityAction entityAction)
+                {
+                    var entityPrefabs = editingFlowchart.entityPrefabs;
+                    TransformCheckerMono.StartToSetTransform(transformChecker,entityPrefabs[entityAction.entity]?.GetComponent<SpriteRenderer>()?.sprite);
+                    TransformCheckerEditor.ToRestoreElement = entityAction;
+                }
+            }
+            GUI.backgroundColor = Color.white;
+                                    
+            EditorGUILayout.Space(15);
         }
         private static void InterceptUndoRedo()
         {
@@ -393,7 +490,27 @@ namespace NovaLine.Script.Editor.Utils
             if (conditionField != null)
             {
                 var value = conditionField.GetValue(actualParentObject);
-                return Equals(value, attr.ExpectedValue);
+                var condition = attr.Condition;
+                try
+                {
+                    float numValue = Convert.ToSingle(value);
+                    float numExpected = Convert.ToSingle(attr.ExpectedValue);
+                    return condition switch
+                    {
+                        ShowInInspectorIfAttribute.ValueCondition.Equals => value.Equals(attr.ExpectedValue),
+                        ShowInInspectorIfAttribute.ValueCondition.NoEquals => !value.Equals(attr.ExpectedValue),
+                        ShowInInspectorIfAttribute.ValueCondition.MoreThan => numValue > numExpected,
+                        ShowInInspectorIfAttribute.ValueCondition.MoreThanOrEqual => numValue >= numExpected,
+                        ShowInInspectorIfAttribute.ValueCondition.LessThan => numValue < numExpected,
+                        ShowInInspectorIfAttribute.ValueCondition.LessThanOrEqual => numValue <= numExpected,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                }
+                catch
+                {
+                    Debug.Log("?" + value);
+                    return true;
+                }
             }
 
             return true;

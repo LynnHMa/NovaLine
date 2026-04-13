@@ -11,7 +11,7 @@ namespace NovaLine.Script.Editor.Graph.Node
 {
     public class ActionGraphNode : GraphNode
     {
-        protected override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
+        public override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
         public ActionGraphNode(NovaElement linkedElement, Vector2 pos) : base(linkedElement, pos)
         {
             AddPort();

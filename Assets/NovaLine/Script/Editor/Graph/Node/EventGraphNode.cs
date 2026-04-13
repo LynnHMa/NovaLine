@@ -11,7 +11,7 @@ namespace NovaLine.Script.Editor.Graph.Node
 {
     public class EventGraphNode : GraphNode
     {
-        protected override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
+        public override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
         public EventGraphNode(NovaElement linkedElement, Vector2 pos) : base(linkedElement, pos)
         {
             AddPort();

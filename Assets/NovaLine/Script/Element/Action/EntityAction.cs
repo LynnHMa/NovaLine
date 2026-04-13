@@ -5,7 +5,6 @@ using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Attribute;
-using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 
 namespace NovaLine.Script.Element.Action
@@ -13,26 +12,23 @@ namespace NovaLine.Script.Element.Action
     [Serializable]
     public class EntityAction : NovaAction
     {
-        private int _entityIndex;
-        
         //Just an inspector tag
         public int entity = -1;
-        public Vector3 position;
-        public Vector3 scale;
-        public Quaternion rotation;
+
+        [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
+        public TransformChecker startTransform;
+        
         public List<NovaWrapper<EntityAnim>> anims;
 
-        public int EntityIndex
-        {
-            get => _entityIndex;
-            set => _entityIndex = value;
-        }
         protected override IEnumerator OnInvoke()
         {
-            var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(EntityIndex);
+            var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(entity);
             
             if(instantiatedEntity == null) yield break;
 
+            instantiatedEntity.transform.localPosition = startTransform.position;
+            instantiatedEntity.transform.localScale = startTransform.scale;
+            instantiatedEntity.transform.localRotation = startTransform.rotation;
             instantiatedEntity.gameObject.SetActive(true);
             
             yield return instantiatedEntity.AnimPlayer?.PlayAll(anims);
@@ -44,6 +40,5 @@ namespace NovaLine.Script.Element.Action
         {
             return "[Entity Action]";
         }
-
     }
 }

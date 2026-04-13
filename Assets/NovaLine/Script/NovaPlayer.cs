@@ -29,7 +29,6 @@ namespace NovaLine.Script
         {
             UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
             if(UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
-            PrefabUtility.UnpackPrefabInstance(gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             
             if (!Application.isPlaying) return;
             
@@ -64,7 +63,11 @@ namespace NovaLine.Script
                 if(entity?.gameObject == null) continue;
                 entity.gameObject.SetActive(false);
             }
-            Instance.dialogUI.gameObject.SetActive(false);
+
+            if (Instance?.dialogUI != null)
+            {
+                Instance.dialogUI.gameObject.SetActive(false);
+            }
         }
         public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)
         {

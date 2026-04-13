@@ -1,4 +1,6 @@
-﻿namespace NovaLine.Script.Anim.Entity
+﻿using UnityEngine;
+
+namespace NovaLine.Script.Anim.Entity
 {
     public class EntityAnim : NovaAnim
     {

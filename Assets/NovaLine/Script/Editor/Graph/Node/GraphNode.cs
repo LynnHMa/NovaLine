@@ -21,7 +21,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         private bool _isMoving = false;
         private IVisualElementScheduledItem _moveSettleTimer;
         
-        protected virtual Color ThemedColor => Color.white;
+        public virtual Color ThemedColor => Color.white;
         public virtual Vector2 pos
         {
             get => _pos;

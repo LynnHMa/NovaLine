@@ -13,7 +13,7 @@ namespace NovaLine.Script.Editor.Utils
 {
     public static class InspectorHelper
     {
-        private static ObjectInspectorWrapper wrapper;
+        public static ObjectInspectorWrapper InspectorNovaElementWrapper { get; set; }
         
         private static readonly Dictionary<string, string> elementJsonCache = new();
 
@@ -32,14 +32,14 @@ namespace NovaLine.Script.Editor.Utils
                 if (novaElement == null)
                 {
                     Selection.activeObject = null;
-                    wrapper = null;
+                    InspectorNovaElementWrapper = null;
                     elementJsonCache.Clear();
                     return;
                 }
 
-                wrapper = ObjectInspectorWrapper.CreateInstance(novaElement.Guid);
+                InspectorNovaElementWrapper = ObjectInspectorWrapper.CreateInstance(novaElement.Guid);
                 snapshotAllElements();
-                Selection.activeObject = wrapper;
+                Selection.activeObject = InspectorNovaElementWrapper;
             }
             catch (Exception e)
             {
@@ -49,8 +49,8 @@ namespace NovaLine.Script.Editor.Utils
 
         public static void OnInspectorObjValueChange()
         {
-            if (wrapper == null) return;
-            var parents = wrapper.parentElementGuidList;
+            if (InspectorNovaElementWrapper == null) return;
+            var parents = InspectorNovaElementWrapper.parentElementGuidList;
             for (int i = parents.Count - 1; i >= 0; i--)
             {
                 var parentGuid = parents[i];
@@ -58,22 +58,22 @@ namespace NovaLine.Script.Editor.Utils
                 if (liveParent != null && TryRegisterChange(liveParent)) return;
             }
 
-            var selected = FindElement(wrapper.selectedElementGuid);
+            var selected = FindElement(InspectorNovaElementWrapper.selectedElementGuid);
             if (selected != null) TryRegisterChange(selected);
         }
         
         private static void snapshotAllElements()
         {
             elementJsonCache.Clear();
-            if (wrapper == null) return;
+            if (InspectorNovaElementWrapper == null) return;
 
-            foreach (var guid in wrapper.parentElementGuidList)
+            foreach (var guid in InspectorNovaElementWrapper.parentElementGuidList)
             {
                 var el = FindElement(guid);
                 elementJsonCache[guid] = JsonUtility.ToJson(el);
             }
             
-            var sel = FindElement(wrapper.selectedElementGuid);
+            var sel = FindElement(InspectorNovaElementWrapper.selectedElementGuid);
             if (sel != null) elementJsonCache[sel.Guid] = JsonUtility.ToJson(sel);
         }
         

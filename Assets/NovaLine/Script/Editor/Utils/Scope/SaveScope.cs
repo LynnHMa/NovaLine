@@ -23,11 +23,11 @@ namespace NovaLine.Script.Editor.Utils.Scope
         {
             if (saveNextFrame)
             {
-                EditorApplication.delayCall += trySave;
+                EditorApplication.delayCall += TrySave;
             }
             else
             {
-                trySave();
+                TrySave();
             }
         }
 
@@ -43,7 +43,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
             }
         }
 
-        private static void trySave()
+        private static void TrySave()
         {
             scopeDepth--;
             if (scopeDepth == 0 && isDirty)

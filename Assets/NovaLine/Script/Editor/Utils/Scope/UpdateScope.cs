@@ -20,11 +20,11 @@ namespace NovaLine.Script.Editor.Utils.Scope
         {
             if (waitingFrameBeforeDispose > 0)
             {
-                CallbackHelper.FrameCall(waitingFrameBeforeDispose,tryUpdateContext);
+                CallbackHelper.FrameCall(waitingFrameBeforeDispose,TryUpdateContext);
             }
             else
             {
-                tryUpdateContext();
+                TryUpdateContext();
             }
         }
     
@@ -40,7 +40,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
             }
         }
     
-        private static void tryUpdateContext()
+        private static void TryUpdateContext()
         {
             scopeDepth--;
             if (scopeDepth == 0 && isDirty)
