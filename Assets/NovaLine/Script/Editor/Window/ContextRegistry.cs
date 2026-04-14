@@ -130,7 +130,7 @@ namespace NovaLine.Script.Editor.Window
             LoadedGraphViewContexts.Clear();
         }
 
-        public static void ReplaceLinkedElement(NovaElement newElement)
+        public static void ReplaceLinkedElementInContext(NovaElement newElement)
         {
             var linkedContext = GetContext(newElement.Guid, newElement.Type);
             linkedContext.LinkedData.updateLinkedElement(false);

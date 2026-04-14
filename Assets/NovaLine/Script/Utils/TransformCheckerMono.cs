@@ -69,8 +69,6 @@ namespace NovaLine.Script.Utils
             Instance.TransformChecker = checker;
             
             Selection.activeObject = Instance.gameObject;
-            Undo.RegisterCreatedObjectUndo(Instance.gameObject, "Create TransformEditor");
-            
             SceneView.lastActiveSceneView?.Focus();
         }
 
@@ -92,7 +90,7 @@ namespace NovaLine.Script.Utils
         private static void ForceDestroy(Object obj)
         {
             if (obj == null || PrefabUtility.IsPartOfPrefabAsset(obj)) return;
-            Undo.DestroyObjectImmediate(obj);
+            DestroyImmediate(obj);
         }
     }
     

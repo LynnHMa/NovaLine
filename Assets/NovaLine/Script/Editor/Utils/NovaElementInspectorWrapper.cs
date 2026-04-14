@@ -5,17 +5,17 @@ namespace NovaLine.Script.Editor.Utils
     using System.Collections.Generic;
     using UnityEngine;
 
-    public class ObjectInspectorWrapper : ScriptableObject
+    public class NovaElementInspectorWrapper : ScriptableObject
     {
         [SerializeReference] public List<NovaElement> parentElements = new();
         [SerializeReference] public NovaElement selectedElement;
         
-        public List<string> parentElementGuidList => parentElements.ConvertAll(e => e?.Guid);
-        public string selectedElementGuid => selectedElement?.Guid;
+        public List<string> ParentElementGuidList => parentElements.ConvertAll(e => e?.Guid);
+        public string SelectedElementGuid => selectedElement?.Guid;
 
-        public new static ObjectInspectorWrapper CreateInstance(string elementGuid)
+        public new static NovaElementInspectorWrapper CreateInstance(string elementGuid)
         {
-            var wrapper = CreateInstance<ObjectInspectorWrapper>();
+            var wrapper = CreateInstance<NovaElementInspectorWrapper>();
             wrapper.hideFlags = HideFlags.DontSave;
 
             var selectedElement = NovaElementRegistry.FindElement(elementGuid);

@@ -21,8 +21,8 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
 {
     using static Window.ContextRegistry;
 
-    [UnityEditor.CustomEditor(typeof(ObjectInspectorWrapper))]
-    public class ObjectInspectorWrapperEditor : UnityEditor.Editor
+    [UnityEditor.CustomEditor(typeof(NovaElementInspectorWrapper))]
+    public class NovaElementInspectorWrapperEditor : UnityEditor.Editor
     {
         private static GUIStyle SELECTED_ELEMENT_STYLE;
 
@@ -34,7 +34,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
         
         private ScrollView _inspectorScrollView;
         private string _currentElementGuid;
-        private bool _hasRestoredScroll = false;
+        private bool _hasRestoredScroll;
         private void OnEnable()
         {
             SELECTED_ELEMENT_STYLE = new GUIStyle()
@@ -61,7 +61,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 alignment = TextAnchor.MiddleCenter
             };
             
-            var wrapper = target as ObjectInspectorWrapper;
+            var wrapper = target as NovaElementInspectorWrapper;
             _currentElementGuid = wrapper?.selectedElement?.Guid;
             _hasRestoredScroll = false;
             EditorApplication.delayCall += HookInspectorScrollView;
@@ -179,10 +179,10 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 switch (selectedElement)
                 {
                     case NovaAction:
-                        InspectorCustomUIHelper.DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
+                        DrawTypeDropdown(selectedProp, typeof(INovaAction), "Action Type");
                         break;
                     case NovaEvent:
-                        InspectorCustomUIHelper.DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
+                        DrawTypeDropdown(selectedProp, typeof(INovaEvent), "Event Type");
                         break;
                 }
                 
@@ -257,7 +257,79 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 }
             }
         }
+        private static void DrawTypeDropdown(SerializedProperty property, Type baseType, string label = "")
+        {
+            EditorGUILayout.Space(30);
 
+            var derivedTypes = SubclassTypeHelper.GetSubTypes(baseType);
+
+            derivedTypes.Reverse();
+
+            if (derivedTypes.Count == 0) return;
+
+            string[] typeNames = new string[derivedTypes.Count];
+            for (int i = 0; i < derivedTypes.Count; i++)
+            {
+                typeNames[i] = derivedTypes[i].Name;
+            }
+
+            int currentIndex = 0;
+            object propObj = property.managedReferenceValue;
+            if (propObj != null)
+            {
+                Type currentType = propObj.GetType();
+                int typeIndex = derivedTypes.IndexOf(currentType);
+                if (typeIndex >= 0)
+                {
+                    currentIndex = typeIndex;
+                }
+            }
+
+            int newIndex = EditorGUILayout.Popup(label, currentIndex, typeNames);
+
+            if (newIndex != currentIndex)
+            {
+                Type selectedType = derivedTypes[newIndex];
+                object newInstance = Activator.CreateInstance(selectedType);
+                try
+                {
+                    Undo.RecordObject(property.serializedObject.targetObject, "Change Type");
+                    if (propObj is NovaElement oldElement && newInstance is NovaElement newElement)
+                    {
+                        JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(oldElement), newElement);
+
+                        if (oldElement.Parent.ChildrenGuidList != null)
+                        {
+                            for (int i = 0; i < oldElement.Parent.ChildrenGuidList.Count; i++)
+                            {
+                                oldElement.Parent.ChildrenGuidList[i] = newElement.Guid;
+                            }
+                        }
+                        
+                        NovaElementRegistry.ReplaceElement(oldElement.Guid,newElement);
+                        ReplaceLinkedElementInContext(oldElement);
+                        
+                        property.managedReferenceValue = newElement;
+                    }
+                    else if (propObj != null)
+                    {
+                        string beforeJson = JsonUtility.ToJson(propObj);
+                        JsonUtility.FromJsonOverwrite(beforeJson, newInstance);
+                        property.managedReferenceValue = newInstance;
+                    }
+                    else 
+                    {
+                        property.managedReferenceValue = newInstance;
+                    }
+
+                    property.serializedObject.ApplyModifiedProperties();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"实例化失败：\n{e.Message}");
+                }
+            }
+        }
         private static void DrawEntitySelectorDropDown(SerializedProperty prop,object actualParentObject)
         {
             if (actualParentObject is not EntityAction entityAction || entityAction.Parent.Parent is not Flowchart flowchart) return;
@@ -337,7 +409,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
 
                 if (valueProp != null)
                 {
-                    InspectorCustomUIHelper.DrawTypeDropdown(valueProp, typeof(EntityAnim));
+                    DrawTypeDropdown(valueProp, typeof(EntityAnim));
                 }
 
                 GUILayout.FlexibleSpace();
@@ -416,7 +488,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 {
                     var entityPrefabs = editingFlowchart.entityPrefabs;
                     TransformCheckerMono.StartToSetTransform(transformChecker,entityPrefabs[entityAction.entity]?.GetComponent<SpriteRenderer>()?.sprite);
-                    TransformCheckerEditor.ToRestoreElement = entityAction;
+                    TransformCheckerInspectorEditor.ToRestoreElement = entityAction;
                 }
             }
             GUI.backgroundColor = Color.white;

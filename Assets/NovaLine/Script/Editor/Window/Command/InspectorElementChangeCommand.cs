@@ -41,7 +41,7 @@ namespace NovaLine.Script.Editor.Window.Command
         {
             if (congenericCommand is not InspectorElementChangeCommand other) return;
         
-            if (this.afterTypeName != other.afterTypeName || this.beforeTypeName != other.beforeTypeName) return;
+            if (afterTypeName != other.afterTypeName || beforeTypeName != other.beforeTypeName) return;
 
             afterJson = other.afterJson;
         }
@@ -60,9 +60,7 @@ namespace NovaLine.Script.Editor.Window.Command
                 JsonUtility.FromJsonOverwrite(json, newInstance);
                 
                 NovaElementRegistry.ReplaceElement(liveElement.Guid,newInstance);
-                ContextRegistry.ReplaceLinkedElement(newInstance);
-                
-                InspectorHelper.UpdateCacheForSwappedElement(newInstance);
+                ContextRegistry.ReplaceLinkedElementInContext(newInstance);
             }
             else
             {

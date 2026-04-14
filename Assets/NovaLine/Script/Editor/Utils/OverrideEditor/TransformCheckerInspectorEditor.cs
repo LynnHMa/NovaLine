@@ -1,13 +1,26 @@
-﻿using NovaLine.Script.Element;
+﻿using System;
+using NovaLine.Script.Element;
 using NovaLine.Script.Utils;
+using UnityEditor;
 using UnityEngine;
 
 namespace NovaLine.Script.Editor.Utils.OverrideEditor
 {
     [UnityEditor.CustomEditor(typeof(TransformCheckerMono))]
-    public class TransformCheckerEditor : UnityEditor.Editor
+    public class TransformCheckerInspectorEditor : UnityEditor.Editor
     {
         public static NovaElement ToRestoreElement { get; set; }
+
+        private static Type InspectorWindowType
+        {
+            get
+            {
+                _cachedInspectorWindowType ??= typeof(EditorWindow).Assembly.GetType("UnityEditor.InspectorWindow");
+                return _cachedInspectorWindowType;
+            }
+            set =>  _cachedInspectorWindowType = value;
+        }
+        private static Type _cachedInspectorWindowType;
         public override void OnInspectorGUI()
         {
             DrawDefaultInspector();
@@ -17,6 +30,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
             GUI.backgroundColor = ColorExt.LIGHT_GREEN;
             if (GUILayout.Button("Save", GUILayout.Height(30)))
             {
+                Undo.RecordObject(Selection.activeObject, "Change Transform");
                 TransformCheckerMono.SaveTransform();
                 RestoreInspectorElement();
             }
@@ -36,6 +50,8 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
         private static void RestoreInspectorElement()
         {
             ToRestoreElement?.ShowInInspector();
+            var inspectorWindow = EditorWindow.GetWindow(InspectorWindowType);
+            inspectorWindow?.Focus();
         }
     }
 }

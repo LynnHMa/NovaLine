@@ -13,9 +13,20 @@ namespace NovaLine.Script.Editor.Utils
 {
     public static class InspectorHelper
     {
-        public static ObjectInspectorWrapper InspectorNovaElementWrapper { get; set; }
+        public struct ElementSnapshot
+        {
+            public string Json { get;}
+            public string TypeName { get; }
+
+            public ElementSnapshot(string json, string typeName)
+            {
+                Json = json;
+                TypeName = typeName;
+            }
+        }
+        public static NovaElementInspectorWrapper InspectorNovaElementWrapper { get; set; }
         
-        private static readonly Dictionary<string, string> elementJsonCache = new();
+        private static readonly Dictionary<string, ElementSnapshot> elementCache = new();
 
         private static int _inspectorUpdateVersion = 0;
 
@@ -33,12 +44,12 @@ namespace NovaLine.Script.Editor.Utils
                 {
                     Selection.activeObject = null;
                     InspectorNovaElementWrapper = null;
-                    elementJsonCache.Clear();
+                    elementCache.Clear();
                     return;
                 }
 
-                InspectorNovaElementWrapper = ObjectInspectorWrapper.CreateInstance(novaElement.Guid);
-                snapshotAllElements();
+                InspectorNovaElementWrapper = NovaElementInspectorWrapper.CreateInstance(novaElement.Guid);
+                SnapshotAllElements();
                 Selection.activeObject = InspectorNovaElementWrapper;
             }
             catch (Exception e)
@@ -50,7 +61,7 @@ namespace NovaLine.Script.Editor.Utils
         public static void OnInspectorObjValueChange()
         {
             if (InspectorNovaElementWrapper == null) return;
-            var parents = InspectorNovaElementWrapper.parentElementGuidList;
+            var parents = InspectorNovaElementWrapper.ParentElementGuidList;
             for (int i = parents.Count - 1; i >= 0; i--)
             {
                 var parentGuid = parents[i];
@@ -58,55 +69,57 @@ namespace NovaLine.Script.Editor.Utils
                 if (liveParent != null && TryRegisterChange(liveParent)) return;
             }
 
-            var selected = FindElement(InspectorNovaElementWrapper.selectedElementGuid);
+            var selected = FindElement(InspectorNovaElementWrapper.SelectedElementGuid);
             if (selected != null) TryRegisterChange(selected);
         }
         
-        private static void snapshotAllElements()
+        private static void SnapshotAllElements()
         {
-            elementJsonCache.Clear();
+            elementCache.Clear();
             if (InspectorNovaElementWrapper == null) return;
 
-            foreach (var guid in InspectorNovaElementWrapper.parentElementGuidList)
+            foreach (var el in InspectorNovaElementWrapper.parentElements)
             {
-                var el = FindElement(guid);
-                elementJsonCache[guid] = JsonUtility.ToJson(el);
+                if (el.Guid != null)
+                {
+                    elementCache[el.Guid] = new ElementSnapshot(JsonUtility.ToJson(el), el.GetType().AssemblyQualifiedName);
+                }
             }
-            
-            var sel = FindElement(InspectorNovaElementWrapper.selectedElementGuid);
-            if (sel != null) elementJsonCache[sel.Guid] = JsonUtility.ToJson(sel);
+
+            var sel = InspectorNovaElementWrapper.selectedElement;
+            if (sel.Guid != null)
+            {
+                elementCache[sel.Guid] = new ElementSnapshot(JsonUtility.ToJson(sel), sel.GetType().AssemblyQualifiedName);
+            }
         }
         
         public static bool TryRegisterChange(NovaElement liveElement)
         {
             if (liveElement?.Guid == null) return false;
 
-            var currentJson = JsonUtility.ToJson(liveElement);
-
-            var cachedJson = elementJsonCache.GetValueOrDefault(liveElement.Guid, currentJson);
-
-            if (currentJson == cachedJson) return false;
+            string currentJson = JsonUtility.ToJson(liveElement);
+            string currentTypeName = liveElement.GetType().AssemblyQualifiedName;
+            
+            if (!elementCache.TryGetValue(liveElement.Guid, out var cachedData))
+            {
+                cachedData = new ElementSnapshot(currentJson, currentTypeName);
+            }
+            
+            if (currentJson == cachedData.Json && currentTypeName == cachedData.TypeName) 
+                return false;
 
             var contextGuid = liveElement.Parent?.Guid ?? liveElement.Guid;
             var contextType = liveElement.Parent?.Type ?? liveElement.Type;
             
-            string typeName = liveElement.GetType().AssemblyQualifiedName;
-            
             CommandRegistry.RegisterCommand(new InspectorElementChangeCommand(
                 contextGuid, contextType,
                 liveElement.Guid, liveElement.Type,
-                cachedJson, currentJson,
-                typeName, typeName));
-
-            elementJsonCache[liveElement.Guid] = currentJson;
+                cachedData.Json, currentJson,
+                cachedData.TypeName, currentTypeName));
+            
+            elementCache[liveElement.Guid] = new ElementSnapshot(currentJson, currentTypeName);
             UpdateScope.RequireUpdate();
             return true;
-        }
-        
-        public static void UpdateCacheForSwappedElement(NovaElement newLiveElement)
-        {
-            if (newLiveElement?.Guid == null) return;
-            elementJsonCache[newLiveElement.Guid] = JsonUtility.ToJson(newLiveElement);
         }
     }
 }
