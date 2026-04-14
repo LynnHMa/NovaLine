@@ -6,8 +6,8 @@ namespace NovaLine.Script.Data.Edge
     [Serializable]
     public class EventEdgeData : EdgeData<EventSwitcher>
     {
-        public override string name => "Next Event";
-        public override string description => "The next event.";
+        public override string Name => "Next Event";
+        public override string Description => "The next event.";
 
         public EventEdgeData()
         {

@@ -10,22 +10,22 @@ namespace NovaLine.Script.Data.NodeGraphView
     {
         public FlowchartData()
         {
-            linkedElement = new Flowchart("New Flowchart");
+            LinkedElement = new Flowchart("New Flowchart");
         }
 
-        public override void registerLinkedElement()
+        public override void RegisterLinkedElement()
         {
             EntityRegistry.ClearEntities();
             NovaElementRegistry.Clear();
             if (Application.isPlaying)
             {
-                for (var i = 0; i < linkedElement.entityPrefabs.Count; i++)
+                for (var i = 0; i < LinkedElement.entityPrefabs.Count; i++)
                 {
-                    var entityPrefab = linkedElement.entityPrefabs[i];
+                    var entityPrefab = LinkedElement.entityPrefabs[i];
                     EntityRegistry.RegisterEntity(entityPrefab);
                 }
             }
-            base.registerLinkedElement();
+            base.RegisterLinkedElement();
         }
     }
 }

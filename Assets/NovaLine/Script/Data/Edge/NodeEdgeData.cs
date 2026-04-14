@@ -15,8 +15,8 @@ namespace NovaLine.Script.Data.Edge
             set => _switchConditionData = value;
         }
 
-        public override string name => "Next Node";
-        public override string description => "Set next node and its condition.";
+        public override string Name => "Next Node";
+        public override string Description => "Set next node and its condition.";
 
         public NodeEdgeData() { }
         public NodeEdgeData(NodeSwitcher novaElement) : base(novaElement)
@@ -24,22 +24,22 @@ namespace NovaLine.Script.Data.Edge
             switchConditionData = new ConditionData(novaElement.switchCondition);
         }
         
-        public override void registerLinkedElement()
+        public override void RegisterLinkedElement()
         {
-            switchConditionData?.registerLinkedElement();
-            base.registerLinkedElement();
+            switchConditionData?.RegisterLinkedElement();
+            base.RegisterLinkedElement();
         }
         
-        public override void updateLinkedElement(bool updateChildren = true)
+        public override void UpdateLinkedElement(bool updateChildren = true)
         {
-            if(updateChildren) switchConditionData?.updateLinkedElement();
-            base.updateLinkedElement(updateChildren);
+            if(updateChildren) switchConditionData?.UpdateLinkedElement();
+            base.UpdateLinkedElement(updateChildren);
         }
-        public override INovaData copy()
+        public override INovaData Copy()
         {
-            if (base.copy() is not NodeEdgeData clone) return null;
-            clone.switchConditionData = (ConditionData)switchConditionData.copy();
-            clone.switchConditionData.linkedElement = clone.linkedElement.switchCondition;
+            if (base.Copy() is not NodeEdgeData clone) return null;
+            clone.switchConditionData = (ConditionData)switchConditionData.Copy();
+            clone.switchConditionData.LinkedElement = clone.LinkedElement.switchCondition;
             return clone;
         }
     }

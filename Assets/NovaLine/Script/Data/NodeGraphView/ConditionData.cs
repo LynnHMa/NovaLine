@@ -11,7 +11,7 @@ namespace NovaLine.Script.Data.NodeGraphView
         public ConditionData(){}
         public ConditionData(Condition linkedCondition)
         {
-            linkedElement = linkedCondition;
+            LinkedElement = linkedCondition;
         }
     }
 }

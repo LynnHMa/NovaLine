@@ -16,7 +16,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         public override void SaveData()
         {
             base.SaveData();
-            LinkedData.updateLinkedElement();
+            LinkedData.UpdateLinkedElement();
         }
         public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {

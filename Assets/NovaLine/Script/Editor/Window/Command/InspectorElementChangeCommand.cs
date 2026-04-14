@@ -49,7 +49,7 @@ namespace NovaLine.Script.Editor.Window.Command
         private void ApplyState(string json, string targetTypeName)
         {
             var context = ContextRegistry.GetContext(targetElementGuid, targetElementType);
-            var liveElement = context?.LinkedData?.linkedElement;
+            var liveElement = context?.LinkedData?.LinkedElement;
             if (liveElement == null) return;
 
             Type targetType = System.Type.GetType(targetTypeName);

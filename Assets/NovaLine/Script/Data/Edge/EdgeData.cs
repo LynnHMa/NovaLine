@@ -7,39 +7,39 @@ namespace NovaLine.Script.Data.Edge
     public class EdgeData<TLinkedSwitcher> : NovaData<TLinkedSwitcher>, IEdgeData
         where TLinkedSwitcher : NovaSwitcher
     {
-        NovaSwitcher IEdgeData.linkedElement
+        NovaSwitcher IEdgeData.LinkedElement
         {
-            get => linkedElement;
-            set => linkedElement = value as TLinkedSwitcher;
+            get => LinkedElement;
+            set => LinkedElement = value as TLinkedSwitcher;
         }
         protected EdgeData()
         {
         }
         protected EdgeData(TLinkedSwitcher linkedElement)
         {
-            this.linkedElement = linkedElement;
+            LinkedElement = linkedElement;
         }
 
-        public override void registerLinkedElement()
+        public override void RegisterLinkedElement()
         {
-            if (linkedElement == null) return;
-            var toReg = linkedElement.StrongCopy() as TLinkedSwitcher;
+            if (LinkedElement == null) return;
+            var toReg = LinkedElement.StrongCopy() as TLinkedSwitcher;
             NovaElementRegistry.RegisterElement(toReg);
         }
-        public override void updateLinkedElement(bool updateChildren = true)
+        public override void UpdateLinkedElement(bool updateChildren = true)
         {
-            linkedElement = NovaElementRegistry.FindElement(linkedElement.Guid) as TLinkedSwitcher;
+            LinkedElement = NovaElementRegistry.FindElement(LinkedElement.Guid) as TLinkedSwitcher;
         }
         
-        public override INovaData copy()
+        public override INovaData Copy()
         {
-            if (base.copy() is not EdgeData<TLinkedSwitcher> clone) return null;
-            clone.linkedElement = (TLinkedSwitcher)linkedElement.Copy();
+            if (base.Copy() is not EdgeData<TLinkedSwitcher> clone) return null;
+            clone.LinkedElement = (TLinkedSwitcher)LinkedElement.Copy();
             return clone;
         }
     }
     public interface IEdgeData : INovaData
     {
-        new NovaSwitcher linkedElement { get; set; }
+        new NovaSwitcher LinkedElement { get; set; }
     }
 }

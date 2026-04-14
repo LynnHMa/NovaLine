@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
+using NovaLine.Script.Editor.File;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
@@ -255,6 +256,27 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
 
                     EditorGUILayout.Space(30);
                 }
+                
+                if (selectedElement is Node node)
+                {
+                    GUI.backgroundColor = EditorApplication.isPlaying ? ColorExt.NODE_THEMED_COLOR : ColorExt.LIGHT_GREEN;
+                    if (GUILayout.Button(EditorApplication.isPlaying ? "Exit" : "Play From Current Node", GUILayout.Height(30)))
+                    {
+                        var inspectorLinkedElement = InspectorHelper.InspectorNovaElementWrapper.selectedElement;
+                        if (!EditorApplication.isPlaying)
+                        {
+                            EditorNodePlayer.RequestPlayFromNode(node.Guid,inspectorLinkedElement.Guid);
+                        }
+                        else
+                        {
+                            EditorApplication.isPlaying = false;
+                            EditorApplication.delayCall += () => inspectorLinkedElement.ShowInInspector();
+                        }
+                    }
+                    GUI.backgroundColor = Color.white;
+                    
+                    EditorGUILayout.Space(30);
+                }
             }
         }
         private static void DrawTypeDropdown(SerializedProperty property, Type baseType, string label = "")
@@ -332,7 +354,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
         }
         private static void DrawEntitySelectorDropDown(SerializedProperty prop,object actualParentObject)
         {
-            if (actualParentObject is not EntityAction entityAction || entityAction.Parent.Parent is not Flowchart flowchart) return;
+            if (actualParentObject is not EntityAction entityAction || entityAction.Parent?.Parent is not Flowchart flowchart) return;
             var entityPrefabs = flowchart.entityPrefabs;
             var entityDisplayNameList = new List<string>();
             for (var i = 0; i < entityPrefabs.Count; i++)
@@ -483,7 +505,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
             GUI.backgroundColor = Color.cyan;
             if (GUILayout.Button("Edit " + prop.displayName, GUILayout.Height(25)))
             {
-                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.linkedElement;
+                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.LinkedElement;
                 if (editingFlowchart != null && InspectorHelper.InspectorNovaElementWrapper.selectedElement is EntityAction entityAction)
                 {
                     var entityPrefabs = editingFlowchart.entityPrefabs;

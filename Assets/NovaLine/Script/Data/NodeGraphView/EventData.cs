@@ -12,8 +12,8 @@ namespace NovaLine.Script.Data.NodeGraphView
         public EventData(){}
         public EventData(NovaEvent novaEvent, Vector2 pos)
         {
-            this.pos = pos;
-            linkedElement = novaEvent;
+            this.Pos = pos;
+            LinkedElement = novaEvent;
         }
     }
 }

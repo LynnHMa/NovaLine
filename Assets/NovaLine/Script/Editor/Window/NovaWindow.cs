@@ -47,18 +47,7 @@ namespace NovaLine.Script.Editor.Window
                 ClearContexts();
             };
         }
-        private void TryRestoreAfterReload()
-        {
-            if (CurrentGraphViewNodeContext != null) return;
-            EditorFileManager.RestoreAfterDomainReload();
-        }
-        private void OnBeforeAssemblyReload()
-        {
-            if (!EditorApplication.isCompiling)
-            {
-                EditorFileManager.SaveGraphWindowData();
-            }
-        }
+        
 
         #region STATIC
         public static void CreateGraphWindow()
@@ -106,7 +95,7 @@ namespace NovaLine.Script.Editor.Window
                 }
                 RegisterContext(flowchartContext);
                 context.GraphView.SetBackButtonVisible(false);
-                context.LinkedData.registerLinkedElement();
+                context.LinkedData.RegisterLinkedElement();
             }
             else if(context is not FlowchartNodeContext)
             {
@@ -116,7 +105,7 @@ namespace NovaLine.Script.Editor.Window
 
             Instance.rootVisualElement.Clear();
 
-            Debug.Log($"Loaded {context.LinkedData.nodeDataList.Count} nodes , {context.LinkedData.edgeDataList.Count} edges! Data name: {context.LinkedData.name}");
+            Debug.Log($"Loaded {context.LinkedData.NodeDataList.Count} nodes , {context.LinkedData.EdgeDataList.Count} edges! Data name: {context.LinkedData.Name}");
 
             if (isExiting)
             {
@@ -126,9 +115,9 @@ namespace NovaLine.Script.Editor.Window
                 {
                     if(presentContext is ConditionContext conditionContext)
                     {
-                        if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.linkedElement.Parent.Guid))
+                        if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.LinkedElement.Parent.Guid))
                         {
-                            context.GraphView.SelectGraphEdge(conditionContext.LinkedData.linkedElement.Parent.Guid);
+                            context.GraphView.SelectGraphEdge(conditionContext.LinkedData.LinkedElement.Parent.Guid);
                         }
                     }
                     else
@@ -158,7 +147,7 @@ namespace NovaLine.Script.Editor.Window
                 SelectedGraphNode = null;
 
                 //Update linked element of current context.
-                var linkedContextElement = context.LinkedData.linkedElement;
+                var linkedContextElement = context.LinkedData.LinkedElement;
                 linkedContextElement?.ShowInInspector();
 
                 //Init the context.
@@ -181,6 +170,18 @@ namespace NovaLine.Script.Editor.Window
             if (Instance == null) return;
 
             Instance.titleContent.text = CurrentGraphViewNodeContext?.Title;
+        }
+        private static void TryRestoreAfterReload()
+        {
+            if (CurrentGraphViewNodeContext != null) return;
+            EditorFileManager.RestoreAfterDomainReload();
+        }
+        private static void OnBeforeAssemblyReload()
+        {
+            if (!EditorApplication.isCompiling)
+            {
+                EditorFileManager.SaveGraphWindowData();
+            }
         }
         #endregion
     }

@@ -67,13 +67,13 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                     if (context is not C childContext) continue;
 
                     childContext.SaveData();
-                    childContext.LinkedData.pos = checkingGraphNode.pos;
+                    childContext.LinkedData.Pos = checkingGraphNode.pos;
 
                     newNodeDataList.Add(childContext.LinkedData);
                 }
             }
 
-            LinkedData.nodeDataList = newNodeDataList;
+            LinkedData.NodeDataList = newNodeDataList;
             
             //Must redraw
             if (graphNodes != null && GraphView != null)
@@ -98,7 +98,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                 }
             }
 
-            LinkedData.edgeDataList = newEdgeDataList;
+            LinkedData.EdgeDataList = newEdgeDataList;
             
             //Must redraw
             if (graphEdges != null && GraphView != null)
@@ -126,26 +126,26 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         }
         public virtual void DrawNode()
         {
-            var nodeDataList = LinkedData.nodeDataList;
+            var nodeDataList = LinkedData.NodeDataList;
             if (nodeDataList == null || nodeDataList.Count == 0) return;
             for (int i = nodeDataList.Count - 1; i >= 0; i--)
             {
                 var nodeData = nodeDataList[i];
-                var graphNode = GraphView.SummonNewGraphNode(nodeData.linkedElement, nodeData.pos);
+                var graphNode = GraphView.SummonNewGraphNode(nodeData.LinkedElement, nodeData.Pos);
                 if (graphNode != null)
                 {
                     GraphView.AddGraphNode(graphNode);
                 }
             }
-            if(!String.IsNullOrEmpty(LinkedData.linkedElement.FirstChildGuid)) GraphView.SetFirstNode(LinkedData.linkedElement.FirstChildGuid,false);
+            if(!String.IsNullOrEmpty(LinkedData.LinkedElement.FirstChildGuid)) GraphView.SetFirstNode(LinkedData.LinkedElement.FirstChildGuid,false);
         }
         public virtual void DrawEdge()
         {
-            var nodeEdgeDatas = LinkedData.edgeDataList;
+            var nodeEdgeDatas = LinkedData.EdgeDataList;
             if (nodeEdgeDatas == null || nodeEdgeDatas.Count == 0) return;
             foreach (var nodeEdgeData in nodeEdgeDatas)
             {
-                var nodeGraphEdge = GraphView.SummonNewGraphEdge(nodeEdgeData.linkedElement);
+                var nodeGraphEdge = GraphView.SummonNewGraphEdge(nodeEdgeData.LinkedElement);
                 if (nodeGraphEdge != null) GraphView.AddGraphEdge(nodeGraphEdge);
             }
         }

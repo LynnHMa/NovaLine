@@ -17,6 +17,10 @@ namespace NovaLine.Script.Anim.Entity
             if(spriteRenderer == null) yield break;
             
             var timer = fadeIn ? 0f : duration;
+            
+            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, timer / duration);
+            spriteRenderer.gameObject.SetActive(true);
+            
             while (fadeIn ? timer < duration : timer > 0f)
             {
                 var alpha = timer / duration;

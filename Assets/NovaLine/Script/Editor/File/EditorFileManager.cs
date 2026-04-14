@@ -15,9 +15,10 @@ namespace NovaLine.Script.Editor.File
 {
     public static class EditorFileManager
     {
-        private static readonly string CURRENT_PATH_SESSION_PATH_KEY = "NOVA_CURRENT_PATH";
-        private static readonly string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
-        private static readonly string CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT_TYPE";
+        private const string CURRENT_PATH_SESSION_PATH_KEY = "NOVA_CURRENT_PATH";
+        private const string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
+        private const string CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT_TYPE";
+
         private static string CurrentPath
         {
             get => SessionState.GetString(CURRENT_PATH_SESSION_PATH_KEY, string.Empty);
@@ -57,7 +58,6 @@ namespace NovaLine.Script.Editor.File
             var asset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(path);
             if (asset == null)
             {
-                Debug.LogError($"Failed to load asset at path: {path}");
                 return false;
             }
 
@@ -89,7 +89,7 @@ namespace NovaLine.Script.Editor.File
             {
                 CurrentPath = EditorUtility.SaveFilePanelInProject(
                     "Save Flowchart",
-                    RegisteredFlowchartNodeContext.LinkedData.name,
+                    RegisteredFlowchartNodeContext.LinkedData.Name,
                     "asset",
                     "Save Flowchart"
                 );
@@ -135,9 +135,9 @@ namespace NovaLine.Script.Editor.File
             if (asset == null) return;
 
             var flowchartData = asset.data;
-            flowchartData.linkedElement.name = asset.name;
+            flowchartData.LinkedElement.name = asset.name;
             var flowchartContext = new FlowchartNodeContext(flowchartData);
-
+            
             //Re-register all contexts
             var storedCurrentContextGuid = CurrentContextGuid;
             var storedCurrentContextType = CurrentContextType;

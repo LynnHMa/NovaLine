@@ -25,39 +25,39 @@ namespace NovaLine.Script.Data.NodeGraphView
         public ActionData(){}
         public ActionData(NovaAction linkedAction, Vector2 pos)
         {
-            this.pos = pos;
-            linkedElement = linkedAction;
-            ConditionBeforeInvokeData = new ConditionData(linkedElement?.ConditionBeforeInvoke);
-            ConditionAfterInvokeData = new ConditionData(linkedElement?.ConditionAfterInvoke);
+            this.Pos = pos;
+            LinkedElement = linkedAction;
+            ConditionBeforeInvokeData = new ConditionData(LinkedElement?.ConditionBeforeInvoke);
+            ConditionAfterInvokeData = new ConditionData(LinkedElement?.ConditionAfterInvoke);
         }
         
-        public override INovaData copy()
+        public override INovaData Copy()
         {
-            var clone = (ActionData)base.copy();
+            var clone = (ActionData)base.Copy();
             
             if (clone == null) return null;
             
-            clone.ConditionBeforeInvokeData = (ConditionData)ConditionBeforeInvokeData.copy();
-            clone.ConditionAfterInvokeData = (ConditionData)ConditionAfterInvokeData.copy();
-            clone.ConditionBeforeInvokeData.linkedElement = clone.linkedElement.ConditionBeforeInvoke;
-            clone.ConditionAfterInvokeData.linkedElement = clone.linkedElement.ConditionAfterInvoke;
+            clone.ConditionBeforeInvokeData = (ConditionData)ConditionBeforeInvokeData.Copy();
+            clone.ConditionAfterInvokeData = (ConditionData)ConditionAfterInvokeData.Copy();
+            clone.ConditionBeforeInvokeData.LinkedElement = clone.LinkedElement.ConditionBeforeInvoke;
+            clone.ConditionAfterInvokeData.LinkedElement = clone.LinkedElement.ConditionAfterInvoke;
             return clone;
         }
 
-        public override void updateLinkedElement(bool updateChildren = true)
+        public override void UpdateLinkedElement(bool updateChildren = true)
         {
             if (updateChildren)
             {
-                ConditionBeforeInvokeData?.updateLinkedElement();
-                ConditionAfterInvokeData?.updateLinkedElement();
+                ConditionBeforeInvokeData?.UpdateLinkedElement();
+                ConditionAfterInvokeData?.UpdateLinkedElement();
             }
-            base.updateLinkedElement(updateChildren);
+            base.UpdateLinkedElement(updateChildren);
         }
-        public override void registerLinkedElement()
+        public override void RegisterLinkedElement()
         {
-            ConditionBeforeInvokeData?.registerLinkedElement();
-            ConditionAfterInvokeData?.registerLinkedElement();
-            base.registerLinkedElement();
+            ConditionBeforeInvokeData?.RegisterLinkedElement();
+            ConditionAfterInvokeData?.RegisterLinkedElement();
+            base.RegisterLinkedElement();
         }
     }
 }

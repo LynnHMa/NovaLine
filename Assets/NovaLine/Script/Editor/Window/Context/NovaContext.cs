@@ -8,7 +8,7 @@ namespace NovaLine.Script.Editor.Window.Context
     {
         protected NovaWindow Window => NovaWindow.Instance;
         public string Guid => LinkedData.Guid;
-        public NovaElementType Type => LinkedData?.linkedElement?.Type ?? NovaElementType.NONE;
+        public NovaElementType Type => LinkedData?.LinkedElement?.Type ?? NovaElementType.NONE;
         public TLinkedData LinkedData { get; set; }
         
         INovaData INovaContext.LinkedData { get => LinkedData; set => LinkedData = (TLinkedData)value; }

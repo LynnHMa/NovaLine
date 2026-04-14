@@ -6,8 +6,8 @@ namespace NovaLine.Script.Data.Edge
     [Serializable]
     public class ActionEdgeData : EdgeData<ActionSwitcher>
     {
-        public override string name => "Next Action";
-        public override string description => "The next action.";
+        public override string Name => "Next Action";
+        public override string Description => "The next action.";
 
         public ActionEdgeData()
         {

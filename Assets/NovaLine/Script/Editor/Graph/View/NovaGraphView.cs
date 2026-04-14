@@ -390,7 +390,7 @@ namespace NovaLine.Script.Editor.Graph.View
                 
             //Recording command
             var linkedData = newGraphNodeContext.LinkedData;
-            if(linkedData != null) CommandRegistry.RegisterCommand(new AddNodeCommand(LinkedElementGuid, Type, linkedData.strongCopy() as IGraphViewNodeData));
+            if(linkedData != null) CommandRegistry.RegisterCommand(new AddNodeCommand(LinkedElementGuid, Type, linkedData.StrongCopy() as IGraphViewNodeData));
             
             //In the end: Add node to graph view
             graphNode.linkedElement.SetParent(LinkedElement);
@@ -405,7 +405,7 @@ namespace NovaLine.Script.Editor.Graph.View
             //Recording command
             var graphNodeContext = GetContext(graphNode.guid, graphNode.type);
             var linkedData = graphNodeContext?.LinkedData;
-            if(linkedData != null) CommandRegistry.RegisterCommand(new RemoveNodeCommand(LinkedElementGuid, Type, linkedData.strongCopy() as IGraphViewNodeData));
+            if(linkedData != null) CommandRegistry.RegisterCommand(new RemoveNodeCommand(LinkedElementGuid, Type, linkedData.StrongCopy() as IGraphViewNodeData));
                 
             //Unregister context
             UnregisterContext(graphNodeContext);
@@ -423,7 +423,7 @@ namespace NovaLine.Script.Editor.Graph.View
             
             //Recording command
             var linkedData = newEdgeContext.LinkedData;
-            if(linkedData != null) CommandRegistry.RegisterCommand(new AddEdgeCommand(LinkedElementGuid, Type, linkedData.strongCopy() as IEdgeData));
+            if(linkedData != null) CommandRegistry.RegisterCommand(new AddEdgeCommand(LinkedElementGuid, Type, linkedData.StrongCopy() as IEdgeData));
         }
         public virtual void RemoveGraphEdgeByHand(IGraphEdge graphEdge)
         {
@@ -435,30 +435,30 @@ namespace NovaLine.Script.Editor.Graph.View
             //Recording command
             var edgeContext = GetContext(graphEdge.Guid, NovaElementType.SWITCHER);
             var linkedData = edgeContext?.LinkedData;
-            if(linkedData != null) CommandRegistry.RegisterCommand(new RemoveEdgeCommand(LinkedElementGuid, Type, linkedData.strongCopy() as IEdgeData));
+            if(linkedData != null) CommandRegistry.RegisterCommand(new RemoveEdgeCommand(LinkedElementGuid, Type, linkedData.StrongCopy() as IEdgeData));
             
             UnregisterContext(edgeContext);
         }
         
         public virtual void AddGraphNodeByCommand(IGraphViewNodeData linkedData)
         {
-            if (FindElement(linkedData.linkedElement.Guid) is not TGraphNodeElement addElement) return;
+            if (FindElement(linkedData.LinkedElement.Guid) is not TGraphNodeElement addElement) return;
             RegisterContext(SummonNewChildGraphViewNodeContext(linkedData));
             
             addElement.SetParent(LinkedElement);
             
-            var graphNode = SummonNewGraphNode(addElement, linkedData.pos);
+            var graphNode = SummonNewGraphNode(addElement, linkedData.Pos);
             AddGraphNode(graphNode);
             
             //Not need to record command.
         }
         public virtual void RemoveGraphNodeByCommand(IGraphViewNodeData linkedData)
         {
-            if (FindElement(linkedData.linkedElement.Guid) is not TGraphNodeElement removeElement) return;
+            if (FindElement(linkedData.LinkedElement.Guid) is not TGraphNodeElement removeElement) return;
             
             RemoveGraphNode(linkedData.Guid);
             
-            linkedData.linkedElement.SetParent(null);
+            linkedData.LinkedElement.SetParent(null);
             
             UnregisterContext(removeElement.Guid, removeElement.Type);
             
@@ -467,7 +467,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void AddGraphEdgeByCommand(IEdgeData linkedData)
         {
-            if (FindElement(linkedData.linkedElement.Guid) is not TSwitcherElement switcherElement) return;
+            if (FindElement(linkedData.LinkedElement.Guid) is not TSwitcherElement switcherElement) return;
             
             RegisterContext(SummonNewChildEdgeContext(linkedData));
             
@@ -479,7 +479,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public virtual void RemoveGraphEdgeByCommand(IEdgeData linkedData)
         {
-            if (FindElement(linkedData.linkedElement.Guid) is not TSwitcherElement switcherElement) return;
+            if (FindElement(linkedData.LinkedElement.Guid) is not TSwitcherElement switcherElement) return;
             
             switcherElement.SetParent(null);
             

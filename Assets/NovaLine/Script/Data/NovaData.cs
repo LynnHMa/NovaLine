@@ -13,31 +13,31 @@ namespace NovaLine.Script.Data
         [SerializeField] private string _guid;
         [SerializeReference] private TNovaElement _linkedElement;
 
-        public virtual TNovaElement linkedElement 
+        public virtual TNovaElement LinkedElement 
         { 
             get => _linkedElement; 
             set => _linkedElement = value; 
         }
-        public virtual string name => linkedElement?.name;
-        public virtual string description => linkedElement?.description;
-        public virtual string Guid => linkedElement?.Guid;
-        public virtual Vector2 pos { get => _pos; set => _pos = value; }
-        public Vector2 getPos() => _pos;
+        public virtual string Name => LinkedElement?.name;
+        public virtual string Description => LinkedElement?.description;
+        public virtual string Guid => LinkedElement?.Guid;
+        public virtual Vector2 Pos { get => _pos; set => _pos = value; }
+        public Vector2 GetPos() => _pos;
 
-        NovaElement INovaData.linkedElement
+        NovaElement INovaData.LinkedElement
         {
-            get => linkedElement;
-            set => linkedElement = (TNovaElement)value;
+            get => LinkedElement;
+            set => LinkedElement = (TNovaElement)value;
         }
         
         protected NovaData(){}
 
-        public virtual INovaData copy()
+        public virtual INovaData Copy()
         {
-            return strongCopy();
+            return StrongCopy();
         }
 
-        public virtual INovaData strongCopy()
+        public virtual INovaData StrongCopy()
         {
             var data = JsonUtility.ToJson(this);
             var clone = (INovaData)Activator.CreateInstance(GetType());
@@ -45,19 +45,19 @@ namespace NovaLine.Script.Data
             return clone;
         }
 
-        public abstract void registerLinkedElement();
-        public abstract void updateLinkedElement(bool updateChildren = true);
+        public abstract void RegisterLinkedElement();
+        public abstract void UpdateLinkedElement(bool updateChildren = true);
     }
     public interface INovaData : IGUID
     {
-        NovaElement linkedElement { get; set; }
-        public string name { get;}
+        NovaElement LinkedElement { get; set; }
+        public string Name { get;}
 
-        public string description { get;}
-        public Vector2 pos { get; set; }
-        INovaData copy();
-        INovaData strongCopy();
-        void registerLinkedElement();
-        void updateLinkedElement(bool updateChildren = true);
+        public string Description { get;}
+        public Vector2 Pos { get; set; }
+        INovaData Copy();
+        INovaData StrongCopy();
+        void RegisterLinkedElement();
+        void UpdateLinkedElement(bool updateChildren = true);
     }
 }

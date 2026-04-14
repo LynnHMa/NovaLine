@@ -71,17 +71,19 @@ namespace NovaLine.Script
         }
         public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)
         {
-            playAsset.data.registerLinkedElement();
+            playAsset.data.RegisterLinkedElement();
             if (FindElement(playAsset.data.Guid) is Flowchart flowchart)
             {
                 yield return flowchart.Play();
             }
         }
 
-        public static IEnumerator PlayFromNode(Node node)
+        public static IEnumerator PlayFromNode(string nodeGuid)
         {
-            //todo register linked data element
-            yield return node.Run();
+            if (FindElement(nodeGuid) is Node node)
+            {
+                yield return node.Run();
+            }
         }
     }
 }

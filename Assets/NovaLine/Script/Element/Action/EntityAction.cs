@@ -16,6 +16,8 @@ namespace NovaLine.Script.Element.Action
         public int entity = -1;
 
         [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
+        public bool animsOnly;
+        [ShowInInspectorIf(nameof(animsOnly),false)]
         public TransformChecker startTransform;
         
         public List<NovaWrapper<EntityAnim>> anims;
@@ -25,11 +27,14 @@ namespace NovaLine.Script.Element.Action
             var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(entity);
             
             if(instantiatedEntity == null) yield break;
-
-            instantiatedEntity.transform.localPosition = startTransform.position;
-            instantiatedEntity.transform.localScale = startTransform.scale;
-            instantiatedEntity.transform.localRotation = startTransform.rotation;
-            instantiatedEntity.gameObject.SetActive(true);
+            
+            if (!animsOnly)
+            {
+                instantiatedEntity.transform.localPosition = startTransform.position;
+                instantiatedEntity.transform.localScale = startTransform.scale;
+                instantiatedEntity.transform.localRotation = startTransform.rotation;
+                instantiatedEntity.gameObject.SetActive(true);
+            }
             
             yield return instantiatedEntity.AnimPlayer?.PlayAll(anims);
             

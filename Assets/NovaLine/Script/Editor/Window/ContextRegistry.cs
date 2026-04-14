@@ -30,19 +30,19 @@ namespace NovaLine.Script.Editor.Window
             {
                 case IGraphViewNodeData graphViewNodeData:
                 {
-                    var nodeDataList = graphViewNodeData.nodeDataList;
+                    var nodeDataList = graphViewNodeData.NodeDataList;
                     if (nodeDataList != null && nodeDataList.Count > 0)
                     {
-                        foreach (var nodeData in graphViewNodeData.nodeDataList)
+                        foreach (var nodeData in graphViewNodeData.NodeDataList)
                         {
-                            var childContext = CreateContextByType(nodeData, nodeData.linkedElement.Type);
+                            var childContext = CreateContextByType(nodeData, nodeData.LinkedElement.Type);
                             RegisterContext(childContext);
                         }
                     }
-                    var edgeDataList = graphViewNodeData.edgeDataList;
+                    var edgeDataList = graphViewNodeData.EdgeDataList;
                     if (edgeDataList != null && edgeDataList.Count > 0)
                     {
-                        foreach (var edgeData in graphViewNodeData.edgeDataList)
+                        foreach (var edgeData in graphViewNodeData.EdgeDataList)
                         {
                             var edgeContext = new EdgeContext(edgeData);
                             RegisterContext(edgeContext);
@@ -92,18 +92,18 @@ namespace NovaLine.Script.Editor.Window
 
             if (graphViewNodeContext.LinkedData is IGraphViewNodeData graphViewNodeData)
             {
-                if (graphViewNodeData.nodeDataList != null && graphViewNodeData.nodeDataList.Count > 0)
+                if (graphViewNodeData.NodeDataList != null && graphViewNodeData.NodeDataList.Count > 0)
                 {
-                    foreach (var nodeData in graphViewNodeData.nodeDataList)
+                    foreach (var nodeData in graphViewNodeData.NodeDataList)
                     {
-                        if (nodeData?.linkedElement == null) continue;
-                        var childContext = GetContext(nodeData.Guid, nodeData.linkedElement.Type);
+                        if (nodeData?.LinkedElement == null) continue;
+                        var childContext = GetContext(nodeData.Guid, nodeData.LinkedElement.Type);
                         UnregisterContext(childContext);
                     }
                 }
-                if (graphViewNodeData.edgeDataList != null && graphViewNodeData.edgeDataList.Count > 0)
+                if (graphViewNodeData.EdgeDataList != null && graphViewNodeData.EdgeDataList.Count > 0)
                 {
-                    foreach (var edgeData in graphViewNodeData.edgeDataList)
+                    foreach (var edgeData in graphViewNodeData.EdgeDataList)
                     {
                         UnregisterContext(edgeData.Guid, NovaElementType.SWITCHER);
                     }
@@ -133,7 +133,7 @@ namespace NovaLine.Script.Editor.Window
         public static void ReplaceLinkedElementInContext(NovaElement newElement)
         {
             var linkedContext = GetContext(newElement.Guid, newElement.Type);
-            linkedContext.LinkedData.updateLinkedElement(false);
+            linkedContext.LinkedData.UpdateLinkedElement(false);
         }
         
         public static INovaContext GetContext(GraphNode graphNode, NovaElementType type)

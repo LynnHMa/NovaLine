@@ -46,15 +46,15 @@ namespace NovaLine.Script.Editor.Window
                     var nodeGraphViewDataGuid = copiedData.nodeGraphViewDataGuids[i];
                     
                     var copiedNodeGraphViewData = GetChildNodeGraphViewData(parentData, nodeGraphViewDataGuid);
-                    var pastedNodeGraphViewData = (IGraphViewNodeData)copiedNodeGraphViewData?.copy();
+                    var pastedNodeGraphViewData = (IGraphViewNodeData)copiedNodeGraphViewData?.Copy();
                     if(copiedNodeGraphViewData == null || pastedNodeGraphViewData == null) continue;
                     
                     copiedNodeGraphViewDataList.Add(copiedNodeGraphViewData);
                     pastedNodeGraphViewDataList.Add(pastedNodeGraphViewData);
                     
-                    var actualPos = currentGraphView.MousePos + pastedNodeGraphViewData.pos - copiedData.rootPos;
+                    var actualPos = currentGraphView.MousePos + pastedNodeGraphViewData.Pos - copiedData.rootPos;
 
-                    pastedNodeGraphViewData.pos = actualPos;
+                    pastedNodeGraphViewData.Pos = actualPos;
                     var newContext = currentGraphView.SummonNewChildGraphViewNodeContext(pastedNodeGraphViewData);
                     newContext.LinkedData = pastedNodeGraphViewData;
                     RegisterContext(newContext);
@@ -62,10 +62,10 @@ namespace NovaLine.Script.Editor.Window
                     CommandRegistry.RegisterCommand(new AddNodeCommand(
                         currentGraphView.LinkedElementGuid,
                         currentGraphView.LinkedElement.Type,
-                        pastedNodeGraphViewData.strongCopy() as IGraphViewNodeData));
+                        pastedNodeGraphViewData.StrongCopy() as IGraphViewNodeData));
                     
-                    pastedNodeGraphViewData.linkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
-                    var newGraphNode = currentGraphView.SummonNewGraphNode(pastedNodeGraphViewData.linkedElement, actualPos);
+                    pastedNodeGraphViewData.LinkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
+                    var newGraphNode = currentGraphView.SummonNewGraphNode(pastedNodeGraphViewData.LinkedElement, actualPos);
                     currentGraphView.AddGraphNode(newGraphNode);
                 }
 
@@ -76,29 +76,29 @@ namespace NovaLine.Script.Editor.Window
                     var edgeDataGuid = copiedData.edgeDataGuids[j];
                     var copiedEdgeData = GetChildEdgeData(parentData, edgeDataGuid);
                     if (copiedEdgeData == null) continue;
-                    var pastedEdgeData = (IEdgeData)copiedEdgeData.copy();
+                    var pastedEdgeData = (IEdgeData)copiedEdgeData.Copy();
                     if (pastedEdgeData == null) continue;
 
                     var inputElementIndex = copiedNodeGraphViewDataList.FindIndex(copiedNodeGraphViewData =>
-                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.linkedElement.inputElementGuid));
+                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.LinkedElement.inputElementGuid));
                     var outputElementIndex = copiedNodeGraphViewDataList.FindIndex(copiedNodeGraphViewData =>
-                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.linkedElement.outputElementGuid));
+                        copiedNodeGraphViewData.Guid.Equals(copiedEdgeData.LinkedElement.outputElementGuid));
                     
                     if(inputElementIndex < 0 || inputElementIndex >= copiedNodeGraphViewDataList.Count || outputElementIndex < 0 || outputElementIndex >= copiedNodeGraphViewDataList.Count) continue;
                     
-                    pastedEdgeData.linkedElement.inputElementGuid = pastedNodeGraphViewDataList[inputElementIndex]?.linkedElement?.Guid;
-                    pastedEdgeData.linkedElement.outputElementGuid = pastedNodeGraphViewDataList[outputElementIndex]?.linkedElement?.Guid;
+                    pastedEdgeData.LinkedElement.inputElementGuid = pastedNodeGraphViewDataList[inputElementIndex]?.LinkedElement?.Guid;
+                    pastedEdgeData.LinkedElement.outputElementGuid = pastedNodeGraphViewDataList[outputElementIndex]?.LinkedElement?.Guid;
 
                     var newEdgeContext = currentGraphView.SummonNewChildEdgeContext(pastedEdgeData);
                     RegisterContext(newEdgeContext);
-                    pastedEdgeData.linkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
+                    pastedEdgeData.LinkedElement.SetParent(currentGraphView.LinkedElement as NovaElement);
                     
                     CommandRegistry.RegisterCommand(new AddEdgeCommand(
                         currentGraphView.LinkedElementGuid,
                         currentGraphView.LinkedElement.Type,
-                        pastedEdgeData.strongCopy() as IEdgeData));
+                        pastedEdgeData.StrongCopy() as IEdgeData));
                     
-                    var newGraphEdge = currentGraphView.SummonNewGraphEdge(pastedEdgeData.linkedElement);
+                    var newGraphEdge = currentGraphView.SummonNewGraphEdge(pastedEdgeData.LinkedElement);
                     currentGraphView.AddGraphEdge(newGraphEdge);
                 }
             }
@@ -111,12 +111,12 @@ namespace NovaLine.Script.Editor.Window
 
         private static IGraphViewNodeData GetChildNodeGraphViewData(IGraphViewNodeData parentData,string guid)
         {
-            return parentData.nodeDataList.Find(nodeData => nodeData.Guid.Equals(guid));
+            return parentData.NodeDataList.Find(nodeData => nodeData.Guid.Equals(guid));
         }
 
         private static IEdgeData GetChildEdgeData(IGraphViewNodeData parentData, string guid)
         {
-            return parentData.edgeDataList.Find(edgeData => edgeData.Guid.Equals(guid));
+            return parentData.EdgeDataList.Find(edgeData => edgeData.Guid.Equals(guid));
         }
     }
 
@@ -151,11 +151,11 @@ namespace NovaLine.Script.Editor.Window
             }
             
             var parentData = CurrentGraphViewNodeContext?.LinkedData;
-            if (parentData?.edgeDataList != null)
+            if (parentData?.EdgeDataList != null)
             {
-                foreach (var edgeData in parentData.edgeDataList)
+                foreach (var edgeData in parentData.EdgeDataList)
                 {
-                    var sw = edgeData.linkedElement;
+                    var sw = edgeData.LinkedElement;
                     if (sw == null) continue;
 
                     if (selectedNodeGuids.Contains(sw.inputElementGuid) &&
