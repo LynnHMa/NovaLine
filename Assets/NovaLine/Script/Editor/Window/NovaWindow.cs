@@ -54,19 +54,6 @@ namespace NovaLine.Script.Editor.Window
         {
             Instance = GetWindow<NovaWindow>("Empty Window");
         }
-
-        [MenuItem("NovaLine/New Flowchart")]
-        public static void NewFlowchartInWindow()
-        {
-            var newDataAsset = EditorFileManager.CreateNewFlowchartAsset();
-            if (newDataAsset == null) return;
-            var newFlowchartData = newDataAsset.data;
-            var newContext = new FlowchartNodeContext(newFlowchartData);
-            EditorApplication.delayCall += () =>
-            {
-                LoadContextInWindow(newContext);
-            };
-        }
         
         public static void ExitGraphView()
         {

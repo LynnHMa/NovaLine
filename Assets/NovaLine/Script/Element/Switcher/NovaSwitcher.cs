@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using NovaLine.Script.UI.Container;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
@@ -48,6 +49,7 @@ namespace NovaLine.Script.Element.Switcher
 
         public virtual IEnumerator Next()
         {
+            ButtonContainerUI.ClearButtons();
             yield return null;
         }
 

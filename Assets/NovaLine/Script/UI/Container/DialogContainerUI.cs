@@ -1,17 +1,17 @@
-using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace NovaLine.Script.UI
+namespace NovaLine.Script.UI.Container
 {
-    public class DialogUI : MonoBehaviour
+    public class DialogContainerUI : MonoBehaviour
     {
-        public static DialogUI Instance { get;private set; }
+        public static DialogContainerUI Instance { get;private set; }
         public Coroutine ShowingCoroutine { get; set; }
         public Image avatar;
-        public Text nameText;
-        public Text contentText;
+        public TextMeshProUGUI nameText;
+        public TextMeshProUGUI contentText;
         
         private void Awake()
         {

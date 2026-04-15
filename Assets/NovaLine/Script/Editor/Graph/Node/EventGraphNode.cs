@@ -16,13 +16,13 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             AddPort();
         }
-        public override string GetType()
+        public virtual string GetTypeName()
         {
             return "[Event]";
         }
         public override void AddPort()
         {
-            if (linkedElement is not NovaEvent novaEvent) return;
+            if (LinkedElement is not NovaEvent novaEvent) return;
 
             var input = GraphPort<NovaEvent,EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, ThemedColor,"In");
             var output = GraphPort<NovaEvent, EventSwitcher>.Create<EventGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Single, typeof(float), novaEvent, ThemedColor,"Out");

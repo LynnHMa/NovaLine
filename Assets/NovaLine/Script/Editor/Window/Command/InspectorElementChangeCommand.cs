@@ -75,7 +75,7 @@ namespace NovaLine.Script.Editor.Window.Command
                 if (graphViewNodeContext.GraphView != null)
                 {
                     var graphNode = graphViewNodeContext.GraphView.GetExistingGraphNode(liveElement.Guid, 1);
-                    if (graphNode != null) graphNode.linkedElementGuid = liveElement.Guid;
+                    if (graphNode != null) graphNode.LinkedElementGuid = liveElement.Guid;
 
                     graphViewNodeContext.GraphView.Update();
                 }

@@ -51,7 +51,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
             foreach(var graphNode in GraphNodes.Values)
             {
-                if(graphNode.linkedElement is NovaAction action && action.ActionType == ActionType.Meanwhile)
+                if(graphNode.LinkedElement is NovaAction action && action.ActionType == ActionType.Meanwhile)
                 {
                     SetNodePassable(graphNode);
                 }

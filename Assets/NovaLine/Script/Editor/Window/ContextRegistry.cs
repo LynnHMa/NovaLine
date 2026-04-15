@@ -139,7 +139,7 @@ namespace NovaLine.Script.Editor.Window
         public static INovaContext GetContext(GraphNode graphNode, NovaElementType type)
         {
             if (graphNode == null) return null;
-            var guid = graphNode.guid ?? graphNode.linkedElement?.Guid;
+            var guid = graphNode.Guid ?? graphNode.LinkedElement?.Guid;
             return GetContext(guid, type);
         }
         public static INovaContext GetContext(string guid, NovaElementType type)

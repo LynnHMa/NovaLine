@@ -11,6 +11,8 @@ namespace NovaLine.Script
         {
             if (entityPrefab == null) return null;
             var entity = Object.Instantiate(entityPrefab, NovaPlayer.Instance.entityStorage, true);
+            entity.SpriteRenderer.sortingLayerName = NovaPlayer.Instance.defaultEntitySortingLayer;
+            entity.SpriteRenderer.sortingOrder = NovaPlayer.Instance.defaultEntityOrderLayer;
             InstantiatedEntities.Add(entity);
             entity.gameObject.SetActive(false);
             return entity;

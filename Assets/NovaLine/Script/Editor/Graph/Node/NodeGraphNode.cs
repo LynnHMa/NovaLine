@@ -19,7 +19,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             AddPort();
         }
-        public override string GetType()
+        public virtual string GetTypeName()
         {
             return "[Node]";
         }
@@ -38,7 +38,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
         public override void AddPort()
         {
-            if (linkedElement is not Element.Node node) return;
+            if (LinkedElement is not Element.Node node) return;
 
             var input = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Input, UnityEditor.Experimental.GraphView.Port.Capacity.Multi, typeof(float), node, ThemedColor,"In");
             var output = GraphPort<Element.Node,NodeSwitcher>.Create<NodeGraphEdge>(Orientation.Horizontal, Direction.Output, UnityEditor.Experimental.GraphView.Port.Capacity.Multi, typeof(float), node, ThemedColor,"Out");

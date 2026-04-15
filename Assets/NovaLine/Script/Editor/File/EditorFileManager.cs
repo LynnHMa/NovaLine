@@ -1,11 +1,8 @@
 using UnityEditor;
 using UnityEditor.Callbacks;
-using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using System;
 using NovaLine.Script.Data;
-using NovaLine.Script.Editor.Window;
-using NovaLine.Script.Editor.Window.Context;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.NovaWindow;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
@@ -75,8 +72,7 @@ namespace NovaLine.Script.Editor.File
 
             return true;
         }
-
-        [Shortcut("NovaLine/Save", typeof(NovaWindow), KeyCode.S, ShortcutModifiers.Action)]
+        
         public static void SaveGraphWindowData()
         {
             if (Instance == null)

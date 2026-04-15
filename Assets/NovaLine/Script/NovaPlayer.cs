@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Data;
 using NovaLine.Script.Element;
-using NovaLine.Script.UI;
+using NovaLine.Script.UI.Container;
 using UnityEditor;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
@@ -16,30 +16,32 @@ namespace NovaLine.Script
         public static NovaPlayer Instance { get; private set; }
         
         [Header("UI")]
-        public DialogUI dialogUI;
+        public Canvas UICanvas;
+        public DialogContainerUI dialogContainerUI;
+        public ButtonContainerUI buttonContainerUI;
         
         [Header("Registry")]
         public List<FlowchartDataAsset> flowchartList = new();
+
+        [Header("Layer")] 
+        public string defaultEntitySortingLayer = "Default";
+        public int defaultEntityOrderLayer = 1;
+        public string defaultBackgroundSortingLayer = "Default";
+        public int defaultBackgroundOrderLayer = -1;
         
         [Header("Misc")]
-        public Canvas UICanvas;
         public Transform entityStorage;
 
-        private void Awake()
+        private void OnValidate()
         {
             UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
             if(UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
-            
-            if (!Application.isPlaying) return;
-            
-            if (Instance == null)
+
+            Instance = this;
+
+            if (Application.isPlaying)
             {
-                Instance = this;
                 DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
             }
         }
 
@@ -64,9 +66,9 @@ namespace NovaLine.Script
                 entity.gameObject.SetActive(false);
             }
 
-            if (Instance?.dialogUI != null)
+            if (Instance?.dialogContainerUI != null)
             {
-                Instance.dialogUI.gameObject.SetActive(false);
+                Instance.dialogContainerUI.gameObject.SetActive(false);
             }
         }
         public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)

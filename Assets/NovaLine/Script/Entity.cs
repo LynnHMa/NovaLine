@@ -18,7 +18,7 @@ namespace NovaLine.Script
         private void Awake()
         {
             AnimPlayer = new(this);
-            SpriteRenderer = GetComponent<SpriteRenderer>();
+            SpriteRenderer = GetComponent<SpriteRenderer>() ?? gameObject.AddComponent<SpriteRenderer>();
         }
     }
     

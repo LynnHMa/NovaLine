@@ -63,11 +63,11 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                 {
                     if (checkingGraphNode == null) continue;
 
-                    var context = GetContext(checkingGraphNode, checkingGraphNode.type);
+                    var context = GetContext(checkingGraphNode, checkingGraphNode.Type);
                     if (context is not C childContext) continue;
 
                     childContext.SaveData();
-                    childContext.LinkedData.Pos = checkingGraphNode.pos;
+                    childContext.LinkedData.Pos = checkingGraphNode.Pos;
 
                     newNodeDataList.Add(childContext.LinkedData);
                 }

@@ -235,7 +235,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 
                 //Add a button of setting first node 
                 if (NovaWindow.SelectedGraphNode != null &&
-                    NovaWindow.SelectedGraphNode.linkedElement.Guid.Equals(selectedElement.Guid) &&
+                    NovaWindow.SelectedGraphNode.LinkedElement.Guid.Equals(selectedElement.Guid) &&
                     NovaWindow.SelectedGraphNode.inputContainer.childCount != 0 &&
                     NovaWindow.SelectedGraphNode.outputContainer.childCount != 0)
                 {
@@ -402,11 +402,17 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                             var tcFieldInfo = actualParentObject?.GetType().GetField(
                                 selectedProp.name,
                                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                            TransformChecker transformChecker = null;
                             if (tcFieldInfo?.FieldType == typeof(TransformChecker))
                             {
-                                var transformChecker = (TransformChecker)tcFieldInfo.GetValue(actualParentObject);
-                                DrawEntityActionTransformCheckerEditingButton(selectedProp,transformChecker);
+                                transformChecker = tcFieldInfo.GetValue(actualParentObject) as TransformChecker;
                             }
+                            else if (tcFieldInfo?.FieldType == typeof(RectTransformChecker))
+                            {
+                                transformChecker = tcFieldInfo.GetValue(actualParentObject) as RectTransformChecker;
+                            }
+                            if(transformChecker != null) DrawTransformCheckerEditingButton(selectedProp,transformChecker);
                         }
 
                     }
@@ -498,19 +504,38 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
             menu.ShowAsContext();
         }
 
-        private static void DrawEntityActionTransformCheckerEditingButton(SerializedProperty prop,TransformChecker transformChecker)
+        private static void DrawTransformCheckerEditingButton(SerializedProperty prop,TransformChecker transformChecker)
         {
             EditorGUILayout.Space(10);
             
             GUI.backgroundColor = Color.cyan;
             if (GUILayout.Button("Edit " + prop.displayName, GUILayout.Height(25)))
             {
-                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.LinkedElement;
-                if (editingFlowchart != null && InspectorHelper.InspectorNovaElementWrapper.selectedElement is EntityAction entityAction)
+                if(NovaPlayer.Instance == null)
                 {
-                    var entityPrefabs = editingFlowchart.entityPrefabs;
-                    TransformCheckerMono.StartToSetTransform(transformChecker,entityPrefabs[entityAction.entity]?.GetComponent<SpriteRenderer>()?.sprite);
-                    TransformCheckerInspectorEditor.ToRestoreElement = entityAction;
+                    Debug.LogError("Can't find NovaPlayer in the scene,please create one!");
+                    return;   
+                }
+                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.LinkedElement;
+                if (editingFlowchart != null)
+                {
+                    MonoBehaviour prefab = null;
+                    var selectedElement = InspectorHelper.InspectorNovaElementWrapper.selectedElement;
+                    switch (selectedElement)
+                    {
+                        case EntityAction entityAction:
+                        {
+                            var entityPrefabs = editingFlowchart.entityPrefabs;
+                            prefab = entityPrefabs[entityAction.entity];
+                            TransformCheckerInspectorEditor.ToRestoreElement = entityAction;
+                            break;
+                        }
+                        case ButtonClickedEvent buttonClickedEvent:
+                            prefab = buttonClickedEvent.buttonPrefab;
+                            TransformCheckerInspectorEditor.ToRestoreElement = buttonClickedEvent;
+                            break;
+                    }
+                    if(prefab != null) TransformCheckerMono.StartToSetTransform(transformChecker,prefab);
                 }
             }
             GUI.backgroundColor = Color.white;

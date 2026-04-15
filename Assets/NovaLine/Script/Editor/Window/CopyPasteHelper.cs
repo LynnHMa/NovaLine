@@ -141,8 +141,8 @@ namespace NovaLine.Script.Editor.Window
                 var element = elements[i];
                 if (element is GraphNode graphNode)
                 {
-                    nodeGraphViewDataGuids.Add(graphNode.guid);
-                    selectedNodeGuids.Add(graphNode.guid);
+                    nodeGraphViewDataGuids.Add(graphNode.Guid);
+                    selectedNodeGuids.Add(graphNode.Guid);
                 }
                 else if (element is IGraphEdge graphEdge)
                 {
