@@ -8,11 +8,13 @@ namespace NovaLine.Script.Anim.Entity
     public class EntityFadeAnim : EntityAnim,ILerpAnim
     {
         public bool fadeIn = true;
-        public float duration;
+        public float duration = 1f;
         
         float ILerpAnim.Duration => duration;
         protected override IEnumerator OnPlay()
         {
+            LinkedEntity.ActiveDebounce();
+            
             var spriteRenderer = LinkedEntity?.SpriteRenderer;
             if(spriteRenderer == null) yield break;
             

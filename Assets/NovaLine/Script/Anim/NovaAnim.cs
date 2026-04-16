@@ -19,13 +19,11 @@ namespace NovaLine.Script.Anim
             yield return OnPlay();
             
             yield return new WaitForSeconds(waitingSecondsAfterPlay);
-
-            yield return null;
         }
 
         protected virtual IEnumerator OnPlay()
         {
-            yield return null;
+            yield break;
         }
     }
 

@@ -27,8 +27,7 @@ namespace NovaLine.Script.Element.Switcher
         }
         public override NovaElement Copy()
         {
-            var clone = base.Copy() as NovaSwitcher;
-            if (clone == null) return null;
+            if (base.Copy() is not NovaSwitcher clone) return null;
             
             //Waiting to be written by CopyPasteHelper.
             clone._inputElementGuid = null;
@@ -37,20 +36,19 @@ namespace NovaLine.Script.Element.Switcher
             return clone;
         }
 
-        public virtual NovaElement tryToFindInputElement()
+        public virtual NovaElement TryToFindInputElement()
         {
             return FindElement(inputElementGuid);
         }
 
-        public virtual NovaElement tryToFindOutputElement()
+        public virtual NovaElement TryToFindOutputElement()
         {
             return FindElement(outputElementGuid);
         }
 
         public virtual IEnumerator Next()
         {
-            ButtonContainerUI.ClearButtons();
-            yield return null;
+            yield break;
         }
 
         public override void SetParent(NovaElement parent)

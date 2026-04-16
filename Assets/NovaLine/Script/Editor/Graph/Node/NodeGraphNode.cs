@@ -19,21 +19,14 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             AddPort();
         }
-        public virtual string GetTypeName()
-        {
-            return "[Node]";
-        }
 
-        protected override void OnDoubleClick(MouseDownEvent evt)
+        public override void OnDoubleClick(PointerDownEvent evt)
         {
-            if (evt.clickCount == 2)
+            var nodeContext = (NodeNodeContext)GetContext(this,NovaElementType.NODE);
+
+            if(nodeContext != null)
             {
-                var nodeContext = (NodeNodeContext)GetContext(this,NovaElementType.NODE);
-
-                if(nodeContext != null)
-                {
-                    NovaWindow.LoadContextInWindow(nodeContext);
-                }
+                NovaWindow.LoadContextInWindow(nodeContext);
             }
         }
         public override void AddPort()

@@ -7,8 +7,9 @@ namespace NovaLine.Script.UI.Container
 {
     public class DialogContainerUI : MonoBehaviour
     {
-        public static DialogContainerUI Instance { get;private set; }
-        public Coroutine ShowingCoroutine { get; set; }
+        public static DialogContainerUI Instance { get; private set; }
+        public static Coroutine ShowingCoroutine { get; private set; }
+        public CanvasGroup CanvasGroup { get; private set; }
         public Image avatar;
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI contentText;
@@ -16,16 +17,34 @@ namespace NovaLine.Script.UI.Container
         private void Awake()
         {
             Instance = this;
+            CanvasGroup = GetComponent<CanvasGroup>();
+            CanvasGroup.alpha = 0f;
         }
 
-        public void ShowUI()
+        public IEnumerator ShowUI()
         {
-            gameObject.SetActive(true);
+            ClearContent();
+            CanvasGroup.alpha = 0f;
+            while (CanvasGroup.alpha < 1f)
+            {
+                CanvasGroup.alpha += Time.deltaTime * 1f / NovaPlayer.Instance.fadeInDuration;
+                yield return null;
+            }
+            CanvasGroup.alpha = 1f;
         }
-        public void HideUI()
+        public IEnumerator HideUI()
         {
-            StopCoroutine(ShowingCoroutine);
-            gameObject.SetActive(false);
+            if (ShowingCoroutine != null)
+            {
+                StopCoroutine(ShowingCoroutine);
+            }
+            while (CanvasGroup.alpha > 0f)
+            {
+                CanvasGroup.alpha -= Time.deltaTime * 1f / NovaPlayer.Instance.fadeOutDuration;
+                yield return null;
+            }
+            CanvasGroup.alpha = 0f;
+            ClearContent();
         }
 
         public void ClearContent()
@@ -37,11 +56,11 @@ namespace NovaLine.Script.UI.Container
 
         public IEnumerator ShowDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
         {
-            ClearContent();
-            ShowUI();
+            if(CanvasGroup.alpha < 1f) yield return ShowUI();
+            
             avatar.sprite = avatarSprite;
             nameText.text = name;
-
+            
             if (showingSpeed == 0)
             {
                 contentText.text = content;

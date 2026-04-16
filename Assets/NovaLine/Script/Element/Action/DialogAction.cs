@@ -12,20 +12,34 @@ namespace NovaLine.Script.Element.Action
     public class DialogAction : NovaAction
     {
         private DialogContainerUI DialogContainerUI => DialogContainerUI.Instance;
+        
+        public bool showDialogue = true;
+        
+        [ShowInInspectorIf(nameof(showDialogue),true)]
         public Sprite avatar;
-
+        
+        [ShowInInspectorIf(nameof(showDialogue),true)]
         public string characterName;
-        [TextArea]
+        
+        [ShowInInspectorIf(nameof(showDialogue),true),TextArea]
         public string content;
+        
+        [ShowInInspectorIf(nameof(showDialogue),true)]
         public bool showInstantly = true;
         
-        [ShowInInspectorIf(nameof(showInstantly),false)]
-        public float speed = 50;
-
+        [ShowInInspectorIf(nameof(showInstantly),false),ShowInInspectorIf(nameof(showDialogue),true),Tooltip("Text displayed per second")]
+        public float showingSpeed = 50;
         protected override IEnumerator OnInvoke()
         {
-            DialogContainerUI?.gameObject.SetActive(true);
-            yield return DialogContainerUI?.ShowDialogueCoroutine(avatar,characterName,content,showInstantly ? 0 : speed);
+            if (showDialogue)
+            {
+                var actualShowingSpeed = showInstantly ? 0 : showingSpeed;
+                yield return DialogContainerUI?.ShowDialogueCoroutine(avatar,characterName,content,actualShowingSpeed);
+            }
+            else
+            {
+                yield return DialogContainerUI.HideUI();
+            }
             yield return base.OnInvoke();
         }
 

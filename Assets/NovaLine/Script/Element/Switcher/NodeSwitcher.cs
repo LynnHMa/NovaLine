@@ -21,7 +21,7 @@ namespace NovaLine.Script.Element.Switcher
         {
             yield return switchCondition.Waiting();
             
-            var nextNode = tryToFindInputElement();
+            var nextNode = TryToFindInputElement();
             if (nextNode is Node node)
             {
                 yield return node.Run();

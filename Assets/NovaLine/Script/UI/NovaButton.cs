@@ -9,6 +9,7 @@ namespace NovaLine.Script.UI
     {
         public bool isClicked;
 
+        public bool IsDefaultRectTransform { get; set; }
         public TextMeshProUGUI text;
         public RectTransform RectTransform { get; set; }
         public Button Button { get; set; }

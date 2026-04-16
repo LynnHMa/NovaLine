@@ -5,7 +5,6 @@ using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Attribute;
-using UnityEngine;
 
 namespace NovaLine.Script.Element.Action
 {
@@ -14,29 +13,15 @@ namespace NovaLine.Script.Element.Action
     {
         //Just an inspector tag
         public int entity = -1;
-
-        [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
-        public bool animsOnly;
-        [ShowInInspectorIf(nameof(animsOnly),false)]
-        public TransformChecker startTransform;
         
+        [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
         public List<NovaWrapper<EntityAnim>> anims;
 
         protected override IEnumerator OnInvoke()
         {
             var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(entity);
-            
-            if(instantiatedEntity == null) yield break;
-            
-            if (!animsOnly)
-            {
-                instantiatedEntity.transform.localPosition = startTransform.position;
-                instantiatedEntity.transform.localScale = startTransform.scale;
-                instantiatedEntity.transform.localRotation = startTransform.rotation;
-                instantiatedEntity.gameObject.SetActive(true);
-            }
-            
-            yield return instantiatedEntity.AnimPlayer?.PlayAll(anims);
+
+            yield return instantiatedEntity?.AnimPlayer?.PlayAll(anims);
             
             yield return base.OnInvoke();
         }

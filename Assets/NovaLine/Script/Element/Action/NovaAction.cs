@@ -41,21 +41,17 @@ namespace NovaLine.Script.Action
             yield return OnInvoke();
 
             yield return ConditionAfterInvoke.Waiting();
-
-            yield return null;
             
             var firstSwitcherGuid = SwitchersGuidList.FirstOrDefault();
             if (FindElement(firstSwitcherGuid) is ActionSwitcher firstSwitcher)
             {
                 yield return firstSwitcher.Next();
             }
-
-            yield return null;
         }
 
         protected virtual IEnumerator OnInvoke()
         {
-            yield return null;
+            yield break;
         }
         public override string GetTypeName()
         {

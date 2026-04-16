@@ -66,7 +66,7 @@ namespace NovaLine.Script.Element
             Guid = System.Guid.NewGuid().ToString();
             RegisterElement(this);
         }
-        public virtual void onGraphConnect(INovaSwitcher graphEdge)
+        public virtual void OnGraphConnect(INovaSwitcher graphEdge)
         {
             SwitchersGuidList ??= new();
             if (!SwitchersGuidList.Contains(graphEdge.Guid))
@@ -74,16 +74,16 @@ namespace NovaLine.Script.Element
                 SwitchersGuidList.Add(graphEdge.Guid);
             }
         }
-        public virtual void onGraphDisconnect(INovaSwitcher graphEdge)
+        public virtual void OnGraphDisconnect(INovaSwitcher graphEdge)
         {
             SwitchersGuidList ??= new();
             SwitchersGuidList.Remove(graphEdge.Guid);
         }
 
-        public static INovaElement getRootElement(INovaElement novaElement,int maxLayer = 1)
+        public static INovaElement GetRootElement(INovaElement novaElement,int maxLayer = 1)
         {
             if (maxLayer <= 0) return novaElement;
-            return novaElement.Parent != null ? getRootElement(novaElement.Parent,maxLayer - 1) : novaElement;
+            return novaElement.Parent != null ? GetRootElement(novaElement.Parent,maxLayer - 1) : novaElement;
         }
 
         public virtual string GetTypeName()

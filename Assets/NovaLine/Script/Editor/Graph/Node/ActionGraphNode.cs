@@ -16,10 +16,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             AddPort();
         }
-        public virtual string GetTypeName()
-        {
-            return "[Action]";
-        }
+
         public override void AddPort()
         {
             if (LinkedElement is not NovaAction action) return;
@@ -39,13 +36,14 @@ namespace NovaLine.Script.Editor.Graph.Node
             base.Update();
             if (LinkedElement is NovaAction novaAction)
             {
-                if (novaAction.ActionType == ActionType.Meanwhile && inputContainer.childCount > 0)
+                switch (novaAction.ActionType)
                 {
-                    RemovePort();
-                }
-                else if (novaAction.ActionType == ActionType.Sort && inputContainer.childCount == 0)
-                {
-                    AddPort();
+                    case ActionType.Meanwhile when inputContainer.childCount > 0:
+                        RemovePort();
+                        break;
+                    case ActionType.Sort when inputContainer.childCount == 0:
+                        AddPort();
+                        break;
                 }
             }
         }

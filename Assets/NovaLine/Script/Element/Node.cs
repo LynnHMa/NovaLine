@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NovaLine.Script.Action;
+using NovaLine.Script.Element.Action;
 using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface;
@@ -37,7 +38,7 @@ namespace NovaLine.Script.Element
 
         public IEnumerator Run()
         {
-            NovaPlayer.ResetScene();
+            NovaPlayer.ResetScene(this);
             yield return ConditionBeforeInvoke.Waiting();
             foreach (var childGuid in ChildrenGuidList)
             {
@@ -83,6 +84,15 @@ namespace NovaLine.Script.Element
             node.ConditionBeforeInvoke.ParentGuid = node.Guid;
             node.ConditionAfterInvoke.ParentGuid = node.Guid;
             return node;
+        }
+
+        public bool ContainsDialogAction()
+        {
+            return ChildrenGuidList.Find(guid => FindElement(guid) is DialogAction) != null;
+        }
+        public bool ContainsEntityAction()
+        {
+            return ChildrenGuidList.Find(guid => FindElement(guid) is EntityAction) != null;
         }
     }
 }

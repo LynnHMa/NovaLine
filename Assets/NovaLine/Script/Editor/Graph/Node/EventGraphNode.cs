@@ -16,10 +16,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             AddPort();
         }
-        public virtual string GetTypeName()
-        {
-            return "[Event]";
-        }
+
         public override void AddPort()
         {
             if (LinkedElement is not NovaEvent novaEvent) return;

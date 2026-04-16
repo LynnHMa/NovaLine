@@ -50,7 +50,7 @@ namespace NovaLine.Script.Data.NodeGraphView
             {
                 var switcher = edgeData.LinkedElement;
                 var outputElement = NovaElementRegistry.FindElement(switcher?.outputElementGuid);
-                outputElement?.onGraphConnect(switcher);
+                outputElement?.OnGraphConnect(switcher);
                 switcher?.SetParent(LinkedElement);
                 edgeData.RegisterLinkedElement();
             }

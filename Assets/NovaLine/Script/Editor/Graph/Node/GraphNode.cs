@@ -9,12 +9,13 @@ using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Editor.Window.Command;
 using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Ext;
+using NovaLine.Script.Editor.Utils.Interface;
 using NovaLine.Script.Editor.Utils.Scope;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Graph.Node
 {
-    public abstract class GraphNode : UnityEditor.Experimental.GraphView.Node,IGraphNode
+    public abstract class GraphNode : UnityEditor.Experimental.GraphView.Node,IGraphNode,IDoubleClick
     {
         private Vector2 _pos;
         private Vector2 _posWhenStartMoving;
@@ -42,7 +43,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         {
             RemovePort();
 
-            RegisterCallback<MouseDownEvent>(OnDoubleClick);
+            RegisterCallback<PointerDownEvent>(OnClick);
 
             var titleLabel = this.Q<Label>("title-label");
             if (titleLabel != null)
@@ -145,10 +146,7 @@ namespace NovaLine.Script.Editor.Graph.Node
 
                 _pos = targetPos; 
                 
-                if (_moveSettleTimer == null)
-                {
-                    _moveSettleTimer = schedule.Execute(OnMoveSettled);
-                }
+                _moveSettleTimer ??= schedule.Execute(OnMoveSettled);
                 _moveSettleTimer.ExecuteLater(100); 
             }
 
@@ -271,7 +269,16 @@ namespace NovaLine.Script.Editor.Graph.Node
             title = LinkedElement?.GetActualName();
         }
 
-        protected virtual void OnDoubleClick(MouseDownEvent evt)
+        public void OnClick(PointerDownEvent evt)
+        {
+            if (evt.clickCount == 2)
+            {
+                OnDoubleClick(evt);
+                evt.StopPropagation();
+                evt.PreventDefault();
+            }
+        }
+        public virtual void OnDoubleClick(PointerDownEvent evt)
         {
         }
     }

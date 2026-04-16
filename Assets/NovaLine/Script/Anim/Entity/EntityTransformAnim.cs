@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using NovaLine.Script.Utils;
-using NovaLine.Script.Utils.Attribute;
-using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 
 namespace NovaLine.Script.Anim.Entity
@@ -10,7 +8,7 @@ namespace NovaLine.Script.Anim.Entity
     [Serializable]
     public class EntityTransformAnim : EntityAnim,ILerpAnim
     {
-        public float duration;
+        public float duration = 1f;
 
         public TransformChecker startTransform;
         public TransformChecker endTransform;
@@ -18,6 +16,8 @@ namespace NovaLine.Script.Anim.Entity
         float ILerpAnim.Duration => duration;
         protected override IEnumerator OnPlay()
         {
+            LinkedEntity.ActiveDebounce();
+            
             if(LinkedEntity == null) yield break;
             var timer = 0f;
             while (timer < duration)

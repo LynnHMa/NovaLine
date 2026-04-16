@@ -4,7 +4,7 @@ using NovaLine.Script.Utils;
 using UnityEditor;
 using UnityEngine;
 
-namespace NovaLine.Script.Editor.Utils.OverrideEditor
+namespace NovaLine.Script.Editor.Utils.InspectorDrawer
 {
     [UnityEditor.CustomEditor(typeof(TransformCheckerMono))]
     public class TransformCheckerInspectorEditor : UnityEditor.Editor

@@ -84,7 +84,7 @@ namespace NovaLine.Script.Editor.Graph.Port
                 graphEdge.LinkedElement.outputElementGuid = OwnerElement.Guid;
                 graphEdge.LinkedElement.inputElementGuid = graphEdge.Input.OwnerElement.Guid;
 
-                OwnerElement.onGraphConnect(graphEdge.LinkedElement);
+                OwnerElement.OnGraphConnect(graphEdge.LinkedElement);
 
                 if (isByHand)
                 {
@@ -110,7 +110,7 @@ namespace NovaLine.Script.Editor.Graph.Port
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
                 if (graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
-                OwnerElement.onGraphDisconnect(graphEdge.LinkedElement);
+                OwnerElement.OnGraphDisconnect(graphEdge.LinkedElement);
 
                 if (isByHand)
                 {

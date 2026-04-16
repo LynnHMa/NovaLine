@@ -15,7 +15,7 @@ namespace NovaLine.Script.Element.Switcher
 
         public override IEnumerator Next()
         {
-            var nextAction = tryToFindInputElement();
+            var nextAction = TryToFindInputElement();
             if (nextAction is NovaAction action)
             {
                 yield return action.Invoke();

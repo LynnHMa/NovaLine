@@ -1,18 +1,17 @@
-﻿
-using NovaLine.Script.Editor.Utils;
+﻿using NovaLine.Script.Editor.Utils;
+using NovaLine.Script.Editor.Utils.Interface;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Editor.Graph.Port;
+using NovaLine.Script.Element;
+using UnityEngine;
+using UnityEngine.UIElements;
+using NovaLine.Script.Utils.Interface;
+using NovaLine.Script.Editor.Window;
+using static NovaLine.Script.Editor.Window.ContextRegistry;
 
 namespace NovaLine.Script.Editor.Graph.Edge
 {
-    using UnityEditor.Experimental.GraphView;
-    using NovaLine.Script.Editor.Graph.Port;
-    using NovaLine.Script.Element;
-    using UnityEngine;
-    using UnityEngine.UIElements;
-    using NovaLine.Script.Utils.Interface;
-    using NovaLine.Script.Editor.Window;
-    using static NovaLine.Script.Editor.Window.ContextRegistry;
-    public class GraphEdge<PE, EE> : Edge, IGraphEdge where PE : NovaElement where EE : NovaSwitcher
+    public class GraphEdge<PE, EE> : UnityEditor.Experimental.GraphView.Edge, IGraphEdge, IDoubleClick where PE : NovaElement where EE : NovaSwitcher
     {
         protected virtual Color ThemedColor => Color.green;
         public virtual EE LinkedElement { get; set; }
@@ -70,6 +69,8 @@ namespace NovaLine.Script.Editor.Graph.Edge
             };
 
             Add(arrowElement);
+            
+            RegisterCallback<PointerDownEvent>(OnClick);
         }
 
         public override bool UpdateEdgeControl()
@@ -146,6 +147,18 @@ namespace NovaLine.Script.Editor.Graph.Edge
             Vector2 tangent = 3 * u * u * (p1 - p0) + 6 * u * t * (p2 - p1) + 3 * t * t * (p3 - p2);
             return tangent.normalized;
         }
+
+        public void OnClick(PointerDownEvent evt)
+        {
+            if (evt.clickCount == 2)
+            {
+                OnDoubleClick(evt);
+                evt.StopPropagation();
+                evt.PreventDefault();
+            }
+        }
+
+        public virtual void OnDoubleClick(PointerDownEvent evt){}
     }
     public interface IGraphEdge : IGUID
     {

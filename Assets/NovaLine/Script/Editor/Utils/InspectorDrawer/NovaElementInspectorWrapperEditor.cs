@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
-using NovaLine.Script.Editor.File;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
@@ -12,13 +11,12 @@ using NovaLine.Script.Element.Action;
 using NovaLine.Script.Element.Event;
 using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils;
-using NovaLine.Script.Utils.Attribute;
 using NovaLine.Script.Utils.Interface;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace NovaLine.Script.Editor.Utils.OverrideEditor
+namespace NovaLine.Script.Editor.Utils.InspectorDrawer
 {
     using static Window.ContextRegistry;
 
@@ -94,14 +92,14 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
             }
             serializedObject.Update();
 
-            ModifyInfo();
+            Draw();
 
             serializedObject.ApplyModifiedProperties();
 
             InterceptUndoRedo();
         }
 
-        private void ModifyInfo()
+        private void Draw()
         {
             var parentsProp = serializedObject.FindProperty("parentElements");
             var selectedProp = serializedObject.FindProperty("selectedElement");
@@ -140,28 +138,6 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                         break;
                     }
                 }
-            }
-        }
-        private static void LoadConditionContextDirect(Condition targetCondition, string fallbackName)
-        {
-            if (targetCondition == null)
-            {
-                Debug.LogWarning("Can't load condition context ,because Condition is null!");
-                return;
-            }
-
-            var context = GetContext(targetCondition.Guid, NovaElementType.CONDITION);
-            if (context is ConditionContext conditionContext)
-            {
-                var actualConditionName = targetCondition.name;
-
-                if (string.IsNullOrEmpty(actualConditionName))
-                {
-                    actualConditionName = fallbackName;
-                }
-
-                targetCondition.name = actualConditionName;
-                NovaWindow.LoadContextInWindow(conditionContext);
             }
         }
 
@@ -207,7 +183,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                         GUI.backgroundColor = ColorExt.EVENT_THEMED_COLOR;
                         if (GUILayout.Button("Edit", GUILayout.Width(60), GUILayout.Height(20)))
                         {
-                            LoadConditionContextDirect(conditionObj, fallbackName);
+                            NovaWindow.LoadConditionContextDirect(conditionObj, fallbackName);
                         }
                         GUI.backgroundColor = Color.white;
 
@@ -380,7 +356,7 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                     if (SerializedProperty.EqualContents(selectedProp, endChildProp))
                         break;
                     
-                    if (ShouldShow(selectedProp, actualParentObject))
+                    if (ShowIfDrawer.ShouldShow(selectedProp, actualParentObject))
                     {
                         selectedProp.isExpanded = true;
                         
@@ -520,22 +496,32 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                 if (editingFlowchart != null)
                 {
                     MonoBehaviour prefab = null;
+                    Action<GameObject> additional = null;
                     var selectedElement = InspectorHelper.InspectorNovaElementWrapper.selectedElement;
                     switch (selectedElement)
                     {
                         case EntityAction entityAction:
-                        {
                             var entityPrefabs = editingFlowchart.entityPrefabs;
                             prefab = entityPrefabs[entityAction.entity];
-                            TransformCheckerInspectorEditor.ToRestoreElement = entityAction;
+                            additional = NovaPlayer.InitEntityLayer;
                             break;
-                        }
+                        case BackgroundAction backgroundAction:
+                            prefab = NovaPlayer.Instance.background;
+                            additional = o =>
+                            {
+                                o.GetComponent<SpriteRenderer>().sprite = backgroundAction.sprite;
+                            };
+                            break;
                         case ButtonClickedEvent buttonClickedEvent:
                             prefab = buttonClickedEvent.buttonPrefab;
-                            TransformCheckerInspectorEditor.ToRestoreElement = buttonClickedEvent;
                             break;
                     }
-                    if(prefab != null) TransformCheckerMono.StartToSetTransform(transformChecker,prefab);
+
+                    if (prefab != null)
+                    {
+                        TransformCheckerMono.StartToSetTransform(transformChecker,prefab,additional);
+                        TransformCheckerInspectorEditor.ToRestoreElement = selectedElement;
+                    }
                 }
             }
             GUI.backgroundColor = Color.white;
@@ -575,64 +561,6 @@ namespace NovaLine.Script.Editor.Utils.OverrideEditor
                         break;
                 }
             }
-        }
-        private static bool ShouldShow(SerializedProperty property, object actualParentObject)
-        {
-            if (actualParentObject == null) return true;
-            
-            FieldInfo fieldInfo = actualParentObject.GetType().GetField(
-                property.name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (fieldInfo == null) return true;
-            
-            var attr = fieldInfo.GetCustomAttribute<ShowInInspectorIfAttribute>();
-            if (attr == null) return true;
-
-            if (attr.HideInEditMode && !Application.isPlaying) return false;
-            
-            string conditionPath = property.propertyPath.Replace(property.name, attr.ConditionField);
-            SerializedProperty conditionProp = property.serializedObject.FindProperty(conditionPath);
-
-            if (conditionProp != null)
-            {
-                if (conditionProp.propertyType == SerializedPropertyType.Boolean)
-                {
-                    return conditionProp.boolValue.Equals(attr.ExpectedValue);
-                }
-            }
-            
-            var conditionField = actualParentObject.GetType().GetField(
-                attr.ConditionField,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (conditionField != null)
-            {
-                var value = conditionField.GetValue(actualParentObject);
-                var condition = attr.Condition;
-                try
-                {
-                    float numValue = Convert.ToSingle(value);
-                    float numExpected = Convert.ToSingle(attr.ExpectedValue);
-                    return condition switch
-                    {
-                        ShowInInspectorIfAttribute.ValueCondition.Equals => value.Equals(attr.ExpectedValue),
-                        ShowInInspectorIfAttribute.ValueCondition.NoEquals => !value.Equals(attr.ExpectedValue),
-                        ShowInInspectorIfAttribute.ValueCondition.MoreThan => numValue > numExpected,
-                        ShowInInspectorIfAttribute.ValueCondition.MoreThanOrEqual => numValue >= numExpected,
-                        ShowInInspectorIfAttribute.ValueCondition.LessThan => numValue < numExpected,
-                        ShowInInspectorIfAttribute.ValueCondition.LessThanOrEqual => numValue <= numExpected,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-                }
-                catch
-                {
-                    Debug.Log("?" + value);
-                    return true;
-                }
-            }
-
-            return true;
         }
     }
 }

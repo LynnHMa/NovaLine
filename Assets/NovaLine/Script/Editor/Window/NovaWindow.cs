@@ -26,6 +26,9 @@ namespace NovaLine.Script.Editor.Window
             Undo.undoRedoPerformed += OnInspectorObjValueChange;
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             EditorApplication.delayCall += TryRestoreAfterReload;
+            
+            //因为Unity迷惑的保护机制，导致一些快捷键无法添加，这里将强制劫持
+            rootVisualElement.RegisterCallback<KeyDownEvent>(OnWindowKeyDown, TrickleDown.TrickleDown);
         }
         private void OnDisable()
         {
@@ -149,6 +152,29 @@ namespace NovaLine.Script.Editor.Window
             EditorFileManager.CurrentContextType = context.Type;
         
             UpdateScope.RequireUpdate();
+            graphView.Focus();
+        }
+        public static void LoadConditionContextDirect(Condition targetCondition, string fallbackName)
+        {
+            if (targetCondition == null)
+            {
+                Debug.LogWarning("Can't load condition context ,because Condition is null!");
+                return;
+            }
+
+            var context = GetContext(targetCondition.Guid, NovaElementType.CONDITION);
+            if (context is ConditionContext conditionContext)
+            {
+                var actualConditionName = targetCondition.name;
+
+                if (string.IsNullOrEmpty(actualConditionName))
+                {
+                    actualConditionName = fallbackName;
+                }
+
+                targetCondition.name = actualConditionName;
+                NovaWindow.LoadContextInWindow(conditionContext);
+            }
         }
         public static void UpdateContext()
         {
@@ -157,6 +183,18 @@ namespace NovaLine.Script.Editor.Window
             if (Instance == null) return;
 
             Instance.titleContent.text = CurrentGraphViewNodeContext?.Title;
+        }
+        private static void OnWindowKeyDown(KeyDownEvent evt)
+        {
+            if (evt.keyCode == KeyCode.Escape)
+            {
+                if (CurrentGraphViewNodeContext != null && LastGraphViewNodeContext != null)
+                {
+                    evt.StopPropagation();
+                    evt.PreventDefault();
+                    ExitGraphView();
+                }
+            }
         }
         private static void TryRestoreAfterReload()
         {

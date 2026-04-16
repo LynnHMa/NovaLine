@@ -73,7 +73,7 @@ namespace NovaLine.Script.Utils
             }
         }
 
-        public static void StartToSetTransform(TransformChecker transformChecker, MonoBehaviour prefabToDisplay)
+        public static void StartToSetTransform(TransformChecker transformChecker, MonoBehaviour prefabToDisplay,Action<GameObject> additional = null)
         {
             if (Instance != null) Cancel();
             
@@ -83,6 +83,7 @@ namespace NovaLine.Script.Utils
             
             MapTransformCheckerComponentAndChildren(Instance.gameObject, prefabToDisplay.gameObject);
             
+            additional?.Invoke(Instance.gameObject);
             Selection.activeObject = Instance.gameObject;
             SceneView.lastActiveSceneView?.Focus();
         }
@@ -167,7 +168,7 @@ namespace NovaLine.Script.Utils
     public class RectTransformChecker : TransformChecker
     {
         public Vector2 pivot = Vector2.one * 0.5f;
-        public Vector2 sizeDelta = Vector2.one * 50;
+        public Vector2 sizeDelta = new (250,70);
         public Vector2 anchorMin = Vector2.one * 0.5f;
         public Vector2 anchorMax = Vector2.one * 0.5f;
         

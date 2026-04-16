@@ -28,7 +28,7 @@ namespace NovaLine.Script.Element.Event
 
         public override IEnumerator OnEvent()
         {
-            var listenedButton = ButtonContainerUI.RegisterButton(displayName, buttonPrefab, rectTransformChecker);
+            var listenedButton = ButtonContainerUI.RegisterButton(displayName, buttonPrefab, defaultRectTransform ? null : rectTransformChecker);
             while (!listenedButton.isClicked)
             {
                 yield return null;

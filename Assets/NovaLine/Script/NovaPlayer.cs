@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using NovaLine.Script.Data;
 using NovaLine.Script.Element;
 using NovaLine.Script.UI.Container;
+using NovaLine.Script.Utils.Attribute;
 using UnityEditor;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
@@ -22,6 +23,14 @@ namespace NovaLine.Script
         
         [Header("Registry")]
         public List<FlowchartDataAsset> flowchartList = new();
+        
+        [Header("Dialog")]
+        public bool fadeIn;
+        [ShowInInspectorIf(nameof(fadeIn), true)]
+        public float fadeInDuration = 0.3f;
+        public bool fadeOut;
+        [ShowInInspectorIf(nameof(fadeOut), true)]
+        public float fadeOutDuration = 0.3f;
 
         [Header("Layer")] 
         public string defaultEntitySortingLayer = "Default";
@@ -31,6 +40,7 @@ namespace NovaLine.Script
         
         [Header("Misc")]
         public Transform entityStorage;
+        public Background background;
 
         private void OnValidate()
         {
@@ -43,13 +53,24 @@ namespace NovaLine.Script
             {
                 DontDestroyOnLoad(gameObject);
             }
+
+            InitBackgroundLayer();
         }
 
         private void Start()
         {
-            StartCoroutine(playDefault());
+            if (Application.isPlaying)
+            {
+                StartCoroutine(PlayDefault());
+            }
         }
-        public IEnumerator playDefault()
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
+
+        public IEnumerator PlayDefault()
         {
             for (var i = 0; i < flowchartList.Count; i++)
             {
@@ -58,17 +79,44 @@ namespace NovaLine.Script
             }
         }
 
-        public static void ResetScene()
+        public static void InitEntityLayer(GameObject entityObj)
+        {
+            var sp = entityObj.GetComponent<SpriteRenderer>();
+            if (sp == null || Instance == null) return;
+            sp.sortingLayerName = Instance.defaultEntitySortingLayer;
+            sp.sortingOrder = Instance.defaultEntityOrderLayer;
+        }
+
+        public static void InitBackgroundLayer(GameObject backgroundObj = null)
+        {
+            var actualBackgroundObj = backgroundObj ?? Instance.background.gameObject;
+            var sp = actualBackgroundObj.GetComponent<SpriteRenderer>();
+            if (sp == null || Instance == null) return;
+            sp.sortingLayerName = Instance.defaultBackgroundSortingLayer;
+            sp.sortingOrder = Instance.defaultBackgroundOrderLayer;
+        }
+
+        public static void ResetScene(Node currentNode)
         {
             foreach (var entity in EntityRegistry.InstantiatedEntities)
             {
                 if(entity?.gameObject == null) continue;
-                entity.gameObject.SetActive(false);
+                entity.InactiveDebounce();
             }
 
-            if (Instance?.dialogContainerUI != null)
+            if (Instance?.dialogContainerUI != null && !currentNode.ContainsDialogAction())
             {
-                Instance.dialogContainerUI.gameObject.SetActive(false);
+                Instance.StartCoroutine(DialogContainerUI.Instance.HideUI());
+            }
+
+            if (Instance?.buttonContainerUI != null)
+            {
+                ButtonContainerUI.ClearButtons();
+            }
+
+            if (Instance?.background != null)
+            {
+                Instance.background.SetSpriteDebounce(null);
             }
         }
         public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)
