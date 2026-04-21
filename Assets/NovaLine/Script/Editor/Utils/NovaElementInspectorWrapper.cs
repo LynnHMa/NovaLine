@@ -1,10 +1,9 @@
 ﻿using NovaLine.Script.Element;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace NovaLine.Script.Editor.Utils
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public class NovaElementInspectorWrapper : ScriptableObject
     {
         [SerializeReference] public List<NovaElement> parentElements = new();
@@ -13,6 +12,10 @@ namespace NovaLine.Script.Editor.Utils
         public List<string> ParentElementGuidList => parentElements.ConvertAll(e => e?.Guid);
         public string SelectedElementGuid => selectedElement?.Guid;
 
+        public NovaElement FindParent(string guid)
+        {
+            return parentElements.Find(e => e.Guid == guid);
+        }
         public new static NovaElementInspectorWrapper CreateInstance(string elementGuid)
         {
             var wrapper = CreateInstance<NovaElementInspectorWrapper>();

@@ -35,7 +35,7 @@ namespace NovaLine.Script.Editor.Window.Command
         }
         public override void OnRedo()
         {
-            for (var i = commands.Count - 1; i >= 0; i--)
+            for (var i = 0; i < commands.Count; i++)
             {
                 var command = commands[i];
                 command.OnRedo();

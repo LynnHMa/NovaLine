@@ -6,21 +6,18 @@ using NovaLine.Script.Element;
 using UnityEngine;
 using UnityEngine.UIElements;
 using NovaLine.Script.Utils.Interface;
-using NovaLine.Script.Editor.Window;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 
 namespace NovaLine.Script.Editor.Graph.Edge
 {
     public class GraphEdge<PE, EE> : UnityEditor.Experimental.GraphView.Edge, IGraphEdge, IDoubleClick where PE : NovaElement where EE : NovaSwitcher
     {
+        private const float ARROW_WIDTH = 32f;
+        private const float ARROW_HEIGHT_HALF = 8f;
         protected virtual Color ThemedColor => Color.green;
         public virtual EE LinkedElement { get; set; }
         public virtual string Guid => LinkedElement?.Guid;
-
-        private readonly VisualElement arrowElement;
-
-        private const float arrowWidth = 32f;
-        private const float arrowHeightHalf = 8f;
+        private readonly VisualElement _arrowElement;
 
         NovaSwitcher IGraphEdge.LinkedElement { get => LinkedElement; set => LinkedElement = value as EE; }
         string IGUID.Guid => Guid;
@@ -50,15 +47,15 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
         public GraphEdge()
         {
-            arrowElement = new VisualElement
+            _arrowElement = new VisualElement
             {
                 style =
                 {
                     width = 0,
                     height = 0,
-                    borderTopWidth = arrowHeightHalf,
-                    borderBottomWidth = arrowHeightHalf,
-                    borderLeftWidth = arrowWidth,
+                    borderTopWidth = ARROW_HEIGHT_HALF,
+                    borderBottomWidth = ARROW_HEIGHT_HALF,
+                    borderLeftWidth = ARROW_WIDTH,
                     borderRightWidth = 0,
                     borderTopColor = new StyleColor(Color.clear),
                     borderBottomColor = new StyleColor(Color.clear),
@@ -68,7 +65,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
                 pickingMode = PickingMode.Ignore
             };
 
-            Add(arrowElement);
+            Add(_arrowElement);
             
             RegisterCallback<PointerDownEvent>(OnClick);
         }
@@ -84,8 +81,6 @@ namespace NovaLine.Script.Editor.Graph.Edge
         {
             base.OnSelected();
 
-            NovaWindow.SelectedGraphEdge = this;
-
             if (LinkedElement == null) return;
 
             LinkedElement.ShowInInspector();
@@ -93,8 +88,6 @@ namespace NovaLine.Script.Editor.Graph.Edge
         public override void OnUnselected()
         {
             base.OnUnselected();
-
-            NovaWindow.SelectedGraphEdge = null;
 
             var activeRoot = (NovaElement)CurrentGraphViewNodeContext?.GraphView?.LinkedElement;
 
@@ -116,11 +109,11 @@ namespace NovaLine.Script.Editor.Graph.Edge
             var position = GetBezierPoint(t, p0, p1, p2, p3);
             var tangent = GetBezierTangent(t, p0, p1, p2, p3);
             float angle = Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg;
-            arrowElement.style.left = position.x - (arrowWidth / 2f);
-            arrowElement.style.top = position.y - arrowHeightHalf;
+            _arrowElement.style.left = position.x - (ARROW_WIDTH / 2f);
+            _arrowElement.style.top = position.y - ARROW_HEIGHT_HALF;
 
-            arrowElement.transform.rotation = Quaternion.Euler(0, 0, angle);
-            arrowElement.style.borderLeftColor = new StyleColor(ThemedColor);
+            _arrowElement.transform.rotation = Quaternion.Euler(0, 0, angle);
+            _arrowElement.style.borderLeftColor = new StyleColor(ThemedColor);
         }
 
         public virtual EE GenerateNewLinkedElement()

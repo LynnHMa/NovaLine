@@ -47,7 +47,7 @@ namespace NovaLine.Script.Editor.Graph.Port
         {
             if (targetPort == null)
             {
-                throw new ArgumentNullException("Port.ConnectTo<T>() other argument is null");
+                throw new ArgumentNullException(nameof(targetPort));
             }
 
             if (targetPort.direction == direction)
@@ -81,8 +81,8 @@ namespace NovaLine.Script.Editor.Graph.Port
             {
                 if (graphEdge.LinkedElement == null) graphEdge.GenerateNewLinkedElement();
                 if (graphEdge.LinkedElement == null || graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
-                graphEdge.LinkedElement.outputElementGuid = OwnerElement.Guid;
-                graphEdge.LinkedElement.inputElementGuid = graphEdge.Input.OwnerElement.Guid;
+                graphEdge.LinkedElement.OutputElementGuid = OwnerElement.Guid;
+                graphEdge.LinkedElement.InputElementGuid = graphEdge.Input.OwnerElement.Guid;
 
                 OwnerElement.OnGraphConnect(graphEdge.LinkedElement);
 

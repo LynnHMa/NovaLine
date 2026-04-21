@@ -3,7 +3,7 @@ using NovaLine.Script.Element;
 
 namespace NovaLine.Script.Utils.Interface
 {
-    public interface IHasConditionData
+    public interface IAroundConditionData
     {
         public ConditionData ConditionBeforeInvokeData { get; set; }
         public ConditionData ConditionAfterInvokeData { get; set; }

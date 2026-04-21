@@ -9,7 +9,7 @@ namespace NovaLine.Script.Element
     {
         public List<Entity> entityPrefabs;
         
-        public override NovaElementType Type => NovaElementType.FLOWCHART;
+        public override NovaElementType Type => NovaElementType.Flowchart;
 
         public Flowchart()
         {

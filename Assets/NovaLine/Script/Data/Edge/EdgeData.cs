@@ -26,6 +26,12 @@ namespace NovaLine.Script.Data.Edge
             var toReg = LinkedElement.StrongCopy() as TLinkedSwitcher;
             NovaElementRegistry.RegisterElement(toReg);
         }
+
+        public override void UnregisterLinkedElement()
+        {
+            if (LinkedElement == null) return;
+            NovaElementRegistry.UnregisterElement(LinkedElement.Guid);
+        }
         public override void UpdateLinkedElement(bool updateChildren = true)
         {
             LinkedElement = NovaElementRegistry.FindElement(LinkedElement.Guid) as TLinkedSwitcher;

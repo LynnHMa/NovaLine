@@ -23,14 +23,14 @@ namespace NovaLine.Script.Editor.Window.Command
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.AddGraphEdgeByCommand(linkedData);
+                ParentGraphView.AddGraphEdgeByCommand(linkedData);
             }
         }
         public override void OnRedo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.RemoveGraphEdgeByCommand(linkedData);
+                ParentGraphView.RemoveGraphEdgeByCommand(linkedData);
             }
         }
 

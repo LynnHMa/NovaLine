@@ -1,5 +1,4 @@
 ﻿using NovaLine.Script.Editor.Window;
-using NovaLine.Script.Element;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,7 +43,7 @@ namespace NovaLine.Script.Editor.Utils
         
         private static void ExecutePlay(string nodeGuid)
         {
-            var flowchartData = ContextRegistry.RegisteredFlowchartNodeContext?.LinkedData;
+            var flowchartData = ContextRegistry.RegisteredFlowchartContext?.LinkedData;
             if (flowchartData != null)
             {
                 flowchartData.RegisterLinkedElement();

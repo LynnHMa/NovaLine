@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using NovaLine.Script.Element;
+using NovaLine.Script.Utils.Interface;
 
 namespace NovaLine.Script
 {
@@ -26,14 +27,23 @@ namespace NovaLine.Script
         
         public static void ReplaceElement(string oldGuid, NovaElement newElement)
         {
-            if (!string.IsNullOrEmpty(oldGuid))
-                elementDictionary.Remove(oldGuid);
+            newElement.Guid = oldGuid;
+            elementDictionary[oldGuid] = newElement;
+            for (var i = 0; i < newElement.ChildrenGuidList.Count; i++)
+            {
+                var childGuid = newElement.ChildrenGuidList[i];
+                var childElement = FindElement(childGuid);
+                childElement.SetParent(newElement);
+            }
 
-            if (newElement != null)
-                elementDictionary[newElement.Guid] = newElement;
+            if (newElement is IAroundConditionElement c)
+            {
+                c.ConditionAfterInvoke?.SetParent(newElement);
+                c.ConditionBeforeInvoke?.SetParent(newElement);
+            }
         }
         
-        public static void Clear()
+        public static void ClearElements()
         {
             elementDictionary.Clear();
         }

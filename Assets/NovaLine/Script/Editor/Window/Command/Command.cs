@@ -1,6 +1,9 @@
-﻿using NovaLine.Script.Editor.Graph.View;
+﻿﻿using NovaLine.Script.Editor.Graph.View;
 using NovaLine.Script.Element;
 using System;
+using System.Collections.Generic;
+using NovaLine.Script.Data.Edge;
+using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
@@ -14,7 +17,7 @@ namespace NovaLine.Script.Editor.Window.Command
         public KeyValue<string, NovaElementType> linkedContextInfo;
 
         public CommandType Type = CommandType.None;
-        protected INovaGraphView linkedGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.GraphView;
+        protected INovaGraphView ParentGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.GraphView;
 
         protected Command() { }
         protected Command(string contextGuid,NovaElementType contextType)
@@ -26,7 +29,7 @@ namespace NovaLine.Script.Editor.Window.Command
 
         public void Undo()
         {
-            if (linkedGraphView == null) return;
+            if (ParentGraphView == null) return;
             
             //Debug.Log("[Undo] " + type);
             using (new UpdateScope())
@@ -34,12 +37,12 @@ namespace NovaLine.Script.Editor.Window.Command
             {
                 OnUndo();
             }
-            linkedGraphView?.Update();
+            ParentGraphView?.Update();
         }
 
         public void Redo()
         {
-            if (linkedGraphView == null) return;
+            if (ParentGraphView == null) return;
             
             //Debug.Log("[Redo] " + type);
             using (new UpdateScope())
@@ -47,7 +50,7 @@ namespace NovaLine.Script.Editor.Window.Command
             {
                 OnRedo();
             }
-            linkedGraphView?.Update();
+            ParentGraphView?.Update();
         }
 
         public abstract void OnUndo();

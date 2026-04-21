@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Element.Event;
+using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Element
@@ -11,7 +12,8 @@ namespace NovaLine.Script.Element
     public class Condition : NovaElement
     {
         public ConditionType ConditionType = ConditionType.All;
-        public override NovaElementType Type => NovaElementType.CONDITION;
+        public override Color ThemedColor => ColorExt.CONDITION_THEMED_COLOR;
+        public override NovaElementType Type => NovaElementType.Condition;
 
         public Condition()
         {

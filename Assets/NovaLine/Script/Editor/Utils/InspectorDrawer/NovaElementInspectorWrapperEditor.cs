@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
+using NovaLine.Script.Data;
+using NovaLine.Script.Data.NodeGraphView;
+using NovaLine.Script.Editor.File;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
-using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Element;
 using NovaLine.Script.Element.Action;
 using NovaLine.Script.Element.Event;
 using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils;
+using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface;
 using UnityEditor;
 using UnityEngine;
@@ -201,7 +205,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                                 $"After Invoke");
                             break;
                         case NodeSwitcher nodeSwitcher:
-                            DrawConditionUI("Switch Condition", nodeSwitcher.switchCondition, "Switch Condition");
+                            DrawConditionUI("Switch Condition", nodeSwitcher.SwitchCondition, "Switch Condition");
                             EditorGUILayout.Space(10);
                             break;
                     }
@@ -209,33 +213,78 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                     EditorGUILayout.Space(15);
                 }
                 
-                //Add a button of setting first node 
-                if (NovaWindow.SelectedGraphNode != null &&
-                    NovaWindow.SelectedGraphNode.LinkedElement.Guid.Equals(selectedElement.Guid) &&
-                    NovaWindow.SelectedGraphNode.inputContainer.childCount != 0 &&
-                    NovaWindow.SelectedGraphNode.outputContainer.childCount != 0)
+                //Add a button of handling selected node
+                if (selectedElement.Guid.Equals(InspectorHelper.InspectorNovaElementWrapper.SelectedElementGuid))
                 {
-                    EditorGUILayout.Space(30);
-                    
-                    GUI.backgroundColor = NovaWindow.SelectedGraphNode.ThemedColor;
-                    if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
+                    var buttonColor = selectedElement.ThemedColor;
+                    if (selectedElement is not Flowchart && selectedElement.Type != NovaElementType.Switcher)
                     {
-                        var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
-                        if (currentGraphView != null)
+                        EditorGUILayout.Space(10);
+                        
+                        GUI.backgroundColor = buttonColor;
+                        if (GUILayout.Button("Save As", GUILayout.Height(30)))
                         {
-                            currentGraphView.SetFirstNode(NovaWindow.SelectedGraphNode);
-                            currentGraphView.Update();
                             SaveScope.RequireSave();
+                            if (GetContext(selectedElement.Guid,selectedElement.Type)?.LinkedData?.Copy() is IGraphViewNodeData linkedData)
+                            {
+                                EditorFileManager.SaveAsset(linkedData, null,"Save Asset",selectedElement.name,"Save Asset",true);
+                            }
                         }
+                        GUI.backgroundColor = Color.white;
+                        
+                        EditorGUILayout.Space(10);
+                            
+                        GUI.backgroundColor = buttonColor;
+                        if (GUILayout.Button("Import From", GUILayout.Height(30)))
+                        {
+                            Undo.RecordObject(selectedProp.serializedObject.targetObject, "Import Asset");
+                                
+                            var openFilePath = EditorUtility.OpenFilePanel("Import Asset",EditorFileManager.CurrentPath,EditorFileManager.GetExtension(selectedElement.Type));
+                                
+                            if (string.IsNullOrEmpty(openFilePath)) return;
+                                    
+                            var relativePath = FileUtil.GetProjectRelativePath(openFilePath);
+                                
+                            if (relativePath == null) return;
+                                
+                            var openDataAsset = AssetDatabase.LoadAssetAtPath<GraphViewNodeDataAsset>(relativePath);
+                                
+                            if (openDataAsset == null || !openDataAsset.data.Type.Equals(selectedElement.Type)) return;
+                                
+                            var currentGraphView = CurrentGraphViewNodeContext.GraphView;
+                                
+                            var instantiateAndRelinkData = new InstantiatableData(openDataAsset.data.StrongCopy() as IGraphViewNodeData, currentGraphView.MousePos);
+                            
+                            EditorDataExt.InstantiateDataToReplaceNodeGraphView(instantiateAndRelinkData,selectedElement);
+                        }
+                        GUI.backgroundColor = Color.white;
+                            
+                        EditorGUILayout.Space(10);
+                        
+                        if (selectedElement is not Condition)
+                        {
+                            GUI.backgroundColor = buttonColor;
+                            if (GUILayout.Button("Set To Start", GUILayout.Height(30)))
+                            {
+                                var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
+                                if (currentGraphView != null)
+                                {
+                                    currentGraphView.SetFirstNode(NovaWindow.SelectedGraphNode);
+                                    currentGraphView.Update();
+                                    SaveScope.RequireSave();
+                                }
+                            }
+                            GUI.backgroundColor = Color.white;
+                        }
+                        
+                        EditorGUILayout.Space(10);
                     }
-                    GUI.backgroundColor = Color.white;
-
-                    EditorGUILayout.Space(30);
                 }
                 
+                //Add a button of play from current node
                 if (selectedElement is Node node)
                 {
-                    GUI.backgroundColor = EditorApplication.isPlaying ? ColorExt.NODE_THEMED_COLOR : ColorExt.LIGHT_GREEN;
+                    GUI.backgroundColor = ColorExt.NODE_THEMED_COLOR;
                     if (GUILayout.Button(EditorApplication.isPlaying ? "Exit" : "Play From Current Node", GUILayout.Height(30)))
                     {
                         var inspectorLinkedElement = InspectorHelper.InspectorNovaElementWrapper.selectedElement;
@@ -294,37 +343,20 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                     Undo.RecordObject(property.serializedObject.targetObject, "Change Type");
                     if (propObj is NovaElement oldElement && newInstance is NovaElement newElement)
                     {
-                        JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(oldElement), newElement);
-
-                        if (oldElement.Parent.ChildrenGuidList != null)
-                        {
-                            for (int i = 0; i < oldElement.Parent.ChildrenGuidList.Count; i++)
-                            {
-                                oldElement.Parent.ChildrenGuidList[i] = newElement.Guid;
-                            }
-                        }
-                        
-                        NovaElementRegistry.ReplaceElement(oldElement.Guid,newElement);
-                        ReplaceLinkedElementInContext(oldElement);
-                        
-                        property.managedReferenceValue = newElement;
+                        JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(oldElement), newInstance);
+                        InspectorHelper.GlobalReplace(oldElement,newElement);
                     }
                     else if (propObj != null)
                     {
                         string beforeJson = JsonUtility.ToJson(propObj);
                         JsonUtility.FromJsonOverwrite(beforeJson, newInstance);
-                        property.managedReferenceValue = newInstance;
                     }
-                    else 
-                    {
-                        property.managedReferenceValue = newInstance;
-                    }
-
+                    property.managedReferenceValue = newInstance;
                     property.serializedObject.ApplyModifiedProperties();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"实例化失败：\n{e.Message}");
+                    Debug.LogException(e);
                 }
             }
         }
@@ -449,7 +481,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
             }
             
             EditorGUILayout.Space(5);
-            GUI.backgroundColor = ColorExt.LIGHT_GREEN;
+            GUI.backgroundColor = ColorExt.CONDITION_THEMED_COLOR;
             if (GUILayout.Button("+ Add Anim", GUILayout.Height(30)))
             {
                 ShowAddAnimMenu(listProp); 
@@ -479,7 +511,6 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
             }
             menu.ShowAsContext();
         }
-
         private static void DrawTransformCheckerEditingButton(SerializedProperty prop,TransformChecker transformChecker)
         {
             EditorGUILayout.Space(10);
@@ -492,7 +523,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                     Debug.LogError("Can't find NovaPlayer in the scene,please create one!");
                     return;   
                 }
-                var editingFlowchart = RegisteredFlowchartNodeContext.LinkedData.LinkedElement;
+                var editingFlowchart = RegisteredFlowchartContext.LinkedData.LinkedElement;
                 if (editingFlowchart != null)
                 {
                     MonoBehaviour prefab = null;

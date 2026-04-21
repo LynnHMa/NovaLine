@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using NovaLine.Script.Action;
 using NovaLine.Script.Element.Action;
 using NovaLine.Script.Element.Switcher;
@@ -20,16 +19,13 @@ namespace NovaLine.Script.Element
         
         public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGuid) as Condition;
         public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
-
-        public override NovaElementType Type => NovaElementType.NODE;
+        public override Color ThemedColor => ColorExt.NODE_THEMED_COLOR;
+        public override NovaElementType Type => NovaElementType.Node;
         public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
         public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
         public Node()
         {
-            var conditionBefore = new Condition("Before Invoke",this);
-            var conditionAfter = new Condition("After Invoke",this);
-            ConditionAfterInvokeGuid = conditionAfter.Guid;
-            ConditionBeforeInvokeGuid = conditionBefore.Guid;
+            InitConditions();
         }
         public Node(string name) : this()
         {
@@ -79,20 +75,33 @@ namespace NovaLine.Script.Element
         {
             var clone = base.Copy();
             if (clone is not Node node) return clone;
-            node.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
-            node.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
-            node.ConditionBeforeInvoke.ParentGuid = node.Guid;
-            node.ConditionAfterInvoke.ParentGuid = node.Guid;
+            
+            if (ConditionBeforeInvoke == null || ConditionAfterInvoke == null)
+            {
+                InitConditions();
+            }
+            if (ConditionBeforeInvoke != null && ConditionAfterInvoke != null)
+            {
+                node.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
+                node.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
+                node.ConditionBeforeInvoke.ParentGuid = node.Guid;
+                node.ConditionAfterInvoke.ParentGuid = node.Guid;
+            }
+            
             return node;
         }
-
+        
         public bool ContainsDialogAction()
         {
             return ChildrenGuidList.Find(guid => FindElement(guid) is DialogAction) != null;
         }
-        public bool ContainsEntityAction()
+        
+        public void InitConditions()
         {
-            return ChildrenGuidList.Find(guid => FindElement(guid) is EntityAction) != null;
+            var conditionBefore = new Condition("Before Invoke",this);
+            var conditionAfter = new Condition("After Invoke",this);
+            ConditionAfterInvokeGuid = conditionAfter.Guid;
+            ConditionBeforeInvokeGuid = conditionBefore.Guid;
         }
     }
 }

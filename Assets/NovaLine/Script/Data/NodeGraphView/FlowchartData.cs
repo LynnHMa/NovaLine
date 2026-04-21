@@ -16,7 +16,6 @@ namespace NovaLine.Script.Data.NodeGraphView
         public override void RegisterLinkedElement()
         {
             EntityRegistry.ClearEntities();
-            NovaElementRegistry.Clear();
             if (Application.isPlaying)
             {
                 for (var i = 0; i < LinkedElement.entityPrefabs.Count; i++)
@@ -26,6 +25,12 @@ namespace NovaLine.Script.Data.NodeGraphView
                 }
             }
             base.RegisterLinkedElement();
+        }
+
+        public override void UnregisterLinkedElement()
+        {
+            EntityRegistry.ClearEntities();
+            base.UnregisterLinkedElement();
         }
     }
 }

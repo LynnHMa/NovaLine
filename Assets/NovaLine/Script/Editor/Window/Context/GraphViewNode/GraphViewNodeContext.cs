@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NovaLine.Script.Data;
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.Graph.Edge;
@@ -10,7 +11,9 @@ using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window.Context.Edge;
 using NovaLine.Script.Element;
+using NovaLine.Script.Utils.Interface;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 
@@ -46,17 +49,27 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         
         public override void SaveData()
         {
-            if (LinkedData == null || GraphView == null || Window == null || !HasDrawn) return;
-            SaveNodeData();
-            SaveEdgeData();
-        }
-        protected virtual void SaveNodeData<N, C>(List<N> graphNodes = null)
-            where N : GraphNode
-            where C : IGraphViewNodeContext
-        {
-            var newNodeDataList = new EList<IGraphViewNodeData>();
+            if (LinkedData == null) return;
             
-            var actualGraphNodes = graphNodes ?? GraphView.GraphNodes.Cast<N>().ToList();
+            if (HasDrawn && _graphView != null && Window != null)
+            {
+                SaveNodeData();
+                SaveEdgeData();
+            }
+            else
+            {
+                SaveChildDataDirectly();
+            }
+            
+            SaveConditionData();
+        }
+        protected virtual void SaveNodeData<TGraphNode, TContext>(List<TGraphNode> graphNodes = null)
+            where TGraphNode : GraphNode
+            where TContext : IGraphViewNodeContext
+        {
+            var newNodeDataList = new ListExt<IGraphViewNodeData>();
+            
+            var actualGraphNodes = graphNodes ?? GraphView.GraphNodes.Cast<TGraphNode>().ToList();
             if (actualGraphNodes.Count != 0)
             {
                 foreach (var checkingGraphNode in actualGraphNodes)
@@ -64,7 +77,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                     if (checkingGraphNode == null) continue;
 
                     var context = GetContext(checkingGraphNode, checkingGraphNode.Type);
-                    if (context is not C childContext) continue;
+                    if (context is not TContext childContext) continue;
 
                     childContext.SaveData();
                     childContext.LinkedData.Pos = checkingGraphNode.Pos;
@@ -81,16 +94,17 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                 DisposeGraphView();
             }
         }
-        protected virtual void SaveEdgeData<ED>(List<IGraphEdge> graphEdges = null) where ED : IEdgeData, new()
+        protected virtual void SaveEdgeData<TEdgeData>(List<IGraphEdge> graphEdges = null) 
+            where TEdgeData : IEdgeData, new()
         {
-            var newEdgeDataList = new EList<IEdgeData>();
+            var newEdgeDataList = new ListExt<IEdgeData>();
             
             var actualGraphEdges = graphEdges ?? GraphView.GraphEdges?.Cast<IGraphEdge>().ToList();
             if (actualGraphEdges != null)
             {
                 foreach (var checkingGraphEdge in actualGraphEdges)
                 {
-                    var context = GetContext(checkingGraphEdge.Guid, NovaElementType.SWITCHER);
+                    var context = GetContext(checkingGraphEdge.Guid, NovaElementType.Switcher);
                     if (context is not EdgeContext edgeContext) continue;
                     context.SaveData();
                     
@@ -106,6 +120,49 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                 DisposeGraphView();
             }
         }
+
+        protected virtual void SaveChildDataDirectly()
+        {
+            if (LinkedData.NodeDataList != null)
+            {
+                foreach (var childNodeData in LinkedData.NodeDataList)
+                {
+                    var childContext = GetContext(childNodeData.Guid, childNodeData.LinkedElement.Type);
+                    childContext?.SaveData();
+                }
+            }
+                
+            if (LinkedData.EdgeDataList != null)
+            {
+                foreach (var childEdgeData in LinkedData.EdgeDataList)
+                {
+                    var childContext = GetContext(childEdgeData.Guid, NovaElementType.Switcher);
+                    childContext?.SaveData();
+                }
+            }
+        }
+        protected virtual void SaveConditionData()
+        {
+            ConditionData HandleConditionContext(string conditionGuid)
+            {
+                if (string.IsNullOrEmpty(conditionGuid)) return null;
+                if (GetContext(conditionGuid, NovaElementType.Condition) is not ConditionContext conditionContext) return null;
+                conditionContext.SaveData();
+                conditionContext.LinkedData.Pos = Vector2.zero;
+                return conditionContext.LinkedData;
+            }
+            
+            if (LinkedData is not IAroundConditionData aroundConditionData) return;
+            
+            var beforeConditionData = aroundConditionData.ConditionBeforeInvokeData;
+            var afterConditionData = aroundConditionData.ConditionAfterInvokeData;
+            
+            if(beforeConditionData == null || afterConditionData == null) return;
+            
+            aroundConditionData.ConditionBeforeInvokeData = HandleConditionContext(beforeConditionData.Guid);
+            aroundConditionData.ConditionAfterInvokeData = HandleConditionContext(afterConditionData.Guid);
+        }
+        
         public abstract void SaveNodeData(List<GraphNode> graphNodes = null);
         public abstract void SaveEdgeData(List<IGraphEdge> graphEdges = null);
         
@@ -137,25 +194,35 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                     GraphView.AddGraphNode(graphNode);
                 }
             }
-            if(!String.IsNullOrEmpty(LinkedData.LinkedElement.FirstChildGuid)) GraphView.SetFirstNode(LinkedData.LinkedElement.FirstChildGuid,false);
+            if(!string.IsNullOrEmpty(LinkedData?.LinkedElement?.FirstChildGuid)) GraphView.SetFirstNode(LinkedData.LinkedElement.FirstChildGuid,false);
         }
         public virtual void DrawEdge()
         {
-            var nodeEdgeDatas = LinkedData.EdgeDataList;
-            if (nodeEdgeDatas == null || nodeEdgeDatas.Count == 0) return;
-            foreach (var nodeEdgeData in nodeEdgeDatas)
+            var edgeDataList = LinkedData.EdgeDataList;
+            if (edgeDataList == null || edgeDataList.Count == 0) return;
+            foreach (var edgeData in edgeDataList)
             {
-                var nodeGraphEdge = GraphView.SummonNewGraphEdge(nodeEdgeData.LinkedElement);
+                var nodeGraphEdge = GraphView.SummonNewGraphEdge(edgeData.LinkedElement);
                 if (nodeGraphEdge != null) GraphView.AddGraphEdge(nodeGraphEdge);
             }
         }
         
         protected abstract TGraphView SummonGraphView();
 
+        public override void ReplaceLinkedData(INovaData linkedData)
+        {
+            base.ReplaceLinkedData(linkedData);
+            
+            if (GraphView != null && !CurrentGraphViewNodeContext.Guid.Equals(Guid))
+            {
+                DisposeGraphView();
+            }
+        }
+        
         public void DisposeGraphView()
         {
-            if (!HasDrawn && GraphView == null) return;
-            if (GraphView is GraphView gv)
+            if (!HasDrawn && _graphView == null) return;
+            if (_graphView is GraphView gv)
             {
                 gv.Clear();
                 gv.RemoveFromHierarchy();
@@ -169,11 +236,12 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
     {
         string Title { get; }
         INovaGraphView GraphView { get; set; }
-        IGraphViewNodeData LinkedData { get; set; }
+        new IGraphViewNodeData LinkedData { get; set; }
         CommandRegistry CommandRegistry { get; }
         void SaveNodeData(List<GraphNode> graphNodes);
         void SaveEdgeData(List<IGraphEdge> graphEdges);
         void Draw();
+        void DisposeGraphView();
     }
     public class ContextInfo : Attribute
     {

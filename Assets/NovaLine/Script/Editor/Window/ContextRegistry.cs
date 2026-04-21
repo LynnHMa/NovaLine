@@ -15,13 +15,22 @@ namespace NovaLine.Script.Editor.Window
 {
     public static class ContextRegistry
     {
-        public static Dictionary<string,INovaContext> RegisteredContexts { get; } = new();
-        public static FlowchartNodeContext RegisteredFlowchartNodeContext => RegisteredContexts.FirstOrDefault(context => context.Value.Type.Equals(NovaElementType.FLOWCHART)).Value as FlowchartNodeContext;
-        
-        public static EList<IGraphViewNodeContext> LoadedGraphViewContexts { get; } = new();
-        public static IGraphViewNodeContext LastGraphViewNodeContext => LoadedGraphViewContexts.Count > 1 ? LoadedGraphViewContexts[1] : null;
-        public static IGraphViewNodeContext CurrentGraphViewNodeContext => LoadedGraphViewContexts.Count > 0 ? LoadedGraphViewContexts[0] : null;
-        
+        public static Dictionary<string, INovaContext> RegisteredContexts { get; } = new();
+
+        public static FlowchartContext RegisteredFlowchartContext =>
+            RootGraphViewNodeContext as FlowchartContext;
+
+        public static ListExt<IGraphViewNodeContext> LoadedGraphViewContexts { get; } = new();
+
+        public static IGraphViewNodeContext LastGraphViewNodeContext =>
+            LoadedGraphViewContexts.Count > 1 ? LoadedGraphViewContexts[1] : null;
+
+        public static IGraphViewNodeContext CurrentGraphViewNodeContext =>
+            LoadedGraphViewContexts.Count > 0 ? LoadedGraphViewContexts[0] : null;
+
+        public static IGraphViewNodeContext RootGraphViewNodeContext =>
+            LoadedGraphViewContexts.Count > 0 ? LoadedGraphViewContexts[^1] : null;
+
         public static void RegisterContext(INovaContext graphViewNodeContext)
         {
             if (graphViewNodeContext?.LinkedData == null) return;
@@ -39,6 +48,7 @@ namespace NovaLine.Script.Editor.Window
                             RegisterContext(childContext);
                         }
                     }
+
                     var edgeDataList = graphViewNodeData.EdgeDataList;
                     if (edgeDataList != null && edgeDataList.Count > 0)
                     {
@@ -48,17 +58,18 @@ namespace NovaLine.Script.Editor.Window
                             RegisterContext(edgeContext);
                         }
                     }
-            
-                    if (graphViewNodeData is IHasConditionData hasConditionData)
+
+                    if (graphViewNodeData is IAroundConditionData hasConditionData)
                     {
                         var conditionBeforeActionInvoke = hasConditionData.ConditionBeforeInvokeData;
                         var conditionAfterActionInvoke = hasConditionData.ConditionAfterInvokeData;
-                
+
                         if (conditionBeforeActionInvoke != null)
                         {
                             var conditionBeforeInvokeContext = new ConditionContext(conditionBeforeActionInvoke);
                             RegisterContext(conditionBeforeInvokeContext);
                         }
+
                         if (conditionAfterActionInvoke != null)
                         {
                             var conditionAfterInvokeContext = new ConditionContext(conditionAfterActionInvoke);
@@ -70,100 +81,108 @@ namespace NovaLine.Script.Editor.Window
                 }
                 case IEdgeData edgeData:
                 {
-                    if (edgeData is NodeEdgeData nodeEdgeData && nodeEdgeData.switchConditionData != null)
+                    if (edgeData is NodeEdgeData nodeEdgeData && nodeEdgeData.SwitchConditionData != null)
                     {
-                        var conditionContext = new ConditionContext(nodeEdgeData.switchConditionData);
+                        var conditionContext = new ConditionContext(nodeEdgeData.SwitchConditionData);
                         RegisterContext(conditionContext);
                     }
 
                     break;
                 }
             }
-            
-            RegisteredContexts.TryAdd(graphViewNodeContext.Guid,graphViewNodeContext);
+
+            RegisteredContexts.TryAdd(graphViewNodeContext.Guid, graphViewNodeContext);
         }
+
         public static void UnregisterContext(string contextGuid, NovaElementType type)
         {
             UnregisterContext(GetContext(contextGuid, type));
         }
+
         public static void UnregisterContext(INovaContext graphViewNodeContext)
         {
             if (graphViewNodeContext?.LinkedData == null) return;
 
-            if (graphViewNodeContext.LinkedData is IGraphViewNodeData graphViewNodeData)
+            switch (graphViewNodeContext.LinkedData)
             {
-                if (graphViewNodeData.NodeDataList != null && graphViewNodeData.NodeDataList.Count > 0)
+                case IGraphViewNodeData graphViewNodeData:
                 {
-                    foreach (var nodeData in graphViewNodeData.NodeDataList)
+                    if (graphViewNodeData.NodeDataList != null && graphViewNodeData.NodeDataList.Count > 0)
                     {
-                        if (nodeData?.LinkedElement == null) continue;
-                        var childContext = GetContext(nodeData.Guid, nodeData.LinkedElement.Type);
-                        UnregisterContext(childContext);
+                        foreach (var nodeData in graphViewNodeData.NodeDataList)
+                        {
+                            if (nodeData?.LinkedElement == null) continue;
+                            var childContext = GetContext(nodeData.Guid, nodeData.LinkedElement.Type);
+                            UnregisterContext(childContext);
+                        }
                     }
-                }
-                if (graphViewNodeData.EdgeDataList != null && graphViewNodeData.EdgeDataList.Count > 0)
-                {
-                    foreach (var edgeData in graphViewNodeData.EdgeDataList)
+
+                    if (graphViewNodeData.EdgeDataList != null && graphViewNodeData.EdgeDataList.Count > 0)
                     {
-                        UnregisterContext(edgeData.Guid, NovaElementType.SWITCHER);
+                        foreach (var edgeData in graphViewNodeData.EdgeDataList)
+                        {
+                            UnregisterContext(edgeData.Guid, NovaElementType.Switcher);
+                        }
                     }
+
+                    if (graphViewNodeData is IAroundConditionData hasConditionData)
+                    {
+                        UnregisterContext(hasConditionData.ConditionBeforeInvokeData?.Guid, NovaElementType.Condition);
+                        UnregisterContext(hasConditionData.ConditionAfterInvokeData?.Guid, NovaElementType.Condition);
+                    }
+
+                    break;
                 }
-                if (graphViewNodeData is IHasConditionData hasConditionData)
+                case IEdgeData edgeData:
                 {
-                    UnregisterContext(hasConditionData.ConditionBeforeInvokeData?.Guid, NovaElementType.CONDITION);
-                    UnregisterContext(hasConditionData.ConditionAfterInvokeData?.Guid, NovaElementType.CONDITION);
-                }
-            }
-            else if (graphViewNodeContext.LinkedData is IEdgeData edgeData)
-            {
-                if (edgeData is NodeEdgeData nodeEdgeData && nodeEdgeData.switchConditionData != null)
-                {
-                    UnregisterContext(nodeEdgeData.switchConditionData.Guid,NovaElementType.CONDITION);
+                    if (edgeData is NodeEdgeData nodeEdgeData && nodeEdgeData.SwitchConditionData != null)
+                    {
+                        UnregisterContext(nodeEdgeData.SwitchConditionData.Guid, NovaElementType.Condition);
+                    }
+
+                    break;
                 }
             }
 
             RegisteredContexts.Remove(graphViewNodeContext.Guid);
         }
+
         public static void ClearContexts()
         {
+            foreach (var context in RegisteredContexts.Values.OfType<IGraphViewNodeContext>().Distinct().ToList())
+            {
+                context?.DisposeGraphView();
+            }
+
             RegisteredContexts.Clear();
             LoadedGraphViewContexts.Clear();
         }
 
-        public static void ReplaceLinkedElementInContext(NovaElement newElement)
-        {
-            var linkedContext = GetContext(newElement.Guid, newElement.Type);
-            linkedContext.LinkedData.UpdateLinkedElement(false);
-        }
-        
         public static INovaContext GetContext(GraphNode graphNode, NovaElementType type)
         {
             if (graphNode == null) return null;
             var guid = graphNode.Guid ?? graphNode.LinkedElement?.Guid;
             return GetContext(guid, type);
         }
+
         public static INovaContext GetContext(string guid, NovaElementType type)
         {
             if (string.IsNullOrEmpty(guid)) return null;
             return RegisteredContexts.TryGetValue(guid, out var ctx) && ctx.Type == type ? ctx : null;
         }
-        private static INovaContext CreateContextByType(INovaData linkedData,NovaElementType type)
-        {
-            switch (type)
-            {
-                case NovaElementType.NODE:
-                    return new NodeNodeContext(linkedData as NodeData);
-                case NovaElementType.ACTION:
-                    return new ActionNodeContext(linkedData as ActionData);
-                case NovaElementType.CONDITION:
-                    return new ConditionContext(linkedData as ConditionData);
-                case NovaElementType.EVENT:
-                    return new EventNodeContext(linkedData as EventData);
-                case NovaElementType.SWITCHER:
-                    return new EdgeContext(linkedData as IEdgeData);
-            }
 
-            return null;
+        public static INovaContext CreateContextByType(INovaData linkedData, NovaElementType type)
+        {
+            return type switch
+            {
+                NovaElementType.Flowchart => new FlowchartContext(linkedData as FlowchartData),
+                NovaElementType.Node => new NodeContext(linkedData as NodeData),
+                NovaElementType.Action => new ActionContext(linkedData as ActionData),
+                NovaElementType.Condition => new ConditionContext(linkedData as ConditionData),
+                NovaElementType.Event => new EventContext(linkedData as EventData),
+                NovaElementType.Switcher => new EdgeContext(linkedData as IEdgeData),
+                _ => null
+            };
         }
     }
 }

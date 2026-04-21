@@ -10,9 +10,9 @@ using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     [ContextInfo(AsNode.False, AsGraphView.True)]
-    public class FlowchartNodeContext : GraphViewNodeContext<FlowchartGraphView, FlowchartData>
+    public class FlowchartContext : GraphViewNodeContext<FlowchartGraphView, FlowchartData>
     {
-        public FlowchartNodeContext(FlowchartData linkedData) : base(linkedData) { }
+        public FlowchartContext(FlowchartData linkedData) : base(linkedData) { }
         public override void SaveData()
         {
             base.SaveData();
@@ -20,7 +20,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         }
         public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
-            SaveNodeData<NodeGraphNode, NodeNodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
+            SaveNodeData<NodeGraphNode, NodeContext>(graphNodes == null ? null : graphNodes.Cast<NodeGraphNode>().ToList());
         }
         public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {

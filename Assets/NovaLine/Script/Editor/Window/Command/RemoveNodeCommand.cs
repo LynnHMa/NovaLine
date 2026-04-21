@@ -22,14 +22,14 @@ namespace NovaLine.Script.Editor.Window.Command
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.AddGraphNodeByCommand(linkedData);
+                ParentGraphView.AddGraphNodeByCommand(linkedData);
             }
         }
         public override void OnRedo()
         {
             foreach (var linkedData in linkedDataList)
             {
-                linkedGraphView.RemoveGraphNodeByCommand(linkedData);
+                ParentGraphView.RemoveGraphNodeByCommand(linkedData);
             }
         }
 

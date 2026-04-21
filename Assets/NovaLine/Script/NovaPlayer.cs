@@ -22,7 +22,7 @@ namespace NovaLine.Script
         public ButtonContainerUI buttonContainerUI;
         
         [Header("Registry")]
-        public List<FlowchartDataAsset> flowchartList = new();
+        public List<GraphViewNodeDataAsset> flowchartList = new();
         
         [Header("Dialog")]
         public bool fadeIn;
@@ -119,7 +119,7 @@ namespace NovaLine.Script
                 Instance.background.SetSpriteDebounce(null);
             }
         }
-        public static IEnumerator PlayFromFlowchart(FlowchartDataAsset playAsset)
+        public static IEnumerator PlayFromFlowchart(GraphViewNodeDataAsset playAsset)
         {
             playAsset.data.RegisterLinkedElement();
             if (FindElement(playAsset.data.Guid) is Flowchart flowchart)

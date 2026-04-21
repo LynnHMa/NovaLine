@@ -1,6 +1,6 @@
 ﻿using System;
+using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.File;
-using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using UnityEditor;
 using UnityEngine;
@@ -15,11 +15,11 @@ namespace NovaLine.Script.Editor
         {
             var newDataAsset = EditorFileManager.CreateNewFlowchartAsset();
             if (newDataAsset == null) return;
-            var newFlowchartData = newDataAsset.data;
-            var newContext = new FlowchartNodeContext(newFlowchartData);
+            var newFlowchartData = newDataAsset.data as FlowchartData;
+            var newContext = new FlowchartContext(newFlowchartData);
             EditorApplication.delayCall += () =>
             {
-                NovaWindow.LoadContextInWindow(newContext);
+                EditorFileManager.RegisterAndLoadContext(newContext);
             };
         }
 

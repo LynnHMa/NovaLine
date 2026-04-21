@@ -10,12 +10,13 @@ using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     [ContextInfo(AsNode.True, AsGraphView.True)]
-    public class NodeNodeContext : GraphViewNodeContext<NodeGraphView, NodeData>
+    public class NodeContext : GraphViewNodeContext<NodeGraphView, NodeData>
     {
-        public NodeNodeContext(NodeData linkedData) : base(linkedData) { }
+        public NodeContext(NodeData linkedData) : base(linkedData) { }
+        
         public override void SaveNodeData(List<GraphNode> graphNodes = null)
         {
-            SaveNodeData<ActionGraphNode, ActionNodeContext>(graphNodes == null ? null : graphNodes.Cast<ActionGraphNode>().ToList());
+            SaveNodeData<ActionGraphNode, ActionContext>(graphNodes == null ? null : graphNodes.Cast<ActionGraphNode>().ToList());
         }
         public override void SaveEdgeData(List<IGraphEdge> graphEdges = null)
         {

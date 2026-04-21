@@ -11,9 +11,19 @@ namespace NovaLine.Script.Element.Action
     [Serializable]
     public class EntityAction : NovaAction
     {
+        public enum EntityActionType
+        {
+            ShowDirectly,
+            Anim
+        }
         //Just an inspector tag
         public int entity = -1;
+        public EntityActionType entityActionType = EntityActionType.ShowDirectly;
+
+        [ShowInInspectorIf(nameof(entityActionType), EntityActionType.ShowDirectly)]
+        public TransformChecker showTransform;
         
+        [ShowInInspectorIf(nameof(entityActionType), EntityActionType.Anim)]
         [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
         public List<NovaWrapper<EntityAnim>> anims;
 
@@ -21,7 +31,18 @@ namespace NovaLine.Script.Element.Action
         {
             var instantiatedEntity = EntityRegistry.GetInstantiatedEntity(entity);
 
-            yield return instantiatedEntity?.AnimPlayer?.PlayAll(anims);
+            switch (entityActionType)
+            {
+                case EntityActionType.ShowDirectly:
+                    showTransform.LinkedTransform = instantiatedEntity.transform;
+                    showTransform.ExportToTransform();
+                    instantiatedEntity.ActiveDebounce();
+                    break;
+                case EntityActionType.Anim:
+                    yield return instantiatedEntity?.AnimPlayer?.PlayAll(anims);
+                    break;
+            }
+            
             
             yield return base.OnInvoke();
         }

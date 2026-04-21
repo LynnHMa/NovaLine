@@ -3,6 +3,8 @@ using UnityEditor.Callbacks;
 using UnityEngine;
 using System;
 using NovaLine.Script.Data;
+using NovaLine.Script.Data.NodeGraphView;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.NovaWindow;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
@@ -16,7 +18,7 @@ namespace NovaLine.Script.Editor.File
         private const string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
         private const string CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT_TYPE";
 
-        private static string CurrentPath
+        public static string CurrentPath
         {
             get => SessionState.GetString(CURRENT_PATH_SESSION_PATH_KEY, string.Empty);
             set => SessionState.SetString(CURRENT_PATH_SESSION_PATH_KEY, value);
@@ -29,153 +31,181 @@ namespace NovaLine.Script.Editor.File
 
         public static NovaElementType CurrentContextType
         {
-            get => (NovaElementType) Enum.Parse(typeof(NovaElementType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "NONE"));
+            get => (NovaElementType) Enum.Parse(typeof(NovaElementType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "None"));
             set => SessionState.SetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, value.ToString());
         }
 
-        private static FlowchartDataAsset _currentAsset;
-        private static FlowchartDataAsset CurrentAsset
+        private static GraphViewNodeDataAsset _currentAsset;
+        public static GraphViewNodeDataAsset CurrentAsset
         {
             get
             {
                 if (_currentAsset == null && !string.IsNullOrEmpty(CurrentPath))
-                    _currentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
+                    _currentAsset = AssetDatabase.LoadAssetAtPath<GraphViewNodeDataAsset>(CurrentPath);
                 return _currentAsset;
             }
             set => _currentAsset = value;
         }
 
         [OnOpenAsset]
-        public static bool LoadFlowchartDataAsset(int instanceID, int line)
+        public static bool LoadGraphViewNodeDataAsset(int instanceID, int line)
         {
             var path = AssetDatabase.GetAssetPath(instanceID);
             if (string.IsNullOrEmpty(path))
-                return false;
-
-            var asset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(path);
-            if (asset == null)
             {
+                Debug.LogError("Can't find asset path!");
                 return false;
             }
-
-            if (asset.data == null)
+            
+            var obj = EditorUtility.InstanceIDToObject(instanceID);
+            if (obj is GraphViewNodeDataAsset asset)
             {
-                Debug.LogError("FlowchartDataAsset.data is null");
-                return false;
-            }
-
-            CurrentAsset = asset;
-            CurrentPath = path;
-
-            CreateGraphWindow();
-            LoadContextInWindow(new FlowchartNodeContext(asset.data));
-
-            return true;
-        }
-        
-        public static void SaveGraphWindowData()
-        {
-            if (Instance == null)
-                return;
-
-            if (RegisteredFlowchartNodeContext?.LinkedData == null || CurrentGraphViewNodeContext?.LinkedData == null)
-                return;
-
-            if (string.IsNullOrEmpty(CurrentPath))
-            {
-                CurrentPath = EditorUtility.SaveFilePanelInProject(
-                    "Save Flowchart",
-                    RegisteredFlowchartNodeContext.LinkedData.Name,
-                    "asset",
-                    "Save Flowchart"
-                );
-
-                if (string.IsNullOrEmpty(CurrentPath))
-                    return;
-            }
-
-            if (!CurrentPath.EndsWith(".asset"))
-            {
-                Debug.LogError("Invalid save path! Only .asset allowed: " + CurrentPath);
-                return;
-            }
-
-            if (!CurrentGraphViewNodeContext.Guid.Equals(RegisteredFlowchartNodeContext.Guid)) CurrentGraphViewNodeContext.SaveData();
-
-            RegisteredFlowchartNodeContext.SaveData();
-
-            if (CurrentAsset == null)
-            {
-                CurrentAsset = AssetDatabase.LoadAssetAtPath<FlowchartDataAsset>(CurrentPath);
-
-                if (CurrentAsset == null)
+                if (!IsNovaExtension(path)) return false;
+                
+                if (asset?.data == null)
                 {
-                    CurrentAsset = FlowchartDataAsset.CreateInstance(RegisteredFlowchartNodeContext.LinkedData);
-                    AssetDatabase.CreateAsset(CurrentAsset, CurrentPath);
+                    Debug.LogError("The asset data is null!");
+                    return false;
+                }
+
+                if (asset.data.HasGraphView())
+                {
+                    CurrentAsset = asset;
+                    CurrentPath = path;
+
+                    if (CreateContextByType(asset.data, asset.data.LinkedElement.Type) is not IGraphViewNodeContext context) return false;
+                    RegisterAndLoadContext(context);
+                    return true;
                 }
             }
-
-            CurrentAsset.data = RegisteredFlowchartNodeContext.LinkedData;
-
-            EditorUtility.SetDirty(CurrentAsset);
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
+            return false;
+        }
+        public static void SaveCurrentGraphViewNodeData()
+        {
+            void BeforeSave(GraphViewNodeDataAsset actionAsset, string actionPath)
+            {
+                CurrentAsset = actionAsset;
+                CurrentPath = actionPath;
+                
+                if (!CurrentGraphViewNodeContext.Guid.Equals(RootGraphViewNodeContext.Guid))
+                {
+                    CurrentGraphViewNodeContext.SaveData();
+                }
+                RootGraphViewNodeContext.SaveData();
+                
+                EditorUtility.SetDirty(CurrentAsset);
+                CurrentAsset.data = RootGraphViewNodeContext.LinkedData;
+            }
+            
+            if (RootGraphViewNodeContext?.LinkedData == null || CurrentGraphViewNodeContext?.LinkedData == null)
+                return;
+            
+            SaveAsset(RootGraphViewNodeContext.LinkedData, BeforeSave, "Save Asset",
+                RootGraphViewNodeContext.LinkedData.Name, "Save Asset");
         }
 
         public static void RestoreAfterDomainReload()
         {
-            var path = CurrentPath;
-            if (string.IsNullOrEmpty(path)) return;
-            var asset = CurrentAsset;
-            if (asset == null) return;
+            if (string.IsNullOrEmpty(CurrentPath) || CurrentAsset == null) return;
 
-            var flowchartData = asset.data;
-            flowchartData.LinkedElement.name = asset.name;
-            var flowchartContext = new FlowchartNodeContext(flowchartData);
+            var data = CurrentAsset.data;
+            if (CreateContextByType(data,data.LinkedElement.Type) is not IGraphViewNodeContext context) return;
             
             //Re-register all contexts
             var storedCurrentContextGuid = CurrentContextGuid;
             var storedCurrentContextType = CurrentContextType;
-            LoadContextInWindow(flowchartContext);
+            
+            //Restore root graph view
+            RegisterAndLoadContext(context);
 
-            if (!flowchartContext.Guid.Equals(storedCurrentContextGuid))
+            //Restore opened child graph view
+            if (!context.Guid.Equals(storedCurrentContextGuid))
             {
-                var toOpenContext = GetContext(storedCurrentContextGuid, storedCurrentContextType);
-                if (toOpenContext is not IGraphViewNodeContext graphViewNodeContext) return;
-                LoadContextInWindow(graphViewNodeContext);
+                if (GetContext(storedCurrentContextGuid, storedCurrentContextType) is not IGraphViewNodeContext childContext) return;
+                LoadContextInWindow(childContext);
             }
         }
 
-        public static FlowchartDataAsset CreateNewFlowchartAsset()
+        public static void RegisterAndLoadContext(IGraphViewNodeContext context)
+        {
+            if (context?.LinkedData == null) return;
+            
+            ClearContexts();
+            RegisterContext(context);
+            
+            NovaElementRegistry.ClearElements();
+            context.LinkedData.RegisterLinkedElement();
+            
+            LoadContextInWindow(context);
+        }
+
+        public static GraphViewNodeDataAsset CreateNewFlowchartAsset()
         {
             try
             {
-                var dataAsset = FlowchartDataAsset.CreateInstance();
-
-                var path = EditorUtility.SaveFilePanelInProject(
-                    "Save New Flowchart",
-                    "New Flowchart",
-                    "asset",
-                    "Save New Flowchart"
-                );
-
-                if (string.IsNullOrEmpty(path))
-                    return null;
-
-                AssetDatabase.CreateAsset(dataAsset, path);
-                AssetDatabase.SaveAssets();
-
-                CurrentAsset = dataAsset;
-                CurrentPath = path;
-
-                return dataAsset;
+                void BeforeSave(GraphViewNodeDataAsset actionAsset, string actionPath)
+                {
+                    CurrentAsset = actionAsset;
+                    CurrentPath = actionPath;
+                }
+                return SaveAsset(new FlowchartData(), BeforeSave,"New Flowchart","New Flowchart","New Flowchart",true);
             }
             catch (Exception e)
             {
-                Debug.LogError("Error in creating new flowchart data! " + e);
+                Debug.LogException(e);
                 return null;
             }
+        }
+        
+        public static GraphViewNodeDataAsset SaveAsset(IGraphViewNodeData data,
+            System.Action<GraphViewNodeDataAsset,string> beforeSave,
+            string title,string defaultName,string message,bool forceToSaveAs = false)
+        {
+            var isSaveAs = forceToSaveAs || string.IsNullOrEmpty(CurrentPath);
+            
+            var path = isSaveAs ? EditorUtility.SaveFilePanelInProject(title, defaultName, GetExtension(data.Type), message) : CurrentPath;
+            
+            if (string.IsNullOrEmpty(path)) return null;
+            
+            var asset = AssetDatabase.LoadAssetAtPath<GraphViewNodeDataAsset>(path);
+            if (asset == null)
+            {
+                asset = GraphViewNodeDataAsset.CreateInstance(data);
+            }
+            
+            beforeSave?.Invoke(asset, path);
+            
+            string json = EditorJsonUtility.ToJson(asset, true);
+
+            System.IO.File.WriteAllText(path, json);
+            
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+
+            return asset;
+        }
+
+        public static string GetExtension(NovaElementType type)
+        {
+            return type switch
+            {
+                NovaElementType.Flowchart => "nv_flowchart",
+                NovaElementType.Node => "nv_node",
+                NovaElementType.Action => "nv_action",
+                NovaElementType.Condition => "nv_condition",
+                NovaElementType.Event => "nv_event",
+                NovaElementType.Switcher => "nv_switcher",
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+        
+        private static bool IsNovaExtension(string path)
+        {
+            return path.EndsWith(".nv_flowchart") || 
+                   path.EndsWith(".nv_node") || 
+                   path.EndsWith(".nv_action") || 
+                   path.EndsWith(".nv_condition") || 
+                   path.EndsWith(".nv_event") || 
+                   path.EndsWith(".nv_switcher");
         }
     }
 }

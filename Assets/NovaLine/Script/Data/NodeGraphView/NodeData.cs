@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NovaLine.Script.Utils.Interface;
 
 namespace NovaLine.Script.Data.NodeGraphView
@@ -9,10 +8,10 @@ namespace NovaLine.Script.Data.NodeGraphView
     using NovaLine.Script.Data.Edge;
 
     [Serializable]
-    public class NodeData : GraphViewNodeData<Node, ActionData, ActionEdgeData>,IHasConditionData
+    public class NodeData : GraphViewNodeData<Node, ActionData, ActionEdgeData>,IAroundConditionData
     {
-        [SerializeReference] private ConditionData _conditionBeforeInvokeData;
-        [SerializeReference] private ConditionData _conditionAfterInvokeData;
+        [SerializeReference,HideInInspector] private ConditionData _conditionBeforeInvokeData;
+        [SerializeReference,HideInInspector] private ConditionData _conditionAfterInvokeData;
         public ConditionData ConditionBeforeInvokeData
         {
             get => _conditionBeforeInvokeData;
@@ -27,7 +26,7 @@ namespace NovaLine.Script.Data.NodeGraphView
         public NodeData(){}
         public NodeData(Node node,Vector2 pos)
         {
-            this.Pos = pos;
+            Pos = pos;
             LinkedElement = node;
             ConditionBeforeInvokeData = new ConditionData(LinkedElement?.ConditionBeforeInvoke);
             ConditionAfterInvokeData = new ConditionData(LinkedElement?.ConditionAfterInvoke);
@@ -35,15 +34,24 @@ namespace NovaLine.Script.Data.NodeGraphView
 
         public override INovaData Copy()
         {
-            var clone = (NodeData)base.Copy();
+            var nodeData = (NodeData)base.Copy();
             
-            if (clone == null) return null;
-            
-            clone.ConditionBeforeInvokeData = (ConditionData)ConditionBeforeInvokeData.Copy();
-            clone.ConditionAfterInvokeData = (ConditionData)ConditionAfterInvokeData.Copy();
-            clone.ConditionBeforeInvokeData.LinkedElement = clone.LinkedElement.ConditionBeforeInvoke;
-            clone.ConditionAfterInvokeData.LinkedElement = clone.LinkedElement.ConditionAfterInvoke;
-            return clone;
+            if (nodeData == null) return null;
+
+            if (ConditionBeforeInvokeData != null && ConditionAfterInvokeData != null)
+            {
+                nodeData.ConditionBeforeInvokeData = (ConditionData)ConditionBeforeInvokeData.Copy();
+                nodeData.ConditionAfterInvokeData  = (ConditionData)ConditionAfterInvokeData.Copy();
+                if (nodeData.LinkedElement is IAroundConditionElement condElement)
+                {
+                    condElement.ConditionBeforeInvokeGuid = nodeData.ConditionBeforeInvokeData.LinkedElement?.Guid;
+                    condElement.ConditionAfterInvokeGuid  = nodeData.ConditionAfterInvokeData.LinkedElement?.Guid;
+                    nodeData.ConditionBeforeInvokeData.LinkedElement?.SetParent(nodeData.LinkedElement); 
+                    nodeData.ConditionAfterInvokeData.LinkedElement?.SetParent(nodeData.LinkedElement); 
+                }
+            }
+
+            return nodeData;
         }
         public override void UpdateLinkedElement(bool updateChildren = true)
         {
@@ -56,9 +64,18 @@ namespace NovaLine.Script.Data.NodeGraphView
         }
         public override void RegisterLinkedElement()
         {
+            ConditionBeforeInvokeData?.LinkedElement?.SetParent(LinkedElement);
+            ConditionAfterInvokeData?.LinkedElement?.SetParent(LinkedElement);
             ConditionBeforeInvokeData?.RegisterLinkedElement();
             ConditionAfterInvokeData?.RegisterLinkedElement();
             base.RegisterLinkedElement();
+        }
+
+        public override void UnregisterLinkedElement()
+        {
+            ConditionBeforeInvokeData?.UnregisterLinkedElement();
+            ConditionAfterInvokeData?.UnregisterLinkedElement();
+            base.UnregisterLinkedElement();
         }
     }
 }

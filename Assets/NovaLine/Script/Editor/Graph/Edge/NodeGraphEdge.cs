@@ -3,6 +3,8 @@ using NovaLine.Script.Element.Switcher;
 using UnityEngine;
 using UnityEngine.UIElements;
 using NovaLine.Script.Editor.Utils;
+using NovaLine.Script.Editor.Utils.Ext;
+using NovaLine.Script.Utils.Ext;
 
 namespace NovaLine.Script.Editor.Graph.Edge
 {
@@ -22,7 +24,7 @@ namespace NovaLine.Script.Editor.Graph.Edge
 
         public override void OnDoubleClick(PointerDownEvent evt)
         {
-            var switchCondition = LinkedElement.switchCondition;
+            var switchCondition = LinkedElement.SwitchCondition;
             if (switchCondition != null)
             {
                 NovaWindow.LoadConditionContextDirect(switchCondition, "Switch Condition");

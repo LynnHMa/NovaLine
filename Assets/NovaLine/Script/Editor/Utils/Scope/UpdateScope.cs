@@ -20,7 +20,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
         {
             if (waitingFrameBeforeDispose > 0)
             {
-                CallbackHelper.FrameCall(waitingFrameBeforeDispose,TryUpdateContext);
+                CallbackExt.FrameCall(waitingFrameBeforeDispose,TryUpdateContext);
             }
             else
             {

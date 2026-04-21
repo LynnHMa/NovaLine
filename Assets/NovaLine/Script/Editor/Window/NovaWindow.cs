@@ -16,8 +16,11 @@ namespace NovaLine.Script.Editor.Window
     public class NovaWindow : EditorWindow
     {
         public static NovaWindow Instance { get; set; }
-        public static GraphNode SelectedGraphNode { get; set; }
-        public static IGraphEdge SelectedGraphEdge { get; set; }
+
+        public static GraphNode SelectedGraphNode =>
+            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphNode(InspectorNovaElementWrapper?.SelectedElementGuid,1);
+        public static IGraphEdge SelectedGraphEdge =>
+            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphEdge(InspectorNovaElementWrapper?.SelectedElementGuid,1);
 
         private void OnEnable()
         {
@@ -39,13 +42,11 @@ namespace NovaLine.Script.Editor.Window
 
             if (!EditorApplication.isCompiling)
             {
-                EditorFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveCurrentGraphViewNodeData();
             }
 
             EditorApplication.delayCall += () =>
             {
-                SelectedGraphNode = null;
-                SelectedGraphEdge = null;
                 InspectorHelper.ShowInInspector(null);
                 ClearContexts();
             };
@@ -55,12 +56,12 @@ namespace NovaLine.Script.Editor.Window
         #region STATIC
         public static void CreateGraphWindow()
         {
-            Instance = GetWindow<NovaWindow>("Empty Window");
+            Instance = GetWindow<NovaWindow>("Nova Window");
         }
         
         public static void ExitGraphView()
         {
-            EditorFileManager.SaveGraphWindowData();
+            SaveScope.RequireSave();
             if (CurrentGraphViewNodeContext == null || LastGraphViewNodeContext == null)
             {
                 return;
@@ -68,42 +69,20 @@ namespace NovaLine.Script.Editor.Window
             LoadContextInWindow(LastGraphViewNodeContext, true);
         }
 
-        public static void LoadContextInWindow(IGraphViewNodeContext context, bool isExiting = false)
+        public static void LoadContextInWindow(IGraphViewNodeContext context, bool isBackToParent = false)
         {
-            var graphView = (GraphView)context.GraphView;
-            if (graphView == null) return;
-
+            if (context == null) return;
             if (Instance == null) CreateGraphWindow();
-
-            //Register flowchart and its children
-            if (context is FlowchartNodeContext flowchartContext && !isExiting)
-            {
-                ClearContexts();
-                if(RegisteredFlowchartNodeContext != null)
-                {
-                    UnregisterContext(RegisteredFlowchartNodeContext);
-                }
-                RegisterContext(flowchartContext);
-                context.GraphView.SetBackButtonVisible(false);
-                context.LinkedData.RegisterLinkedElement();
-            }
-            else if(context is not FlowchartNodeContext)
-            {
-                context.GraphView.SetBackButtonVisible(true);
-                context.GraphView.OnRequestBackToParent = ExitGraphView;
-            }
-
+            
             Instance.rootVisualElement.Clear();
 
-            Debug.Log($"Loaded {context.LinkedData.NodeDataList.Count} nodes , {context.LinkedData.EdgeDataList.Count} edges! Data name: {context.LinkedData.Name}");
-
-            if (isExiting)
+            if (isBackToParent)
             {
                 //Reselect the graph node or edge in parent graph view.
-                var presentContext = CurrentGraphViewNodeContext;
-                if (presentContext != null)
+                var parentContext = CurrentGraphViewNodeContext;
+                if (parentContext != null)
                 {
-                    if(presentContext is ConditionContext conditionContext)
+                    if(parentContext is ConditionContext conditionContext)
                     {
                         if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.LinkedElement.Parent.Guid))
                         {
@@ -112,9 +91,9 @@ namespace NovaLine.Script.Editor.Window
                     }
                     else
                     {
-                        if (!context.GraphView.SelectGraphNode(presentContext.Guid))
+                        if (!context.GraphView.SelectGraphNode(parentContext.Guid))
                         {
-                            context.GraphView.SelectGraphEdge(presentContext.Guid);
+                            context.GraphView.SelectGraphEdge(parentContext.Guid);
                         }
                     }
 
@@ -124,35 +103,41 @@ namespace NovaLine.Script.Editor.Window
             }
             else
             {
-                //Multi condition contexts are not allowed,so we need to clean all other them.
-                if (context is ConditionContext)
-                {
-                    LoadedGraphViewContexts.RemoveAll(toRemove => toRemove.Type == NovaElementType.CONDITION);
-                }
-
-                //Let's load new context :)
+                //Congeneric contexts are not allowed,so we need to clean all other them before drawing.
+                LoadedGraphViewContexts.RemoveAll(toRemove => toRemove.Type == context.Type);
                 LoadedGraphViewContexts.Insert(0, context);
-
-                SelectedGraphEdge = null;
-                SelectedGraphNode = null;
-
+                
                 //Update linked element of current context.
-                var linkedContextElement = context.LinkedData.LinkedElement;
-                linkedContextElement?.ShowInInspector();
+                var linkedElement = context.LinkedData.LinkedElement;
+                linkedElement?.ShowInInspector();
 
-                //Init the context.
+                //Draw the context.
                 context.Draw();
             }
-        
-            //Add this graph view to opened window,make sure u can see it.
-            Instance.rootVisualElement.Add(graphView);
-            graphView.StretchToParentSize();
 
+            //Recording context info to be used to restore after reloading domain
             EditorFileManager.CurrentContextGuid = context.Guid;
             EditorFileManager.CurrentContextType = context.Type;
-        
+            
+            //Show back button
+            var isRootContext = context.Guid.Equals(RootGraphViewNodeContext.Guid);
+            if(isRootContext)
+            {
+                context.GraphView.SetBackButtonVisible(false);
+            }
+            else
+            {
+                context.GraphView.SetBackButtonVisible(true);
+                context.GraphView.OnRequestBackToParent = ExitGraphView;
+            }
+            
+            //Add this graph view to opened window,make sure u can see it.
+            var unityGraphView = (GraphView)context.GraphView;
+            if (unityGraphView == null) return;
+            Instance.rootVisualElement.Add(unityGraphView);
+            unityGraphView.StretchToParentSize();
+            unityGraphView.Focus();
             UpdateScope.RequireUpdate();
-            graphView.Focus();
         }
         public static void LoadConditionContextDirect(Condition targetCondition, string fallbackName)
         {
@@ -162,7 +147,7 @@ namespace NovaLine.Script.Editor.Window
                 return;
             }
 
-            var context = GetContext(targetCondition.Guid, NovaElementType.CONDITION);
+            var context = GetContext(targetCondition.Guid, NovaElementType.Condition);
             if (context is ConditionContext conditionContext)
             {
                 var actualConditionName = targetCondition.name;
@@ -173,7 +158,7 @@ namespace NovaLine.Script.Editor.Window
                 }
 
                 targetCondition.name = actualConditionName;
-                NovaWindow.LoadContextInWindow(conditionContext);
+                LoadContextInWindow(conditionContext);
             }
         }
         public static void UpdateContext()
@@ -205,7 +190,7 @@ namespace NovaLine.Script.Editor.Window
         {
             if (!EditorApplication.isCompiling)
             {
-                EditorFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveCurrentGraphViewNodeData();
             }
         }
         #endregion

@@ -9,5 +9,6 @@ namespace NovaLine.Script.Utils.Interface
 
         Condition ConditionBeforeInvoke { get; }
         Condition ConditionAfterInvoke { get; }
+        void InitConditions();
     }
 }

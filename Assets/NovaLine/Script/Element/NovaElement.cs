@@ -24,6 +24,7 @@ namespace NovaLine.Script.Element
         public string name;
         [TextArea] public string description;
 
+        public virtual Color ThemedColor => Color.white;
         public virtual NovaElement Parent => FindElement(_parentGuid);
         public virtual NovaElement FirstChild => FindElement(_firstChildGuid);
         public virtual string ParentGuid
@@ -108,15 +109,19 @@ namespace NovaLine.Script.Element
         {
             var clone = StrongCopy();
             clone.Guid = System.Guid.NewGuid().ToString();
+            clone.ChildrenGuidList?.Clear();
+            clone.SwitchersGuidList?.Clear();
+            clone.ParentGuid = "";
+            clone.FirstChildGuid = "";
             RegisterElement(clone);
             return clone;
         }
 
         public virtual void SetParent(NovaElement parent)
         {
-            if (this.Parent != null)
+            if (Parent != null)
             {
-                this.Parent.ChildrenGuidList?.Remove(Guid);
+                Parent.ChildrenGuidList?.Remove(Guid);
             }
 
             ParentGuid = parent != null ? parent.Guid : "";
@@ -142,12 +147,12 @@ namespace NovaLine.Script.Element
     }
     public enum NovaElementType
     {
-        NONE,
-        FLOWCHART,
-        NODE,
-        ACTION,
-        CONDITION,
-        EVENT,
-        SWITCHER
+        None,
+        Flowchart,
+        Node,
+        Action,
+        Condition,
+        Event,
+        Switcher
     }
 }

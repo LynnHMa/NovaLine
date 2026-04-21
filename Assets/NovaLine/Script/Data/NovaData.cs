@@ -2,15 +2,13 @@
 using NovaLine.Script.Element;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
+
 namespace NovaLine.Script.Data
 {
     [Serializable]
     public abstract class NovaData<TNovaElement> : INovaData where TNovaElement : NovaElement
     {
-        [SerializeField] private string _name;
-        [SerializeField] private string _description;
-        [SerializeField] private Vector2 _pos;
-        [SerializeField] private string _guid;
+        [SerializeField,HideInInspector] private Vector2 _pos;
         [SerializeReference] private TNovaElement _linkedElement;
 
         public virtual TNovaElement LinkedElement 
@@ -22,6 +20,7 @@ namespace NovaLine.Script.Data
         public virtual string Description => LinkedElement?.description;
         public virtual string Guid => LinkedElement?.Guid;
         public virtual Vector2 Pos { get => _pos; set => _pos = value; }
+        public virtual NovaElementType Type => LinkedElement.Type;
         public Vector2 GetPos() => _pos;
 
         NovaElement INovaData.LinkedElement
@@ -46,18 +45,21 @@ namespace NovaLine.Script.Data
         }
 
         public abstract void RegisterLinkedElement();
+        public abstract void UnregisterLinkedElement();
+
         public abstract void UpdateLinkedElement(bool updateChildren = true);
     }
     public interface INovaData : IGUID
     {
         NovaElement LinkedElement { get; set; }
-        public string Name { get;}
-
-        public string Description { get;}
-        public Vector2 Pos { get; set; }
+        string Name { get;}
+        string Description { get;}
+        Vector2 Pos { get; set; }
+        NovaElementType Type { get; }
         INovaData Copy();
         INovaData StrongCopy();
         void RegisterLinkedElement();
+        void UnregisterLinkedElement();
         void UpdateLinkedElement(bool updateChildren = true);
     }
 }

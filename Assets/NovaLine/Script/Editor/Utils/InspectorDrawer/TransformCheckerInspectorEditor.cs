@@ -1,6 +1,8 @@
 ﻿using System;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Element;
 using NovaLine.Script.Utils;
+using NovaLine.Script.Utils.Ext;
 using UnityEditor;
 using UnityEngine;
 
@@ -27,7 +29,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
             
             GUILayout.Space(15);
             
-            GUI.backgroundColor = ColorExt.LIGHT_GREEN;
+            GUI.backgroundColor = ColorExt.CONDITION_THEMED_COLOR;
             if (GUILayout.Button("Save", GUILayout.Height(30)))
             {
                 Undo.RecordObject(Selection.activeObject, "Change Transform");

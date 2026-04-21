@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Linq;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Utils.Ext;
+using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
 
 namespace NovaLine.Script.Element.Event
@@ -9,7 +11,8 @@ namespace NovaLine.Script.Element.Event
     [Serializable]
     public class NovaEvent : NovaElement,INovaEvent
     {
-        public override NovaElementType Type => NovaElementType.EVENT;
+        public override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
+        public override NovaElementType Type => NovaElementType.Event;
 
         public NovaEvent()
         {

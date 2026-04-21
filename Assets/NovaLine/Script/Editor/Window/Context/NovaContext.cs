@@ -8,7 +8,7 @@ namespace NovaLine.Script.Editor.Window.Context
     {
         protected NovaWindow Window => NovaWindow.Instance;
         public string Guid => LinkedData.Guid;
-        public NovaElementType Type => LinkedData?.LinkedElement?.Type ?? NovaElementType.NONE;
+        public NovaElementType Type => LinkedData?.LinkedElement?.Type ?? NovaElementType.None;
         public TLinkedData LinkedData { get; set; }
         
         INovaData INovaContext.LinkedData { get => LinkedData; set => LinkedData = (TLinkedData)value; }
@@ -17,6 +17,11 @@ namespace NovaLine.Script.Editor.Window.Context
         protected NovaContext(TLinkedData linkedData)
         {
             LinkedData = linkedData;
+        }
+        
+        public virtual void ReplaceLinkedData(INovaData linkedData)
+        {
+            LinkedData = (TLinkedData)linkedData;
         }
 
         public abstract void SaveData();
@@ -27,5 +32,6 @@ namespace NovaLine.Script.Editor.Window.Context
         NovaElementType Type { get; }
         void SaveData();
         INovaData LinkedData { get; set; }
+        void ReplaceLinkedData(INovaData linkedData);
     }
 }

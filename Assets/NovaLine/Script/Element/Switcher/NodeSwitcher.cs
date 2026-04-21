@@ -10,16 +10,16 @@ namespace NovaLine.Script.Element.Switcher
     {
         [SerializeField,HideInInspector] private string _switchConditionGuid;
         
-        public Condition switchCondition => FindElement(switchConditionGuid) as Condition;
-        public string switchConditionGuid{ get => _switchConditionGuid; set => _switchConditionGuid = value; }
-        public NodeSwitcher(){ 
-            var sc = new Condition("Switch Condition",this);
-            switchConditionGuid = sc.Guid;
+        public Condition SwitchCondition => FindElement(SwitchConditionGuid) as Condition;
+        public string SwitchConditionGuid{ get => _switchConditionGuid; set => _switchConditionGuid = value; }
+        public NodeSwitcher()
+        {
+            InitCondition();
         }
 
         public override IEnumerator Next()
         {
-            yield return switchCondition.Waiting();
+            yield return SwitchCondition.Waiting();
             
             var nextNode = TryToFindInputElement();
             if (nextNode is Node node)
@@ -36,11 +36,24 @@ namespace NovaLine.Script.Element.Switcher
         public override NovaElement Copy()
         {
             if (base.Copy() is not NodeSwitcher clone) return null;
-            
-            clone.switchConditionGuid = switchCondition.Copy().Guid;
-            clone.switchCondition.ParentGuid = clone.Guid;
+
+            if (SwitchCondition == null)
+            {
+                InitCondition();
+            }
+            if (SwitchCondition != null)
+            {
+                clone.SwitchConditionGuid = SwitchCondition.Copy().Guid;
+                clone.SwitchCondition.ParentGuid = clone.Guid;
+            }
             
             return clone;
+        }
+
+        private void InitCondition()
+        {
+            var sc = new Condition("Switch Condition",this);
+            SwitchConditionGuid = sc.Guid;
         }
     }
 }

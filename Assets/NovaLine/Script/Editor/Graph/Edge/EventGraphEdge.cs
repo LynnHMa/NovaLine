@@ -1,6 +1,8 @@
 ﻿
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Element.Event;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Utils.Ext;
 
 namespace NovaLine.Script.Editor.Graph.Edge
 {

@@ -8,8 +8,8 @@ namespace NovaLine.Script.Data.Edge
     [Serializable]
     public class NodeEdgeData : EdgeData<NodeSwitcher>
     {
-        [SerializeReference] private ConditionData _switchConditionData;
-        public ConditionData switchConditionData
+        [SerializeReference,HideInInspector] private ConditionData _switchConditionData;
+        public ConditionData SwitchConditionData
         {
             get => _switchConditionData;
             set => _switchConditionData = value;
@@ -21,26 +21,39 @@ namespace NovaLine.Script.Data.Edge
         public NodeEdgeData() { }
         public NodeEdgeData(NodeSwitcher novaElement) : base(novaElement)
         {
-            switchConditionData = new ConditionData(novaElement.switchCondition);
+            SwitchConditionData = new ConditionData(novaElement.SwitchCondition);
         }
         
         public override void RegisterLinkedElement()
         {
-            switchConditionData?.RegisterLinkedElement();
+            SwitchConditionData?.LinkedElement?.SetParent(LinkedElement);
+            SwitchConditionData?.RegisterLinkedElement();
             base.RegisterLinkedElement();
+        }
+
+        public override void UnregisterLinkedElement()
+        {
+            SwitchConditionData?.UnregisterLinkedElement();
+            base.UnregisterLinkedElement();
         }
         
         public override void UpdateLinkedElement(bool updateChildren = true)
         {
-            if(updateChildren) switchConditionData?.UpdateLinkedElement();
+            if(updateChildren) SwitchConditionData?.UpdateLinkedElement();
             base.UpdateLinkedElement(updateChildren);
         }
         public override INovaData Copy()
         {
-            if (base.Copy() is not NodeEdgeData clone) return null;
-            clone.switchConditionData = (ConditionData)switchConditionData.Copy();
-            clone.switchConditionData.LinkedElement = clone.LinkedElement.switchCondition;
-            return clone;
+            if (base.Copy() is not NodeEdgeData nodeEdgeData) return null;
+            
+            if (SwitchConditionData != null)
+            {
+                nodeEdgeData.SwitchConditionData = (ConditionData)SwitchConditionData.Copy();
+                nodeEdgeData.LinkedElement.SwitchConditionGuid = nodeEdgeData.SwitchConditionData.LinkedElement?.Guid;
+                nodeEdgeData.SwitchConditionData.LinkedElement?.SetParent(nodeEdgeData.LinkedElement); 
+            }
+            
+            return nodeEdgeData;
         }
     }
 }

@@ -4,6 +4,7 @@ using NovaLine.Script.Element.Switcher;
 using static NovaLine.Script.NovaElementRegistry;
 using System;
 using NovaLine.Script.Element;
+using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
 
@@ -21,14 +22,11 @@ namespace NovaLine.Script.Action
         public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
         public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
         public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
-
-        public override NovaElementType Type => NovaElementType.ACTION;
+        public override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
+        public override NovaElementType Type => NovaElementType.Action;
         public NovaAction()
         {
-            var conditionBefore = new Condition("Before Invoke",this);
-            var conditionAfter = new Condition("After Invoke",this);
-            ConditionAfterInvokeGuid = conditionAfter.Guid;
-            ConditionBeforeInvokeGuid = conditionBefore.Guid;
+            InitConditions();
         }
         public NovaAction(string name) : this()
         {
@@ -62,11 +60,28 @@ namespace NovaLine.Script.Action
         {
             var clone = base.Copy();
             if (clone is not NovaAction action) return clone;
-            action.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
-            action.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
-            action.ConditionBeforeInvoke.ParentGuid = action.Guid;
-            action.ConditionAfterInvoke.ParentGuid = action.Guid;
+            
+            if (ConditionBeforeInvoke == null || ConditionAfterInvoke == null)
+            {
+                InitConditions();
+            }
+            if (ConditionBeforeInvoke != null && ConditionAfterInvoke != null)
+            {
+                action.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
+                action.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
+                action.ConditionBeforeInvoke.ParentGuid = action.Guid;
+                action.ConditionAfterInvoke.ParentGuid = action.Guid;
+            }
+            
             return action;
+        }
+        
+        public void InitConditions()
+        {
+            var conditionBefore = new Condition("Before Invoke",this);
+            var conditionAfter = new Condition("After Invoke",this);
+            ConditionAfterInvokeGuid = conditionAfter.Guid;
+            ConditionBeforeInvokeGuid = conditionBefore.Guid;
         }
     }
     public interface INovaAction

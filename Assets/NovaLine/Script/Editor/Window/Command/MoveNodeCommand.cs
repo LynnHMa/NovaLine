@@ -24,7 +24,7 @@ namespace NovaLine.Script.Editor.Window.Command
             foreach(var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                linkedGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.oldPos,false);
+                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.oldPos,false);
             }
         }
         public override void OnRedo()
@@ -32,7 +32,7 @@ namespace NovaLine.Script.Editor.Window.Command
             foreach (var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                linkedGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.newPos,false);
+                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.newPos,false);
             }
         }
 

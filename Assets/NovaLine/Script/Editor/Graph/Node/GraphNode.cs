@@ -28,10 +28,9 @@ namespace NovaLine.Script.Editor.Graph.Node
             get => _pos;
             set => _pos = value;
         }
-
         public virtual string LinkedElementGuid { get; set; }
         public virtual string Guid => LinkedElement?.Guid;
-        public virtual NovaElementType Type => LinkedElement != null ? LinkedElement.Type : NovaElementType.NONE;
+        public virtual NovaElementType Type => LinkedElement != null ? LinkedElement.Type : NovaElementType.None;
         public virtual NovaElement LinkedElement => FindElement(LinkedElementGuid);
         public override string title => LinkedElement?.GetActualName();
 
@@ -173,7 +172,6 @@ namespace NovaLine.Script.Editor.Graph.Node
         public override void OnSelected()
         {
             base.OnSelected();
-            NovaWindow.SelectedGraphNode = this;
 
             if (LinkedElement == null) return;
             LinkedElement.ShowInInspector();
@@ -181,8 +179,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         public override void OnUnselected()
         {
             base.OnUnselected();
-            NovaWindow.SelectedGraphNode = null;
-
+            
             var rootElement = (NovaElement)CurrentGraphViewNodeContext?.GraphView?.LinkedElement;
 
             if (rootElement == null) return;

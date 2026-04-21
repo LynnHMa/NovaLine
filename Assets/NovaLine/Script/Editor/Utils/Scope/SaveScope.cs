@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using NovaLine.Script.Editor.File;
-using NovaLine.Script.Editor.Window;
 using UnityEditor;
 
 namespace NovaLine.Script.Editor.Utils.Scope
@@ -39,7 +37,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
             }
             else
             {
-                EditorFileManager.SaveGraphWindowData();       
+                EditorFileManager.SaveCurrentGraphViewNodeData();       
             }
         }
 
@@ -48,7 +46,7 @@ namespace NovaLine.Script.Editor.Utils.Scope
             scopeDepth--;
             if (scopeDepth == 0 && isDirty)
             {
-                EditorFileManager.SaveGraphWindowData();
+                EditorFileManager.SaveCurrentGraphViewNodeData();
                 isDirty = false;
             }
         }

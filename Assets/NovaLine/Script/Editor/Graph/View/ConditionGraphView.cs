@@ -7,8 +7,10 @@ using NovaLine.Script.Editor.Graph.Edge;
 using NovaLine.Script.Editor.Graph.Node;
 using NovaLine.Script.Element;
 using NovaLine.Script.Data.Edge;
+using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Window.Context.Edge;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
+using NovaLine.Script.Utils.Ext;
 
 namespace NovaLine.Script.Editor.Graph.View
 {
@@ -39,7 +41,7 @@ namespace NovaLine.Script.Editor.Graph.View
 
         public override IGraphViewNodeContext SummonNewChildGraphViewNodeContext(IGraphViewNodeData linkedData)
         {
-            return new EventNodeContext(linkedData as EventData);
+            return new EventContext(linkedData as EventData);
         }
         
         public override EdgeContext SummonNewChildEdgeContext(NovaSwitcher linkedSwitcher)

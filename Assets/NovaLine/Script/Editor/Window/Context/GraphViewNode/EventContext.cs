@@ -8,9 +8,9 @@ using static NovaLine.Script.Editor.Window.Context.GraphViewNode.ContextInfo;
 namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 {
     [ContextInfo(AsNode.True, AsGraphView.False)]
-    public class EventNodeContext : GraphViewNodeContext<IObjectEditor, EventData>
+    public class EventContext : GraphViewNodeContext<IObjectEditor, EventData>
     {
-        public EventNodeContext(EventData linkedData) : base(linkedData) { }
+        public EventContext(EventData linkedData) : base(linkedData) { }
         public override void SaveData()
         {
         }

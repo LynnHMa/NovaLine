@@ -2,10 +2,10 @@
 using NovaLine.Script.Editor.Graph.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Graph.Port;
 using NovaLine.Script.Element;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Utils.Ext;
 
 namespace NovaLine.Script.Editor.Graph.Node
 {

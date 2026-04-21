@@ -2,7 +2,7 @@
 
 namespace NovaLine.Script.Editor.Utils.Ext
 {
-    public static class CallbackHelper
+    public static class CallbackExt
     {
         public static void FrameCall(int frame, System.Action action)
         {

@@ -13,12 +13,13 @@ namespace NovaLine.Script.Element.Switcher
         [SerializeField, HideInInspector] private string _inputElementGuid;
         [SerializeField, HideInInspector] private string _outputElementGuid;
 
-        public override NovaElementType Type => NovaElementType.SWITCHER;
-        public string inputElementGuid  { get => _inputElementGuid;  set => _inputElementGuid  = value; }
-        public string outputElementGuid { get => _outputElementGuid; set => _outputElementGuid = value; }
+        public override NovaElementType Type => NovaElementType.Switcher;
+        public string InputElementGuid  { get => _inputElementGuid;  set => _inputElementGuid  = value; }
+        public string OutputElementGuid { get => _outputElementGuid; set => _outputElementGuid = value; }
+        
         public NovaSwitcher()
         {
-            name = "Next Node";
+            name = "Next";
         }
 
         public override string GetTypeName()
@@ -38,12 +39,12 @@ namespace NovaLine.Script.Element.Switcher
 
         public virtual NovaElement TryToFindInputElement()
         {
-            return FindElement(inputElementGuid);
+            return FindElement(InputElementGuid);
         }
 
         public virtual NovaElement TryToFindOutputElement()
         {
-            return FindElement(outputElementGuid);
+            return FindElement(OutputElementGuid);
         }
 
         public virtual IEnumerator Next()
