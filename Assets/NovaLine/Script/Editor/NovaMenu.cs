@@ -2,6 +2,7 @@
 using NovaLine.Script.Data.NodeGraphView;
 using NovaLine.Script.Editor.File;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
+using NovaLine.Script.Utils;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -28,7 +29,7 @@ namespace NovaLine.Script.Editor
         {
             try
             {
-                var playerPrefab = Resources.Load<NovaPlayer>("Prefab/NovaPlayer");
+                var playerPrefab = AssetDatabaseExt.LoadAssetByName<NovaPlayer>("NovaPlayer");
                 if (playerPrefab == null)
                 {
                     throw(new Exception("The prefab of NovaPlayer not found!"));

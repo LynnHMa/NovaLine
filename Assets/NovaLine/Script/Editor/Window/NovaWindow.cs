@@ -30,6 +30,18 @@ namespace NovaLine.Script.Editor.Window
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             EditorApplication.delayCall += TryRestoreAfterReload;
             
+            EditorApplication.delayCall += () =>
+            {
+                if (CurrentGraphViewNodeContext != null)
+                {
+                    LoadContextInWindow(CurrentGraphViewNodeContext);
+                }
+                else
+                {
+                    TryRestoreAfterReload();
+                }
+            };
+            
             //因为Unity迷惑的保护机制，导致一些快捷键无法添加，这里将强制劫持
             rootVisualElement.RegisterCallback<KeyDownEvent>(OnWindowKeyDown, TrickleDown.TrickleDown);
         }
@@ -44,12 +56,6 @@ namespace NovaLine.Script.Editor.Window
             {
                 EditorFileManager.SaveCurrentGraphViewNodeData();
             }
-
-            EditorApplication.delayCall += () =>
-            {
-                InspectorHelper.ShowInInspector(null);
-                ClearContexts();
-            };
         }
         
 

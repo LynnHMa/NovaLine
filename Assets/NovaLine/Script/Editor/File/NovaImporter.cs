@@ -13,13 +13,16 @@ namespace NovaLine.Script.Editor.File
             string jsonContent = System.IO.File.ReadAllText(ctx.assetPath);
             
             var asset = ScriptableObject.CreateInstance<GraphViewNodeDataAsset>();
-            
+            Texture2D icon = null;
+
             if (!string.IsNullOrEmpty(jsonContent))
             {
                 EditorJsonUtility.FromJsonOverwrite(jsonContent, asset);
+                icon = NovaFileIcon.GetIcon(asset.data.Type);
             }
             
-            ctx.AddObjectToAsset("NovaAsset", asset);
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(ctx.assetPath);
+            ctx.AddObjectToAsset(fileName, asset, icon);
             ctx.SetMainObject(asset);
         }
     }

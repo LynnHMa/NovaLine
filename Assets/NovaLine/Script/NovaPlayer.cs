@@ -1,11 +1,9 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Data;
 using NovaLine.Script.Element;
 using NovaLine.Script.UI.Container;
 using NovaLine.Script.Utils.Attribute;
-using UnityEditor;
 using UnityEngine;
 using static NovaLine.Script.NovaElementRegistry;
 
@@ -21,8 +19,8 @@ namespace NovaLine.Script
         public DialogContainerUI dialogContainerUI;
         public ButtonContainerUI buttonContainerUI;
         
-        [Header("Registry")]
-        public List<GraphViewNodeDataAsset> flowchartList = new();
+        [Header("Player")]
+        public List<GraphViewNodeDataAsset> playList = new();
         
         [Header("Dialog")]
         public bool fadeIn;
@@ -72,10 +70,10 @@ namespace NovaLine.Script
 
         public IEnumerator PlayDefault()
         {
-            for (var i = 0; i < flowchartList.Count; i++)
+            for (var i = 0; i < playList.Count; i++)
             {
-                var flowchartDataAsset = flowchartList[i];
-                yield return PlayFromFlowchart(flowchartDataAsset);
+                var flowchartDataAsset = playList[i];
+                yield return PlayFromAsset(flowchartDataAsset);
             }
         }
 
@@ -119,12 +117,20 @@ namespace NovaLine.Script
                 Instance.background.SetSpriteDebounce(null);
             }
         }
-        public static IEnumerator PlayFromFlowchart(GraphViewNodeDataAsset playAsset)
+        public static IEnumerator PlayFromAsset(GraphViewNodeDataAsset playAsset)
         {
+            if (playAsset?.data == null) yield break;
             playAsset.data.RegisterLinkedElement();
-            if (FindElement(playAsset.data.Guid) is Flowchart flowchart)
+            switch (FindElement(playAsset.data.Guid))
             {
-                yield return flowchart.Play();
+                case Flowchart flowchart:
+                    yield return flowchart.Play();
+                    break;
+                case Node node:
+                    yield return node.Run();
+                    break;
+                default:
+                    yield break;
             }
         }
 

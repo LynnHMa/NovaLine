@@ -146,7 +146,7 @@ namespace NovaLine.Script.Editor.Graph.Node
                 _pos = targetPos; 
                 
                 _moveSettleTimer ??= schedule.Execute(OnMoveSettled);
-                _moveSettleTimer.ExecuteLater(100); 
+                _moveSettleTimer.ExecuteLater(300); 
             }
 
             base.SetPosition(newPos); 

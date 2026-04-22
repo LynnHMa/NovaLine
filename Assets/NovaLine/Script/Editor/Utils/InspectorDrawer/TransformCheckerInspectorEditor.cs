@@ -1,5 +1,4 @@
 ﻿using System;
-using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Element;
 using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Ext;

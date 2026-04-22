@@ -75,8 +75,9 @@ namespace NovaLine.Script.Editor.File
 
                     if (CreateContextByType(asset.data, asset.data.LinkedElement.Type) is not IGraphViewNodeContext context) return false;
                     RegisterAndLoadContext(context);
-                    return true;
                 }
+                else Debug.Log("There is no graph view for this type of asset you chosen.");
+                return true;
             }
             return false;
         }

@@ -214,7 +214,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                 }
                 
                 //Add a button of handling selected node
-                if (selectedElement.Guid.Equals(InspectorHelper.InspectorNovaElementWrapper.SelectedElementGuid))
+                if (InspectorHelper.InspectorNovaElementWrapper != null && selectedElement.Guid.Equals(InspectorHelper.InspectorNovaElementWrapper.SelectedElementGuid))
                 {
                     var buttonColor = selectedElement.ThemedColor;
                     if (selectedElement is not Flowchart && selectedElement.Type != NovaElementType.Switcher)
