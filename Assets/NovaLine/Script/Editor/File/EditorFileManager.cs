@@ -18,21 +18,22 @@ namespace NovaLine.Script.Editor.File
         private const string CURRENT_CONTEXT_GUID_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT";
         private const string CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY = "NOVA_CURRENT_CONTEXT_TYPE";
 
+        
         public static string CurrentPath
         {
-            get => SessionState.GetString(CURRENT_PATH_SESSION_PATH_KEY, string.Empty);
-            set => SessionState.SetString(CURRENT_PATH_SESSION_PATH_KEY, value);
+            get => EditorPrefs.GetString(GetProjectKey(CURRENT_PATH_SESSION_PATH_KEY), string.Empty);
+            set => EditorPrefs.SetString(GetProjectKey(CURRENT_PATH_SESSION_PATH_KEY), value);
         }
         public static string CurrentContextGuid
         {
-            get => SessionState.GetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, string.Empty);
-            set => SessionState.SetString(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY, value);
+            get => EditorPrefs.GetString(GetProjectKey(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY), string.Empty);
+            set => EditorPrefs.SetString(GetProjectKey(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY), value);
         }
 
         public static NovaElementType CurrentContextType
         {
-            get => (NovaElementType) Enum.Parse(typeof(NovaElementType), SessionState.GetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, "None"));
-            set => SessionState.SetString(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY, value.ToString());
+            get => (NovaElementType) Enum.Parse(typeof(NovaElementType), EditorPrefs.GetString(GetProjectKey(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY), "None"));
+            set => EditorPrefs.SetString(GetProjectKey(CURRENT_CONTEXT_TYPE_SESSION_PATH_KEY), value.ToString());
         }
 
         private static GraphViewNodeDataAsset _currentAsset;
@@ -46,7 +47,6 @@ namespace NovaLine.Script.Editor.File
             }
             set => _currentAsset = value;
         }
-
         [OnOpenAsset]
         public static bool LoadGraphViewNodeDataAsset(int instanceID, int line)
         {
@@ -62,7 +62,7 @@ namespace NovaLine.Script.Editor.File
             {
                 if (!IsNovaExtension(path)) return false;
                 
-                if (asset?.data == null)
+                if (asset.data == null)
                 {
                     Debug.LogError("The asset data is null!");
                     return false;
@@ -206,6 +206,11 @@ namespace NovaLine.Script.Editor.File
                    path.EndsWith(".nv_condition") || 
                    path.EndsWith(".nv_event") || 
                    path.EndsWith(".nv_switcher");
+        }
+        
+        private static string GetProjectKey(string key)
+        {
+            return $"{Application.productName}_{key}";
         }
     }
 }

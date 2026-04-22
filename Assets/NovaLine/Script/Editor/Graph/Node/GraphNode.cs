@@ -160,14 +160,16 @@ namespace NovaLine.Script.Editor.Graph.Node
                 
                 if (_posWhenStartMoving != _pos)
                 {
-                    CommandRegistry.RegisterCommand(BuildMoveCommand(_posWhenStartMoving, _pos));
+                    using (new SaveScope(true))
+                    {
+                        CommandRegistry.RegisterCommand(BuildMoveCommand(_posWhenStartMoving, _pos));
+                    }
                 }
             }
         }
         protected virtual MoveNodeCommand BuildMoveCommand(Vector2 oldPos, Vector2 newPos)
         {
-            if (LinkedElement?.Parent == null) return null;
-            return new MoveNodeCommand(LinkedElement.ParentGuid, LinkedElement.Parent.Type, new KeyValue<NovaElement, PosKeyValue>(LinkedElement, new PosKeyValue(oldPos, newPos)));
+            return LinkedElement?.Parent == null ? null : new MoveNodeCommand(LinkedElement.ParentGuid, LinkedElement.Parent.Type, new KeyValue<NovaElement, PosKeyValue>(LinkedElement, new PosKeyValue(oldPos, newPos)));
         }
         public override void OnSelected()
         {

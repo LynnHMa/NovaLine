@@ -6,8 +6,8 @@ namespace NovaLine.Script.Editor.Utils.Scope
 {
     public class SaveScope : IDisposable
     {
-        private static int scopeDepth = 0;
-        private static bool isDirty = false;
+        private static int scopeDepth;
+        private static bool isDirty;
         
         private readonly bool saveNextFrame;
         public SaveScope(bool saveNextFrame = false)
