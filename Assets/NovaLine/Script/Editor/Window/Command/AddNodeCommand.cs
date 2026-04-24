@@ -12,10 +12,10 @@ namespace NovaLine.Script.Editor.Window.Command
     {
         public List<IGraphViewNodeData> linkedDataList = new();
 
-        public AddNodeCommand(string contextGuid, NovaElementType contextType, IGraphViewNodeData linkedData) : this(contextGuid, contextType, new List<IGraphViewNodeData>() { linkedData })
+        public AddNodeCommand(string contextGUID, NovaElementType contextType, IGraphViewNodeData linkedData) : this(contextGUID, contextType, new List<IGraphViewNodeData>() { linkedData })
         {
         }
-        public AddNodeCommand(string contextGuid, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGuid, contextType)
+        public AddNodeCommand(string contextGUID, NovaElementType contextType, List<IGraphViewNodeData> linkedDataList) : base(contextGUID, contextType)
         {
             Type = CommandType.Add_Node;
             this.linkedDataList.AddRange(linkedDataList);

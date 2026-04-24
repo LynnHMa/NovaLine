@@ -9,6 +9,7 @@ using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using static NovaLine.Script.Editor.Window.NovaWindow;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 using NovaLine.Script.Element;
+using NovaLine.Script.Registry;
 
 namespace NovaLine.Script.Editor.File
 {
@@ -24,7 +25,7 @@ namespace NovaLine.Script.Editor.File
             get => EditorPrefs.GetString(GetProjectKey(CURRENT_PATH_SESSION_PATH_KEY), string.Empty);
             set => EditorPrefs.SetString(GetProjectKey(CURRENT_PATH_SESSION_PATH_KEY), value);
         }
-        public static string CurrentContextGuid
+        public static string CurrentContextGUID
         {
             get => EditorPrefs.GetString(GetProjectKey(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY), string.Empty);
             set => EditorPrefs.SetString(GetProjectKey(CURRENT_CONTEXT_GUID_SESSION_PATH_KEY), value);
@@ -88,7 +89,7 @@ namespace NovaLine.Script.Editor.File
                 CurrentAsset = actionAsset;
                 CurrentPath = actionPath;
                 
-                if (!CurrentGraphViewNodeContext.Guid.Equals(RootGraphViewNodeContext.Guid))
+                if (!CurrentGraphViewNodeContext.GUID.Equals(RootGraphViewNodeContext.GUID))
                 {
                     CurrentGraphViewNodeContext.SaveData();
                 }
@@ -113,16 +114,16 @@ namespace NovaLine.Script.Editor.File
             if (CreateContextByType(data,data.LinkedElement.Type) is not IGraphViewNodeContext context) return;
             
             //Re-register all contexts
-            var storedCurrentContextGuid = CurrentContextGuid;
+            var storedCurrentContextGUID = CurrentContextGUID;
             var storedCurrentContextType = CurrentContextType;
             
             //Restore root graph view
             RegisterAndLoadContext(context);
 
             //Restore opened child graph view
-            if (!context.Guid.Equals(storedCurrentContextGuid))
+            if (!context.GUID.Equals(storedCurrentContextGUID))
             {
-                if (GetContext(storedCurrentContextGuid, storedCurrentContextType) is not IGraphViewNodeContext childContext) return;
+                if (GetContext(storedCurrentContextGUID, storedCurrentContextType) is not IGraphViewNodeContext childContext) return;
                 LoadContextInWindow(childContext);
             }
         }

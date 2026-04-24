@@ -16,11 +16,11 @@ namespace NovaLine.Script.Editor.Graph.View
     public class NodeGraphView : NovaGraphView<ActionGraphNode,Element.Node,NovaAction,ActionSwitcher>
     {
         protected override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
-        public NodeGraphView(string linkedNodeGuid) : base(linkedNodeGuid) { }
+        public NodeGraphView(string linkedNodeGUID) : base(linkedNodeGUID) { }
         
         public override ActionGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var actualName = (LinkedElement.ChildrenGuidList.Count + 1).ToString();
+            var actualName = (LinkedElement.ChildrenGUIDList.Count + 1).ToString();
             var newAction = new NovaAction(actualName);
             var newActionGraphNode = new ActionGraphNode(newAction, pos);
             return newActionGraphNode;

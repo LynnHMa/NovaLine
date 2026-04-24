@@ -8,10 +8,10 @@ namespace NovaLine.Script.Editor.Window.Command
     public class SetFirstNodeCommand : Command
     {
         public KeyValue<string,string> firstNodeKeyValue;
-        public SetFirstNodeCommand(string contextGuid, NovaElementType contextType, string oldFirstNodeGuid,string newFirstNodeGuid) : base(contextGuid, contextType)
+        public SetFirstNodeCommand(string contextGUID, NovaElementType contextType, string oldFirstNodeGUID,string newFirstNodeGUID) : base(contextGUID, contextType)
         {
             Type = CommandType.Set_First_Node;
-            firstNodeKeyValue = new(oldFirstNodeGuid, newFirstNodeGuid);
+            firstNodeKeyValue = new(oldFirstNodeGUID, newFirstNodeGUID);
         }
 
         public override void OnUndo()

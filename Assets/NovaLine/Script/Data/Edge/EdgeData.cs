@@ -1,5 +1,6 @@
 using System;
 using NovaLine.Script.Element.Switcher;
+using NovaLine.Script.Registry;
 
 namespace NovaLine.Script.Data.Edge
 {
@@ -30,11 +31,11 @@ namespace NovaLine.Script.Data.Edge
         public override void UnregisterLinkedElement()
         {
             if (LinkedElement == null) return;
-            NovaElementRegistry.UnregisterElement(LinkedElement.Guid);
+            NovaElementRegistry.UnregisterElement(LinkedElement.GUID);
         }
         public override void UpdateLinkedElement(bool updateChildren = true)
         {
-            LinkedElement = NovaElementRegistry.FindElement(LinkedElement.Guid) as TLinkedSwitcher;
+            LinkedElement = NovaElementRegistry.FindElement(LinkedElement.GUID) as TLinkedSwitcher;
         }
         
         public override INovaData Copy()

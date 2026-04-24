@@ -1,17 +1,17 @@
 ﻿﻿using System;
  using System.Collections;
  using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Element.Switcher
 {
     [Serializable]
     public class NodeSwitcher : NovaSwitcher
     {
-        [SerializeField,HideInInspector] private string _switchConditionGuid;
+        [SerializeField,HideInInspector] private string _switchConditionGUID;
         
-        public Condition SwitchCondition => FindElement(SwitchConditionGuid) as Condition;
-        public string SwitchConditionGuid{ get => _switchConditionGuid; set => _switchConditionGuid = value; }
+        public Condition SwitchCondition => FindElement(SwitchConditionGUID) as Condition;
+        public string SwitchConditionGUID{ get => _switchConditionGUID; set => _switchConditionGUID = value; }
         public NodeSwitcher()
         {
             InitCondition();
@@ -43,8 +43,8 @@ namespace NovaLine.Script.Element.Switcher
             }
             if (SwitchCondition != null)
             {
-                clone.SwitchConditionGuid = SwitchCondition.Copy().Guid;
-                clone.SwitchCondition.ParentGuid = clone.Guid;
+                clone.SwitchConditionGUID = SwitchCondition.Copy().GUID;
+                clone.SwitchCondition.ParentGUID = clone.GUID;
             }
             
             return clone;
@@ -53,7 +53,7 @@ namespace NovaLine.Script.Element.Switcher
         private void InitCondition()
         {
             var sc = new Condition("Switch Condition",this);
-            SwitchConditionGuid = sc.Guid;
+            SwitchConditionGUID = sc.GUID;
         }
     }
 }

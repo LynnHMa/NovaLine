@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace NovaLine.Script.Element.Action
 {
+    /// <summary>
+    /// Change a new background
+    /// </summary>
     [Serializable]
     public class BackgroundAction : NovaAction
     {

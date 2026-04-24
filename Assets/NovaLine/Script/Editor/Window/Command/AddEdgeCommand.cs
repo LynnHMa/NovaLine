@@ -10,10 +10,10 @@ namespace NovaLine.Script.Editor.Window.Command
     {
         public List<IEdgeData> linkedDataList = new();
 
-        public AddEdgeCommand(string contextGuid, NovaElementType contextType, IEdgeData linkedData) : this(contextGuid, contextType, new List<IEdgeData>(){linkedData})
+        public AddEdgeCommand(string contextGUID, NovaElementType contextType, IEdgeData linkedData) : this(contextGUID, contextType, new List<IEdgeData>(){linkedData})
         {
         }
-        public AddEdgeCommand(string contextGuid, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGuid, contextType)
+        public AddEdgeCommand(string contextGUID, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGUID, contextType)
         {
             Type = CommandType.Add_Edge;
             this.linkedDataList.AddRange(linkedDataList);

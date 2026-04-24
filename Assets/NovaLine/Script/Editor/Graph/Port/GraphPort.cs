@@ -80,9 +80,9 @@ namespace NovaLine.Script.Editor.Graph.Port
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
                 if (graphEdge.LinkedElement == null) graphEdge.GenerateNewLinkedElement();
-                if (graphEdge.LinkedElement == null || graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
-                graphEdge.LinkedElement.OutputElementGuid = OwnerElement.Guid;
-                graphEdge.LinkedElement.InputElementGuid = graphEdge.Input.OwnerElement.Guid;
+                if (graphEdge.LinkedElement == null || graphEdge.Input.OwnerElement.GUID == OwnerElement.GUID) return;
+                graphEdge.LinkedElement.OutputElementGUID = OwnerElement.GUID;
+                graphEdge.LinkedElement.InputElementGUID = graphEdge.Input.OwnerElement.GUID;
 
                 OwnerElement.OnGraphConnect(graphEdge.LinkedElement);
 
@@ -109,7 +109,7 @@ namespace NovaLine.Script.Editor.Graph.Port
             base.Disconnect(edge);
             if (edge is GraphEdge<PE, EE> graphEdge)
             {
-                if (graphEdge.Input.OwnerElement.Guid == OwnerElement.Guid) return;
+                if (graphEdge.Input.OwnerElement.GUID == OwnerElement.GUID) return;
                 OwnerElement.OnGraphDisconnect(graphEdge.LinkedElement);
 
                 if (isByHand)

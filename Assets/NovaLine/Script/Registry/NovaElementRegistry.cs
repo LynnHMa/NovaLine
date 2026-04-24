@@ -2,7 +2,7 @@
 using NovaLine.Script.Element;
 using NovaLine.Script.Utils.Interface;
 
-namespace NovaLine.Script
+namespace NovaLine.Script.Registry
 {
     public static class NovaElementRegistry
     {
@@ -10,29 +10,29 @@ namespace NovaLine.Script
 
         public static bool RegisterElement(NovaElement novaElement)
         {
-            return elementDictionary.TryAdd(novaElement.Guid, novaElement);
+            return elementDictionary.TryAdd(novaElement.GUID, novaElement);
         }
 
-        public static bool UnregisterElement(string guid)
+        public static bool UnregisterElement(string GUID)
         {
-            return elementDictionary.Remove(guid);
+            return elementDictionary.Remove(GUID);
         }
 
-        public static NovaElement FindElement(string guid)
+        public static NovaElement FindElement(string GUID)
         {
-            if (string.IsNullOrEmpty(guid)) return null;
-            elementDictionary.TryGetValue(guid, out NovaElement result);
+            if (string.IsNullOrEmpty(GUID)) return null;
+            elementDictionary.TryGetValue(GUID, out NovaElement result);
             return result;
         }
         
-        public static void ReplaceElement(string oldGuid, NovaElement newElement)
+        public static void ReplaceElement(string oldGUID, NovaElement newElement)
         {
-            newElement.Guid = oldGuid;
-            elementDictionary[oldGuid] = newElement;
-            for (var i = 0; i < newElement.ChildrenGuidList.Count; i++)
+            newElement.GUID = oldGUID;
+            elementDictionary[oldGUID] = newElement;
+            for (var i = 0; i < newElement.ChildrenGUIDList.Count; i++)
             {
-                var childGuid = newElement.ChildrenGuidList[i];
-                var childElement = FindElement(childGuid);
+                var childGUID = newElement.ChildrenGUIDList[i];
+                var childElement = FindElement(childGUID);
                 childElement.SetParent(newElement);
             }
 

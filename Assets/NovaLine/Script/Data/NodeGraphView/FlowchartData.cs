@@ -1,6 +1,7 @@
 using NovaLine.Script.Data.Edge;
 using NovaLine.Script.Element;
 using System;
+using NovaLine.Script.Registry;
 using UnityEngine;
 
 namespace NovaLine.Script.Data.NodeGraphView

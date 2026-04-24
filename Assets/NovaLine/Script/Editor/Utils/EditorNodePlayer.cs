@@ -1,4 +1,5 @@
 ﻿using NovaLine.Script.Editor.Window;
+using NovaLine.Script.Registry;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,11 +10,11 @@ namespace NovaLine.Script.Editor.Utils
         private const string KEY_IS_PLAYING = "NOVA_IS_PLAYING";
         private const string KEY_NODE_GUID = "NOVA_NODE_TO_PLAY_GUID";
         private const string KEY_INSPECTOR_ELEMENT_GUID = "NOVA_INSPECTOR_ELEMENT_GUID";
-        public static void RequestPlayFromNode(string nodeGuid,string inspectorElementGuid)
+        public static void RequestPlayFromNode(string nodeGUID,string inspectorElementGUID)
         {
             SessionState.SetBool(KEY_IS_PLAYING, true);
-            SessionState.SetString(KEY_NODE_GUID, nodeGuid);
-            SessionState.SetString(KEY_INSPECTOR_ELEMENT_GUID,inspectorElementGuid);
+            SessionState.SetString(KEY_NODE_GUID, nodeGUID);
+            SessionState.SetString(KEY_INSPECTOR_ELEMENT_GUID,inspectorElementGUID);
             
             EditorApplication.isPlaying = true;
         }
@@ -31,17 +32,17 @@ namespace NovaLine.Script.Editor.Utils
                 if (SessionState.GetBool(KEY_IS_PLAYING, false))
                 {
                     SessionState.SetBool(KEY_IS_PLAYING, false);
-                    string nodeGuid = SessionState.GetString(KEY_NODE_GUID, "");
+                    string nodeGUID = SessionState.GetString(KEY_NODE_GUID, "");
                     
                     EditorApplication.delayCall += () => 
                     {
-                        ExecutePlay(nodeGuid);
+                        ExecutePlay(nodeGUID);
                     };
                 }
             }
         }
         
-        private static void ExecutePlay(string nodeGuid)
+        private static void ExecutePlay(string nodeGUID)
         {
             var flowchartData = ContextRegistry.RegisteredFlowchartContext?.LinkedData;
             if (flowchartData != null)
@@ -50,7 +51,7 @@ namespace NovaLine.Script.Editor.Utils
                 
                 if (NovaPlayer.Instance != null)
                 {
-                    NovaPlayer.Instance.StartCoroutine(NovaPlayer.PlayFromNode(nodeGuid));
+                    NovaPlayer.PlayFromNode(nodeGUID);
                 }
                 else
                 {
@@ -58,7 +59,7 @@ namespace NovaLine.Script.Editor.Utils
                 }
             }
             
-            var inspectorElement = NovaElementRegistry.FindElement(SessionState.GetString(KEY_INSPECTOR_ELEMENT_GUID, nodeGuid));
+            var inspectorElement = NovaElementRegistry.FindElement(SessionState.GetString(KEY_INSPECTOR_ELEMENT_GUID, nodeGUID));
             inspectorElement?.ShowInInspector();
         }
     }

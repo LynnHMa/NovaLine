@@ -18,9 +18,9 @@ namespace NovaLine.Script.Editor.Window
         public static NovaWindow Instance { get; set; }
 
         public static GraphNode SelectedGraphNode =>
-            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphNode(InspectorNovaElementWrapper?.SelectedElementGuid,1);
+            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphNode(InspectorNovaElementWrapper?.SelectedElementGUID,1);
         public static IGraphEdge SelectedGraphEdge =>
-            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphEdge(InspectorNovaElementWrapper?.SelectedElementGuid,1);
+            CurrentGraphViewNodeContext?.GraphView?.GetExistingGraphEdge(InspectorNovaElementWrapper?.SelectedElementGUID,1);
 
         private void OnEnable()
         {
@@ -90,16 +90,16 @@ namespace NovaLine.Script.Editor.Window
                 {
                     if(parentContext is ConditionContext conditionContext)
                     {
-                        if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.LinkedElement.Parent.Guid))
+                        if (!context.GraphView.SelectGraphNode(conditionContext.LinkedData.LinkedElement.Parent.GUID))
                         {
-                            context.GraphView.SelectGraphEdge(conditionContext.LinkedData.LinkedElement.Parent.Guid);
+                            context.GraphView.SelectGraphEdge(conditionContext.LinkedData.LinkedElement.Parent.GUID);
                         }
                     }
                     else
                     {
-                        if (!context.GraphView.SelectGraphNode(parentContext.Guid))
+                        if (!context.GraphView.SelectGraphNode(parentContext.GUID))
                         {
-                            context.GraphView.SelectGraphEdge(parentContext.Guid);
+                            context.GraphView.SelectGraphEdge(parentContext.GUID);
                         }
                     }
 
@@ -122,11 +122,11 @@ namespace NovaLine.Script.Editor.Window
             }
 
             //Recording context info to be used to restore after reloading domain
-            EditorFileManager.CurrentContextGuid = context.Guid;
+            EditorFileManager.CurrentContextGUID = context.GUID;
             EditorFileManager.CurrentContextType = context.Type;
             
             //Show back button
-            var isRootContext = context.Guid.Equals(RootGraphViewNodeContext.Guid);
+            var isRootContext = context.GUID.Equals(RootGraphViewNodeContext.GUID);
             if(isRootContext)
             {
                 context.GraphView.SetBackButtonVisible(false);
@@ -153,7 +153,7 @@ namespace NovaLine.Script.Editor.Window
                 return;
             }
 
-            var context = GetContext(targetCondition.Guid, NovaElementType.Condition);
+            var context = GetContext(targetCondition.GUID, NovaElementType.Condition);
             if (context is ConditionContext conditionContext)
             {
                 var actualConditionName = targetCondition.name;

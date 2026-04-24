@@ -16,11 +16,11 @@ namespace NovaLine.Script.Editor.Graph.Edge
         private const float ARROW_HEIGHT_HALF = 8f;
         protected virtual Color ThemedColor => Color.green;
         public virtual EE LinkedElement { get; set; }
-        public virtual string Guid => LinkedElement?.Guid;
+        public virtual string GUID => LinkedElement?.GUID;
         private readonly VisualElement _arrowElement;
 
         NovaSwitcher IGraphEdge.LinkedElement { get => LinkedElement; set => LinkedElement = value as EE; }
-        string IGUID.Guid => Guid;
+        string IGUID.GUID => GUID;
         public GraphPort<PE, EE> Input
         {
             get => input as GraphPort<PE, EE>;

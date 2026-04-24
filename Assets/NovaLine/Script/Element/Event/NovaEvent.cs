@@ -4,10 +4,13 @@ using System.Linq;
 using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils.Ext;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Element.Event
 {
+    /// <summary>
+    /// Override to adding more custom events :)
+    /// </summary>
     [Serializable]
     public class NovaEvent : NovaElement,INovaEvent
     {
@@ -25,8 +28,8 @@ namespace NovaLine.Script.Element.Event
         {
             if (Parent is Condition parentCondition && parentCondition.ConditionType == ConditionType.Sort)
             {
-                var firstSwitcherGuid = SwitchersGuidList.FirstOrDefault();
-                if (FindElement(firstSwitcherGuid) is EventSwitcher firstSwitcher)
+                var firstSwitcherGUID = SwitchersGUIDList.FirstOrDefault();
+                if (FindElement(firstSwitcherGUID) is EventSwitcher firstSwitcher)
                 {
                     yield return firstSwitcher.Next();
                 }

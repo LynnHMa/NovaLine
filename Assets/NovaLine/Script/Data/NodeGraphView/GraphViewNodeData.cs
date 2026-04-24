@@ -3,12 +3,15 @@ using NovaLine.Script.Element;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NovaLine.Script.Registry;
 using UnityEngine;
 namespace NovaLine.Script.Data.NodeGraphView
 {
     [Serializable]
     public abstract class GraphViewNodeData<TLinkedElement,TChildGraphViewNodeData, TChildEdgeData> : NovaData<TLinkedElement>,IGraphViewNodeData 
-        where TLinkedElement : NovaElement where TChildGraphViewNodeData : IGraphViewNodeData where TChildEdgeData : IEdgeData
+        where TLinkedElement : NovaElement 
+        where TChildGraphViewNodeData : IGraphViewNodeData 
+        where TChildEdgeData : IEdgeData
     {
         [SerializeReference,HideInInspector] private List<TChildGraphViewNodeData> _nodeDataList = new();
         [SerializeReference,HideInInspector] private List<TChildEdgeData> _edgeDataList = new();
@@ -25,7 +28,7 @@ namespace NovaLine.Script.Data.NodeGraphView
         }
         public override string Name => LinkedElement?.name;
         public override string Description => LinkedElement?.description;
-        public override string Guid => LinkedElement?.Guid;
+        public override string GUID => LinkedElement?.GUID;
         
         List<IGraphViewNodeData> IGraphViewNodeData.NodeDataList
         {
@@ -49,7 +52,7 @@ namespace NovaLine.Script.Data.NodeGraphView
             foreach (var edgeData in EdgeDataList)
             {
                 var switcher = edgeData.LinkedElement;
-                var outputElement = NovaElementRegistry.FindElement(switcher?.OutputElementGuid);
+                var outputElement = NovaElementRegistry.FindElement(switcher?.OutputElementGUID);
                 outputElement?.OnGraphConnect(switcher);
                 switcher?.SetParent(LinkedElement);
                 edgeData.RegisterLinkedElement();
@@ -70,7 +73,7 @@ namespace NovaLine.Script.Data.NodeGraphView
                 edgeData.UnregisterLinkedElement();
             }
 
-            NovaElementRegistry.UnregisterElement(LinkedElement.Guid);
+            NovaElementRegistry.UnregisterElement(LinkedElement.GUID);
         }
 
         public override void UpdateLinkedElement(bool updateChildren = true)
@@ -86,7 +89,7 @@ namespace NovaLine.Script.Data.NodeGraphView
                     edgeData?.UpdateLinkedElement();
                 }
             }
-            LinkedElement = NovaElementRegistry.FindElement(LinkedElement?.Guid) as TLinkedElement;
+            LinkedElement = NovaElementRegistry.FindElement(LinkedElement?.GUID) as TLinkedElement;
         }
         public override INovaData Copy()
         {
@@ -103,10 +106,10 @@ namespace NovaLine.Script.Data.NodeGraphView
                 
                 if (LinkedElement == null) return null;
                 
-                if (!string.IsNullOrEmpty(LinkedElement.FirstChildGuid))
-                    firstNodeDataIndex = NodeDataList.FindIndex(n => n.Guid.Equals(LinkedElement.FirstChildGuid));
+                if (!string.IsNullOrEmpty(LinkedElement.FirstChildGUID))
+                    firstNodeDataIndex = NodeDataList.FindIndex(n => n.GUID.Equals(LinkedElement.FirstChildGUID));
                 
-                var guidRemap = new Dictionary<string, string>();
+                var GUIDRemap = new Dictionary<string, string>();
                 if (NodeDataList.Count > 0)
                 {
                     var nodeDataListClone = new List<IGraphViewNodeData>();
@@ -114,7 +117,7 @@ namespace NovaLine.Script.Data.NodeGraphView
                     {
                         var originalNodeData = NodeDataList[i];
                         var clonedNodeData   = (TChildGraphViewNodeData)originalNodeData.Copy();
-                        guidRemap[originalNodeData.Guid] = clonedNodeData.Guid;
+                        GUIDRemap[originalNodeData.GUID] = clonedNodeData.GUID;
                         nodeDataListClone.Add(clonedNodeData);
                     }
                     clone.NodeDataList = nodeDataListClone;
@@ -131,13 +134,13 @@ namespace NovaLine.Script.Data.NodeGraphView
                         var originalSwitcher = originalEdgeData.LinkedElement;
                         var clonedSwitcher   = clonedEdgeData.LinkedElement;
 
-                        if (originalSwitcher.InputElementGuid != null &&
-                            guidRemap.TryGetValue(originalSwitcher.InputElementGuid, out var newIn))
-                            clonedSwitcher.InputElementGuid = newIn;
+                        if (originalSwitcher.InputElementGUID != null &&
+                            GUIDRemap.TryGetValue(originalSwitcher.InputElementGUID, out var newIn))
+                            clonedSwitcher.InputElementGUID = newIn;
 
-                        if (originalSwitcher.OutputElementGuid != null &&
-                            guidRemap.TryGetValue(originalSwitcher.OutputElementGuid, out var newOut))
-                            clonedSwitcher.OutputElementGuid = newOut;
+                        if (originalSwitcher.OutputElementGUID != null &&
+                            GUIDRemap.TryGetValue(originalSwitcher.OutputElementGUID, out var newOut))
+                            clonedSwitcher.OutputElementGUID = newOut;
 
                         edgeDataListClone.Add(clonedEdgeData);
                     }
@@ -163,7 +166,7 @@ namespace NovaLine.Script.Data.NodeGraphView
                 }
 
                 if (NodeDataList.Count > 0 && firstNodeDataIndex >= 0)
-                    clone.LinkedElement.FirstChildGuid = clone.NodeDataList[firstNodeDataIndex].LinkedElement.Guid;
+                    clone.LinkedElement.FirstChildGUID = clone.NodeDataList[firstNodeDataIndex].LinkedElement.GUID;
 
                 return clone;
             }

@@ -17,7 +17,7 @@ namespace NovaLine.Script.Editor.Graph.View
     public class ConditionGraphView : NovaGraphView<EventGraphNode,Condition,NovaEvent,EventSwitcher>
     {
         protected override Color ThemedColor => ColorExt.EVENT_THEMED_COLOR;
-        public ConditionGraphView(string linkedConditionGuid) : base(linkedConditionGuid) { }
+        public ConditionGraphView(string linkedConditionGUID) : base(linkedConditionGUID) { }
         protected override void SetEdgeUnpassable(GraphEdge<NovaEvent, EventSwitcher> edge)
         {
             if (edge == null) return;
@@ -25,7 +25,7 @@ namespace NovaLine.Script.Editor.Graph.View
         }
         public override EventGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var actualName = (LinkedElement.ChildrenGuidList.Count + 1).ToString();
+            var actualName = (LinkedElement.ChildrenGUIDList.Count + 1).ToString();
             var newEvent = new NovaEvent(actualName);
             var newActionGraphNode = new EventGraphNode(newEvent, pos);
             return newActionGraphNode;

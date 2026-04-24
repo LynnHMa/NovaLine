@@ -28,7 +28,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         }
         protected override FlowchartGraphView SummonGraphView()
         {
-            return new FlowchartGraphView(LinkedData.Guid);
+            return new FlowchartGraphView(LinkedData.GUID);
         }
     }
 }

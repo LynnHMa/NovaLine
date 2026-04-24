@@ -7,7 +7,7 @@ namespace NovaLine.Script.Editor.Window.Context
     public abstract class NovaContext<TLinkedData> : INovaContext where TLinkedData : INovaData
     {
         protected NovaWindow Window => NovaWindow.Instance;
-        public string Guid => LinkedData.Guid;
+        public string GUID => LinkedData.GUID;
         public NovaElementType Type => LinkedData?.LinkedElement?.Type ?? NovaElementType.None;
         public TLinkedData LinkedData { get; set; }
         

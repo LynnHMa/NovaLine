@@ -20,9 +20,9 @@ namespace NovaLine.Script.Editor.Window.Command
         protected INovaGraphView ParentGraphView => linkedContextInfo == null ? null : (GetContext(linkedContextInfo.key,linkedContextInfo.value) as IGraphViewNodeContext)?.GraphView;
 
         protected Command() { }
-        protected Command(string contextGuid,NovaElementType contextType)
+        protected Command(string contextGUID,NovaElementType contextType)
         {
-            linkedContextInfo = new(contextGuid, contextType);
+            linkedContextInfo = new(contextGUID, contextType);
         }
 
         CommandType ICommand.Type { get => Type; set => Type = value; }

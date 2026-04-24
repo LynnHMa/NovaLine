@@ -43,8 +43,8 @@ namespace NovaLine.Script.Data.NodeGraphView
                 actionData.ConditionAfterInvokeData  = (ConditionData)ConditionAfterInvokeData.Copy();
                 if (actionData.LinkedElement is IAroundConditionElement condElement)
                 {
-                    condElement.ConditionBeforeInvokeGuid = actionData.ConditionBeforeInvokeData.LinkedElement?.Guid;
-                    condElement.ConditionAfterInvokeGuid  = actionData.ConditionAfterInvokeData.LinkedElement?.Guid;
+                    condElement.ConditionBeforeInvokeGUID = actionData.ConditionBeforeInvokeData.LinkedElement?.GUID;
+                    condElement.ConditionAfterInvokeGUID  = actionData.ConditionAfterInvokeData.LinkedElement?.GUID;
                     actionData.ConditionBeforeInvokeData.LinkedElement?.SetParent(actionData.LinkedElement); 
                     actionData.ConditionAfterInvokeData.LinkedElement?.SetParent(actionData.LinkedElement); 
                 }

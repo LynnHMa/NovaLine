@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Element.Event;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Element
 {
@@ -50,9 +50,9 @@ namespace NovaLine.Script.Element
         private List<IEnumerator> GetRoutines()
         {
             List<IEnumerator> routines = new();
-            foreach(var childGuid in ChildrenGuidList)
+            foreach(var childGUID in ChildrenGUIDList)
             {
-                var child = FindElement(childGuid);
+                var child = FindElement(childGUID);
                 if (child is not NovaEvent novaEvent) continue;
                 routines.Add(novaEvent.OnEvent());
             }
@@ -61,7 +61,7 @@ namespace NovaLine.Script.Element
 
         public override void SetParent(NovaElement parent)
         {
-            ParentGuid = parent != null ? parent.Guid : "";
+            ParentGUID = parent != null ? parent.GUID : "";
         }
     }
     public enum ConditionType

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace NovaLine.Script.Element.Event
@@ -16,6 +14,8 @@ namespace NovaLine.Script.Element.Event
             this.keyCode = keyCode;
         }
 
+        // Only listen for key down events under all circumstances.
+        // Override for custom listening logic.
         public override IEnumerator OnEvent()
         {
             while (!Input.GetKey(keyCode))

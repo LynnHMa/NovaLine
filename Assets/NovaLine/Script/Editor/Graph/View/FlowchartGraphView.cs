@@ -17,10 +17,10 @@ namespace NovaLine.Script.Editor.Graph.View
     public class FlowchartGraphView : NovaGraphView<NodeGraphNode,Flowchart,Node,NodeSwitcher>
     {
         protected override Color ThemedColor => ColorExt.NODE_THEMED_COLOR;
-        public FlowchartGraphView(string linkedFlowchartGuid) : base(linkedFlowchartGuid) { }
+        public FlowchartGraphView(string linkedFlowchartGUID) : base(linkedFlowchartGUID) { }
         public override NodeGraphNode SummonNewGraphNode(Vector2 pos)
         {
-            var newNode = new Node((LinkedElement.ChildrenGuidList.Count + 1).ToString());
+            var newNode = new Node((LinkedElement.ChildrenGUIDList.Count + 1).ToString());
             return new NodeGraphNode(newNode, pos);
         }
         public override NodeGraphNode SummonNewGraphNode(Node node, Vector2 pos)

@@ -1,5 +1,6 @@
 ﻿using NovaLine.Script.Element;
 using System.Collections.Generic;
+using NovaLine.Script.Registry;
 using UnityEngine;
 
 namespace NovaLine.Script.Editor.Utils
@@ -9,19 +10,19 @@ namespace NovaLine.Script.Editor.Utils
         [SerializeReference] public List<NovaElement> parentElements = new();
         [SerializeReference] public NovaElement selectedElement;
         
-        public List<string> ParentElementGuidList => parentElements.ConvertAll(e => e?.Guid);
-        public string SelectedElementGuid => selectedElement?.Guid;
+        public List<string> ParentElementGUIDList => parentElements.ConvertAll(e => e?.GUID);
+        public string SelectedElementGUID => selectedElement?.GUID;
 
         public NovaElement FindParent(string guid)
         {
-            return parentElements.Find(e => e.Guid == guid);
+            return parentElements.Find(e => e.GUID == guid);
         }
-        public new static NovaElementInspectorWrapper CreateInstance(string elementGuid)
+        public new static NovaElementInspectorWrapper CreateInstance(string elementGUID)
         {
             var wrapper = CreateInstance<NovaElementInspectorWrapper>();
             wrapper.hideFlags = HideFlags.DontSave;
 
-            var selectedElement = NovaElementRegistry.FindElement(elementGuid);
+            var selectedElement = NovaElementRegistry.FindElement(elementGUID);
             if (selectedElement != null)
             {
                 wrapper.selectedElement = selectedElement;

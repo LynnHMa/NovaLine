@@ -6,7 +6,8 @@ using UnityEngine;
 namespace NovaLine.Script.Data
 {
     [Serializable]
-    public abstract class NovaData<TNovaElement> : INovaData where TNovaElement : NovaElement
+    public abstract class NovaData<TNovaElement> : INovaData 
+        where TNovaElement : NovaElement
     {
         [SerializeField,HideInInspector] private Vector2 _pos;
         [SerializeReference] private TNovaElement _linkedElement;
@@ -18,7 +19,7 @@ namespace NovaLine.Script.Data
         }
         public virtual string Name => LinkedElement?.name;
         public virtual string Description => LinkedElement?.description;
-        public virtual string Guid => LinkedElement?.Guid;
+        public virtual string GUID => LinkedElement?.GUID;
         public virtual Vector2 Pos { get => _pos; set => _pos = value; }
         public virtual NovaElementType Type => LinkedElement.Type;
         public Vector2 GetPos() => _pos;

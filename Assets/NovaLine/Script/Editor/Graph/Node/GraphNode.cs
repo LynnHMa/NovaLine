@@ -11,7 +11,7 @@ using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Interface;
 using NovaLine.Script.Editor.Utils.Scope;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Graph.Node
 {
@@ -28,15 +28,15 @@ namespace NovaLine.Script.Editor.Graph.Node
             get => _pos;
             set => _pos = value;
         }
-        public virtual string LinkedElementGuid { get; set; }
-        public virtual string Guid => LinkedElement?.Guid;
+        public virtual string LinkedElementGUID { get; set; }
+        public virtual string GUID => LinkedElement?.GUID;
         public virtual NovaElementType Type => LinkedElement != null ? LinkedElement.Type : NovaElementType.None;
-        public virtual NovaElement LinkedElement => FindElement(LinkedElementGuid);
+        public virtual NovaElement LinkedElement => FindElement(LinkedElementGUID);
         public override string title => LinkedElement?.GetActualName();
 
         public bool isPassable = true;
 
-        string IGUID.Guid => Guid;
+        string IGUID.GUID => GUID;
 
         protected GraphNode()
         {
@@ -114,7 +114,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
         protected GraphNode(NovaElement linkedElement, Vector2 pos) : this()
         {
-            LinkedElementGuid = linkedElement?.Guid;
+            LinkedElementGUID = linkedElement?.GUID;
             SetPosition(pos,false);
         }
         
@@ -169,7 +169,7 @@ namespace NovaLine.Script.Editor.Graph.Node
         }
         protected virtual MoveNodeCommand BuildMoveCommand(Vector2 oldPos, Vector2 newPos)
         {
-            return LinkedElement?.Parent == null ? null : new MoveNodeCommand(LinkedElement.ParentGuid, LinkedElement.Parent.Type, new KeyValue<NovaElement, PosKeyValue>(LinkedElement, new PosKeyValue(oldPos, newPos)));
+            return LinkedElement?.Parent == null ? null : new MoveNodeCommand(LinkedElement.ParentGUID, LinkedElement.Parent.Type, new KeyValue<NovaElement, PosKeyValue>(LinkedElement, new PosKeyValue(oldPos, newPos)));
         }
         public override void OnSelected()
         {

@@ -12,9 +12,9 @@ namespace NovaLine.Script.Editor.Window.Command
         public INovaData afterData;
 
         public InspectorElementChangeCommand(
-            string contextGuid, NovaElementType contextType,
+            string contextGUID, NovaElementType contextType,
             INovaData beforeData,INovaData afterData)
-            : base(contextGuid, contextType)
+            : base(contextGUID, contextType)
         {
             Type = CommandType.Inspector_Change;
             this.beforeData = beforeData;

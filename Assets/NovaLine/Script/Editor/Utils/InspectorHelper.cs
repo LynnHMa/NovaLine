@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,7 +16,7 @@ using NovaLine.Script.Element;
 using NovaLine.Script.Utils.Interface;
 using UnityEditor;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 using static NovaLine.Script.Editor.Window.ContextRegistry;
 
 namespace NovaLine.Script.Editor.Utils
@@ -53,7 +52,7 @@ namespace NovaLine.Script.Editor.Utils
                     return;
                 }
 
-                InspectorNovaElementWrapper = NovaElementInspectorWrapper.CreateInstance(novaElement.Guid);
+                InspectorNovaElementWrapper = NovaElementInspectorWrapper.CreateInstance(novaElement.GUID);
                 SnapshotInspectorElementData();
                 Selection.activeObject = InspectorNovaElementWrapper;
             }
@@ -66,20 +65,20 @@ namespace NovaLine.Script.Editor.Utils
         public static void OnInspectorObjValueChange()
         {
             if (InspectorNovaElementWrapper == null) return;
-            var parents = InspectorNovaElementWrapper.ParentElementGuidList;
+            var parents = InspectorNovaElementWrapper.ParentElementGUIDList;
             for (int i = parents.Count - 1; i >= 0; i--)
             {
-                var parentGuid = parents[i];
-                var oldParent = elementDataCache[parentGuid]?.LinkedElement;
-                var newParent = InspectorNovaElementWrapper.FindParent(parentGuid);
+                var parentGUID = parents[i];
+                var oldParent = elementDataCache[parentGUID]?.LinkedElement;
+                var newParent = InspectorNovaElementWrapper.FindParent(parentGUID);
                 if (!oldParent.InspectorEquals(newParent))
                 {
                     TryGlobalReplace(oldParent, newParent);
                 }
             }
 
-            var selectedGuid = InspectorNovaElementWrapper.SelectedElementGuid;
-            var oldSelected = elementDataCache[selectedGuid]?.LinkedElement;
+            var selectedGUID = InspectorNovaElementWrapper.SelectedElementGUID;
+            var oldSelected = elementDataCache[selectedGUID]?.LinkedElement;
             var newSelected = InspectorNovaElementWrapper.selectedElement;
             if (!oldSelected.InspectorEquals(newSelected))
             {
@@ -111,13 +110,13 @@ namespace NovaLine.Script.Editor.Utils
 
         private static void SnapshotSingleInspectorElementData(NovaElement activeElement)
         {
-            if (activeElement == null || string.IsNullOrEmpty(activeElement.Guid) || activeElement.Type == NovaElementType.None) return;
-            elementDataCache[activeElement.Guid] = GetContext(activeElement.Guid,activeElement.Type)?.LinkedData?.StrongCopy();
+            if (activeElement == null || string.IsNullOrEmpty(activeElement.GUID) || activeElement.Type == NovaElementType.None) return;
+            elementDataCache[activeElement.GUID] = GetContext(activeElement.GUID,activeElement.Type)?.LinkedData?.StrongCopy();
         }
 
         public static void GlobalReplace(NovaElement beforeElement, NovaElement afterElement,bool registerCommand = true)
         {
-            var beforeData = elementDataCache[beforeElement.Guid];
+            var beforeData = elementDataCache[beforeElement.GUID];
             var afterData = beforeData.StrongCopy();
             afterData.LinkedElement = afterElement;
             
@@ -131,16 +130,16 @@ namespace NovaLine.Script.Editor.Utils
                 foreach (var nodeData in data.NodeDataList ?? Enumerable.Empty<IGraphViewNodeData>())
                 {
                     if (nodeData?.LinkedElement == null) continue;
-                    UnregisterContext(nodeData.Guid, nodeData.LinkedElement.Type);
+                    UnregisterContext(nodeData.GUID, nodeData.LinkedElement.Type);
                 }
 
                 foreach (var edgeData in data.EdgeDataList ?? Enumerable.Empty<IEdgeData>())
-                    UnregisterContext(edgeData?.Guid, NovaElementType.Switcher);
+                    UnregisterContext(edgeData?.GUID, NovaElementType.Switcher);
 
                 if (data is IAroundConditionData c)
                 {
-                    UnregisterContext(c.ConditionBeforeInvokeData?.Guid, NovaElementType.Condition);
-                    UnregisterContext(c.ConditionAfterInvokeData?.Guid, NovaElementType.Condition);
+                    UnregisterContext(c.ConditionBeforeInvokeData?.GUID, NovaElementType.Condition);
+                    UnregisterContext(c.ConditionAfterInvokeData?.GUID, NovaElementType.Condition);
                 }
             }
             void RegisterChildContexts(IGraphViewNodeData data)
@@ -169,9 +168,9 @@ namespace NovaLine.Script.Editor.Utils
             UnregisterChildContexts(beforeData as IGraphViewNodeData);
             
             afterData.LinkedElement.SetParent(beforeData.LinkedElement.Parent);
-            ReplaceElement(beforeData.Guid, afterData.LinkedElement);
+            ReplaceElement(beforeData.GUID, afterData.LinkedElement);
             
-            var registeredContext = GetContext(beforeData.Guid, beforeData.Type);
+            var registeredContext = GetContext(beforeData.GUID, beforeData.Type);
             registeredContext.ReplaceLinkedData(afterData);
             
             RegisterChildContexts(afterData as IGraphViewNodeData);
@@ -181,7 +180,7 @@ namespace NovaLine.Script.Editor.Utils
             if (registerCommand)
             {
                 CommandRegistry.RegisterCommand(new InspectorElementChangeCommand(
-                    CurrentGraphViewNodeContext.Guid, CurrentGraphViewNodeContext.Type,
+                    CurrentGraphViewNodeContext.GUID, CurrentGraphViewNodeContext.Type,
                     beforeData, afterData));
             }
 

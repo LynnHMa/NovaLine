@@ -3,11 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
+using NovaLine.Script.Registry;
 using NovaLine.Script.Utils;
 using NovaLine.Script.Utils.Attribute;
 
 namespace NovaLine.Script.Element.Action
 {
+    /// <summary>
+    /// Manages an entity (character or object).
+    /// Shows the entity or plays its animation.
+    /// </summary>
     [Serializable]
     public class EntityAction : NovaAction
     {

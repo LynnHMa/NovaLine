@@ -14,14 +14,14 @@ namespace NovaLine.Script.Utils
                 typeFilter = "GameObject"; 
             }
             
-            var guids = AssetDatabase.FindAssets($"{assetName} t:{typeFilter}");
-            if (guids.Length == 0)
+            var GUIDs = AssetDatabase.FindAssets($"{assetName} t:{typeFilter}");
+            if (GUIDs.Length == 0)
             {
-                Debug.LogWarning($"[AssetDatabaseExt] 找不到名为 '{assetName}' 且类型匹配的文件！");
+                Debug.LogWarning($"[AssetDatabaseExt] Can't find asset named {assetName} !");
                 return null;
             }
             
-            var realPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            var realPath = AssetDatabase.GUIDToAssetPath(GUIDs[0]);
             if (isComponent)
             {
                 var go = AssetDatabase.LoadAssetAtPath<GameObject>(realPath);

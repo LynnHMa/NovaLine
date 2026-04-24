@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Linq;
 using NovaLine.Script.Element.Switcher;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 using System;
 using NovaLine.Script.Element;
 using NovaLine.Script.Utils.Ext;
@@ -10,18 +10,21 @@ using UnityEngine;
 
 namespace NovaLine.Script.Action
 {
+    /// <summary>
+    /// Override to adding more custom actions :)
+    /// </summary>
     [Serializable]
     public class NovaAction : NovaElement,INovaAction,IAroundConditionElement
     {
-        [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
-        [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;
+        [SerializeField,HideInInspector] private string _conditionBeforeInvokeGUID;
+        [SerializeField,HideInInspector] private string _conditionAfterInvokeGUID;
         
         public ActionType ActionType = ActionType.Sort;
         
-        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGuid) as Condition;
-        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
-        public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
-        public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
+        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGUID) as Condition;
+        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGUID) as Condition;
+        public string ConditionBeforeInvokeGUID  { get => _conditionBeforeInvokeGUID;  set => _conditionBeforeInvokeGUID  = value; }
+        public string ConditionAfterInvokeGUID { get => _conditionAfterInvokeGUID; set => _conditionAfterInvokeGUID = value; }
         public override Color ThemedColor => ColorExt.ACTION_THEMED_COLOR;
         public override NovaElementType Type => NovaElementType.Action;
         public NovaAction()
@@ -40,8 +43,8 @@ namespace NovaLine.Script.Action
 
             yield return ConditionAfterInvoke.Waiting();
             
-            var firstSwitcherGuid = SwitchersGuidList.FirstOrDefault();
-            if (FindElement(firstSwitcherGuid) is ActionSwitcher firstSwitcher)
+            var firstSwitcherGUID = SwitchersGUIDList.FirstOrDefault();
+            if (FindElement(firstSwitcherGUID) is ActionSwitcher firstSwitcher)
             {
                 yield return firstSwitcher.Next();
             }
@@ -67,10 +70,10 @@ namespace NovaLine.Script.Action
             }
             if (ConditionBeforeInvoke != null && ConditionAfterInvoke != null)
             {
-                action.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
-                action.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
-                action.ConditionBeforeInvoke.ParentGuid = action.Guid;
-                action.ConditionAfterInvoke.ParentGuid = action.Guid;
+                action.ConditionBeforeInvokeGUID = ConditionBeforeInvoke.Copy().GUID;
+                action.ConditionAfterInvokeGUID = ConditionAfterInvoke.Copy().GUID;
+                action.ConditionBeforeInvoke.ParentGUID = action.GUID;
+                action.ConditionAfterInvoke.ParentGUID = action.GUID;
             }
             
             return action;
@@ -80,8 +83,8 @@ namespace NovaLine.Script.Action
         {
             var conditionBefore = new Condition("Before Invoke",this);
             var conditionAfter = new Condition("After Invoke",this);
-            ConditionAfterInvokeGuid = conditionAfter.Guid;
-            ConditionBeforeInvokeGuid = conditionBefore.Guid;
+            ConditionAfterInvokeGUID = conditionAfter.GUID;
+            ConditionBeforeInvokeGUID = conditionBefore.GUID;
         }
     }
     public interface INovaAction

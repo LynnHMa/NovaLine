@@ -91,12 +91,12 @@ namespace NovaLine.Script.Editor.Window
                 }
             }
 
-            RegisteredContexts.TryAdd(graphViewNodeContext.Guid, graphViewNodeContext);
+            RegisteredContexts.TryAdd(graphViewNodeContext.GUID, graphViewNodeContext);
         }
 
-        public static void UnregisterContext(string contextGuid, NovaElementType type)
+        public static void UnregisterContext(string contextGUID, NovaElementType type)
         {
-            UnregisterContext(GetContext(contextGuid, type));
+            UnregisterContext(GetContext(contextGUID, type));
         }
 
         public static void UnregisterContext(INovaContext graphViewNodeContext)
@@ -112,7 +112,7 @@ namespace NovaLine.Script.Editor.Window
                         foreach (var nodeData in graphViewNodeData.NodeDataList)
                         {
                             if (nodeData?.LinkedElement == null) continue;
-                            var childContext = GetContext(nodeData.Guid, nodeData.LinkedElement.Type);
+                            var childContext = GetContext(nodeData.GUID, nodeData.LinkedElement.Type);
                             UnregisterContext(childContext);
                         }
                     }
@@ -121,14 +121,14 @@ namespace NovaLine.Script.Editor.Window
                     {
                         foreach (var edgeData in graphViewNodeData.EdgeDataList)
                         {
-                            UnregisterContext(edgeData.Guid, NovaElementType.Switcher);
+                            UnregisterContext(edgeData.GUID, NovaElementType.Switcher);
                         }
                     }
 
                     if (graphViewNodeData is IAroundConditionData hasConditionData)
                     {
-                        UnregisterContext(hasConditionData.ConditionBeforeInvokeData?.Guid, NovaElementType.Condition);
-                        UnregisterContext(hasConditionData.ConditionAfterInvokeData?.Guid, NovaElementType.Condition);
+                        UnregisterContext(hasConditionData.ConditionBeforeInvokeData?.GUID, NovaElementType.Condition);
+                        UnregisterContext(hasConditionData.ConditionAfterInvokeData?.GUID, NovaElementType.Condition);
                     }
 
                     break;
@@ -137,14 +137,14 @@ namespace NovaLine.Script.Editor.Window
                 {
                     if (edgeData is NodeEdgeData nodeEdgeData && nodeEdgeData.SwitchConditionData != null)
                     {
-                        UnregisterContext(nodeEdgeData.SwitchConditionData.Guid, NovaElementType.Condition);
+                        UnregisterContext(nodeEdgeData.SwitchConditionData.GUID, NovaElementType.Condition);
                     }
 
                     break;
                 }
             }
 
-            RegisteredContexts.Remove(graphViewNodeContext.Guid);
+            RegisteredContexts.Remove(graphViewNodeContext.GUID);
         }
 
         public static void ClearContexts()
@@ -161,7 +161,7 @@ namespace NovaLine.Script.Editor.Window
         public static INovaContext GetContext(GraphNode graphNode, NovaElementType type)
         {
             if (graphNode == null) return null;
-            var guid = graphNode.Guid ?? graphNode.LinkedElement?.Guid;
+            var guid = graphNode.GUID ?? graphNode.LinkedElement?.GUID;
             return GetContext(guid, type);
         }
 

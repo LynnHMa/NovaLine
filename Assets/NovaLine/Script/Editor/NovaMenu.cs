@@ -4,6 +4,7 @@ using NovaLine.Script.Editor.File;
 using NovaLine.Script.Editor.Window.Context.GraphViewNode;
 using NovaLine.Script.Utils;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -36,6 +37,8 @@ namespace NovaLine.Script.Editor
                 }
                 var instantiatedPlayer = Object.Instantiate(playerPrefab);
                 instantiatedPlayer.name = "NovaPlayer";
+                Undo.RegisterCreatedObjectUndo(instantiatedPlayer.gameObject, "Create NovaPlayer");
+                EditorSceneManager.MarkSceneDirty(instantiatedPlayer.gameObject.scene);
             }
             catch (Exception e)
             {

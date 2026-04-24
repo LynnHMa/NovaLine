@@ -1,11 +1,13 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NovaLine.Script.Data;
 using NovaLine.Script.Element;
+using NovaLine.Script.Registry;
 using NovaLine.Script.UI.Container;
 using NovaLine.Script.Utils.Attribute;
+using NovaLine.Script.Utils.Ext;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script
 {
@@ -13,11 +15,13 @@ namespace NovaLine.Script
     public class NovaPlayer : MonoBehaviour
     {
         public static NovaPlayer Instance { get; private set; }
+        public string PlayingNodeGUID { get; set; }
         
         [Header("UI")]
         public Canvas UICanvas;
         public DialogContainerUI dialogContainerUI;
         public ButtonContainerUI buttonContainerUI;
+        public SaveMenuContainerUI saveMenuContainerUI;
         
         [Header("Player")]
         public List<GraphViewNodeDataAsset> playList = new();
@@ -44,14 +48,14 @@ namespace NovaLine.Script
         {
             UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
             if(UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
-
+            
             Instance = this;
-
             if (Application.isPlaying)
             {
                 DontDestroyOnLoad(gameObject);
             }
 
+            //Background sprite renderer initialization
             InitBackgroundLayer();
         }
 
@@ -59,22 +63,23 @@ namespace NovaLine.Script
         {
             if (Application.isPlaying)
             {
-                StartCoroutine(PlayDefault());
+                ClearElements();
+                foreach (var asset in playList)
+                {
+                    asset.data.RegisterLinkedElement();
+                }
+                PlayDefault();
             }
         }
 
-        private void OnDestroy()
+        private void OnApplicationQuit()
         {
             StopAllCoroutines();
         }
 
-        public IEnumerator PlayDefault()
+        public void PlayDefault()
         {
-            for (var i = 0; i < playList.Count; i++)
-            {
-                var flowchartDataAsset = playList[i];
-                yield return PlayFromAsset(flowchartDataAsset);
-            }
+            PlayFromAsset(playList.FirstOrDefault());
         }
 
         public static void InitEntityLayer(GameObject entityObj)
@@ -104,12 +109,12 @@ namespace NovaLine.Script
 
             if (Instance?.dialogContainerUI != null && !currentNode.ContainsDialogAction())
             {
-                Instance.StartCoroutine(DialogContainerUI.Instance.HideUI());
+                DialogContainerUI.Instance.InactiveDebounce();
             }
 
             if (Instance?.buttonContainerUI != null)
             {
-                ButtonContainerUI.ClearButtons();
+                ButtonRegistry.ClearButtons();
             }
 
             if (Instance?.background != null)
@@ -117,28 +122,27 @@ namespace NovaLine.Script
                 Instance.background.SetSpriteDebounce(null);
             }
         }
-        public static IEnumerator PlayFromAsset(GraphViewNodeDataAsset playAsset)
+        
+        public static void PlayFromAsset(GraphViewNodeDataAsset playAsset)
         {
-            if (playAsset?.data == null) yield break;
-            playAsset.data.RegisterLinkedElement();
-            switch (FindElement(playAsset.data.Guid))
+            if (playAsset?.data == null) return;
+            Instance.StopAllCoroutines();
+            switch (FindElement(playAsset.data.GUID))
             {
                 case Flowchart flowchart:
-                    yield return flowchart.Play();
+                    flowchart.Play().StartCoroutine();
                     break;
                 case Node node:
-                    yield return node.Run();
+                    node.Run().StartCoroutine();
                     break;
-                default:
-                    yield break;
             }
         }
-
-        public static IEnumerator PlayFromNode(string nodeGuid)
+        public static void PlayFromNode(string nodeGUID)
         {
-            if (FindElement(nodeGuid) is Node node)
+            Instance.StopAllCoroutines();
+            if (FindElement(nodeGUID) is Node node)
             {
-                yield return node.Run();
+                node.Run().StartCoroutine();
             }
         }
     }

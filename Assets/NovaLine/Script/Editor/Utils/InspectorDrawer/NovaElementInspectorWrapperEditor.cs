@@ -36,7 +36,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
         private static readonly Dictionary<string, Vector2> _scrollPositionCache = new();
         
         private ScrollView _inspectorScrollView;
-        private string _currentElementGuid;
+        private string _currentElementGUID;
         private bool _hasRestoredScroll;
         private void OnEnable()
         {
@@ -65,18 +65,18 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
             };
             
             var wrapper = target as NovaElementInspectorWrapper;
-            _currentElementGuid = wrapper?.selectedElement?.Guid;
+            _currentElementGUID = wrapper?.selectedElement?.GUID;
             _hasRestoredScroll = false;
             EditorApplication.delayCall += HookInspectorScrollView;
         }
 
         public override void OnInspectorGUI()
         {
-            if (_inspectorScrollView != null && !string.IsNullOrEmpty(_currentElementGuid))
+            if (_inspectorScrollView != null && !string.IsNullOrEmpty(_currentElementGUID))
             {
                 if (!_hasRestoredScroll)
                 {
-                    if (_scrollPositionCache.TryGetValue(_currentElementGuid, out Vector2 savedPos))
+                    if (_scrollPositionCache.TryGetValue(_currentElementGUID, out Vector2 savedPos))
                     {
                         _inspectorScrollView.scrollOffset = savedPos;
                         if (_inspectorScrollView.contentContainer.layout.height >= savedPos.y)
@@ -91,7 +91,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                 }
                 else
                 {
-                    _scrollPositionCache[_currentElementGuid] = _inspectorScrollView.scrollOffset;
+                    _scrollPositionCache[_currentElementGUID] = _inspectorScrollView.scrollOffset;
                 }
             }
             serializedObject.Update();
@@ -214,7 +214,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                 }
                 
                 //Add a button of handling selected node
-                if (InspectorHelper.InspectorNovaElementWrapper != null && selectedElement.Guid.Equals(InspectorHelper.InspectorNovaElementWrapper.SelectedElementGuid))
+                if (InspectorHelper.InspectorNovaElementWrapper != null && selectedElement.GUID.Equals(InspectorHelper.InspectorNovaElementWrapper.SelectedElementGUID))
                 {
                     var buttonColor = selectedElement.ThemedColor;
                     if (selectedElement is not Flowchart && selectedElement.Type != NovaElementType.Switcher)
@@ -225,7 +225,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                         if (GUILayout.Button("Save As", GUILayout.Height(30)))
                         {
                             SaveScope.RequireSave();
-                            if (GetContext(selectedElement.Guid,selectedElement.Type)?.LinkedData?.Copy() is IGraphViewNodeData linkedData)
+                            if (GetContext(selectedElement.GUID,selectedElement.Type)?.LinkedData?.Copy() is IGraphViewNodeData linkedData)
                             {
                                 EditorFileManager.SaveAsset(linkedData, null,"Save Asset",selectedElement.name,"Save Asset",true);
                             }
@@ -237,9 +237,9 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                         GUI.backgroundColor = buttonColor;
                         if (GUILayout.Button("Import From", GUILayout.Height(30)))
                         {
-                            Undo.RecordObject(selectedProp.serializedObject.targetObject, "Import Asset");
+                            Undo.RecordObject(selectedProp.serializedObject.targetObject, "ImportSave Asset");
                                 
-                            var openFilePath = EditorUtility.OpenFilePanel("Import Asset",EditorFileManager.CurrentPath,EditorFileManager.GetExtension(selectedElement.Type));
+                            var openFilePath = EditorUtility.OpenFilePanel("ImportSave Asset",EditorFileManager.CurrentPath,EditorFileManager.GetExtension(selectedElement.Type));
                                 
                             if (string.IsNullOrEmpty(openFilePath)) return;
                                     
@@ -290,7 +290,7 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                         var inspectorLinkedElement = InspectorHelper.InspectorNovaElementWrapper.selectedElement;
                         if (!EditorApplication.isPlaying)
                         {
-                            EditorNodePlayer.RequestPlayFromNode(node.Guid,inspectorLinkedElement.Guid);
+                            EditorNodePlayer.RequestPlayFromNode(node.GUID,inspectorLinkedElement.GUID);
                         }
                         else
                         {

@@ -7,22 +7,22 @@ using NovaLine.Script.Element.Switcher;
 using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Element
 {
     [Serializable]
     public class Node : NovaElement,IAroundConditionElement
     {
-        [SerializeField,HideInInspector] private string _conditionBeforeInvokeGuid;
-        [SerializeField,HideInInspector] private string _conditionAfterInvokeGuid;
+        [SerializeField,HideInInspector] private string _conditionBeforeInvokeGUID;
+        [SerializeField,HideInInspector] private string _conditionAfterInvokeGUID;
         
-        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGuid) as Condition;
-        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGuid) as Condition;
+        public Condition ConditionBeforeInvoke => FindElement(ConditionBeforeInvokeGUID) as Condition;
+        public Condition ConditionAfterInvoke => FindElement(ConditionAfterInvokeGUID) as Condition;
         public override Color ThemedColor => ColorExt.NODE_THEMED_COLOR;
         public override NovaElementType Type => NovaElementType.Node;
-        public string ConditionBeforeInvokeGuid  { get => _conditionBeforeInvokeGuid;  set => _conditionBeforeInvokeGuid  = value; }
-        public string ConditionAfterInvokeGuid { get => _conditionAfterInvokeGuid; set => _conditionAfterInvokeGuid = value; }
+        public string ConditionBeforeInvokeGUID  { get => _conditionBeforeInvokeGUID;  set => _conditionBeforeInvokeGUID  = value; }
+        public string ConditionAfterInvokeGUID { get => _conditionAfterInvokeGUID; set => _conditionAfterInvokeGUID = value; }
         public Node()
         {
             InitConditions();
@@ -35,10 +35,11 @@ namespace NovaLine.Script.Element
         public IEnumerator Run()
         {
             NovaPlayer.ResetScene(this);
+            NovaPlayer.Instance.PlayingNodeGUID = GUID;
             yield return ConditionBeforeInvoke.Waiting();
-            foreach (var childGuid in ChildrenGuidList)
+            foreach (var childGUID in ChildrenGUIDList)
             {
-                var child = FindElement(childGuid);
+                var child = FindElement(childGUID);
                 if(child is not NovaAction action) continue;
                 if (action.ActionType == ActionType.Meanwhile)
                 {
@@ -56,9 +57,9 @@ namespace NovaLine.Script.Element
             yield return null;
 
             List<IEnumerator> switcherConditions = new();
-            foreach (var switcherConditionGuid in SwitchersGuidList)
+            foreach (var switcherConditionGUID in SwitchersGUIDList)
             {
-                if (FindElement(switcherConditionGuid) is NodeSwitcher nodeSwitcher)
+                if (FindElement(switcherConditionGUID) is NodeSwitcher nodeSwitcher)
                 {
                     switcherConditions.Add(nodeSwitcher.Next());
                 }
@@ -82,10 +83,10 @@ namespace NovaLine.Script.Element
             }
             if (ConditionBeforeInvoke != null && ConditionAfterInvoke != null)
             {
-                node.ConditionBeforeInvokeGuid = ConditionBeforeInvoke.Copy().Guid;
-                node.ConditionAfterInvokeGuid = ConditionAfterInvoke.Copy().Guid;
-                node.ConditionBeforeInvoke.ParentGuid = node.Guid;
-                node.ConditionAfterInvoke.ParentGuid = node.Guid;
+                node.ConditionBeforeInvokeGUID = ConditionBeforeInvoke.Copy().GUID;
+                node.ConditionAfterInvokeGUID = ConditionAfterInvoke.Copy().GUID;
+                node.ConditionBeforeInvoke.ParentGUID = node.GUID;
+                node.ConditionAfterInvoke.ParentGUID = node.GUID;
             }
             
             return node;
@@ -93,15 +94,15 @@ namespace NovaLine.Script.Element
         
         public bool ContainsDialogAction()
         {
-            return ChildrenGuidList.Find(guid => FindElement(guid) is DialogAction) != null;
+            return ChildrenGUIDList.Find(GUID => FindElement(GUID) is DialogAction) != null;
         }
         
         public void InitConditions()
         {
             var conditionBefore = new Condition("Before Invoke",this);
             var conditionAfter = new Condition("After Invoke",this);
-            ConditionAfterInvokeGuid = conditionAfter.Guid;
-            ConditionBeforeInvokeGuid = conditionBefore.Guid;
+            ConditionAfterInvokeGUID = conditionAfter.GUID;
+            ConditionBeforeInvokeGUID = conditionBefore.GUID;
         }
     }
 }

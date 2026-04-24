@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace NovaLine.Script.Element.Action
 {
+    /// <summary>
+    /// Shows or hides a dialog window.
+    /// </summary>
     [Serializable]
     public class DialogAction : NovaAction
     {
@@ -38,7 +41,7 @@ namespace NovaLine.Script.Element.Action
             }
             else
             {
-                yield return DialogContainerUI.HideUI();
+                yield return DialogContainerUI.HideShowDebounceRoutine(false);
             }
             yield return base.OnInvoke();
         }

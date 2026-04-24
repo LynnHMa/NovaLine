@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace NovaLine.Script.Utils.Ext
@@ -20,7 +18,7 @@ namespace NovaLine.Script.Utils.Ext
 
             foreach (var routine in routineArray)
             {
-                Player.StartCoroutine(WrapCoroutine(routine,() => remaining--));
+                routine.WrapCoroutine(() => remaining--).StartCoroutine();
             }
             
             yield return new WaitUntil(() => remaining <= 0);
@@ -37,7 +35,7 @@ namespace NovaLine.Script.Utils.Ext
             
             foreach (var routine in routineArray)
             {
-                var coroutine = Player.StartCoroutine(WrapCoroutine(routine,() => isAnyCompleted = true));
+                var coroutine = routine.WrapCoroutine(() => isAnyCompleted = true).StartCoroutine();
                 activeCoroutines.Add(coroutine);
             }
             
@@ -45,18 +43,25 @@ namespace NovaLine.Script.Utils.Ext
             
             foreach (var coroutine in activeCoroutines)
             {
-                if (coroutine != null)
-                {
-                    Player.StopCoroutine(coroutine);
-                }
+                coroutine.StopCoroutine();
             }
         }
 
-        public static void StartCoroutine(this IEnumerator routine)
+        public static Coroutine StartCoroutine(this IEnumerator routine)
         {
-            if (Player != null)
+            if (routine != null && Player != null)
             {
-                Player.StartCoroutine(routine);
+                return Player.StartCoroutine(routine);
+            }
+
+            return null;
+        }
+
+        public static void StopCoroutine(this Coroutine routine)
+        {
+            if (routine != null && Player != null)
+            {
+                Player.StopCoroutine(routine);
             }
         }
 

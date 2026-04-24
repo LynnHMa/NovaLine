@@ -26,7 +26,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
 
         protected override ConditionGraphView SummonGraphView()
         {
-            return new ConditionGraphView(LinkedData.Guid);
+            return new ConditionGraphView(LinkedData.GUID);
         }
     }
 }

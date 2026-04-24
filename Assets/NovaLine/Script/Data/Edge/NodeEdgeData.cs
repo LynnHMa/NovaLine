@@ -49,7 +49,7 @@ namespace NovaLine.Script.Data.Edge
             if (SwitchConditionData != null)
             {
                 nodeEdgeData.SwitchConditionData = (ConditionData)SwitchConditionData.Copy();
-                nodeEdgeData.LinkedElement.SwitchConditionGuid = nodeEdgeData.SwitchConditionData.LinkedElement?.Guid;
+                nodeEdgeData.LinkedElement.SwitchConditionGUID = nodeEdgeData.SwitchConditionData.LinkedElement?.GUID;
                 nodeEdgeData.SwitchConditionData.LinkedElement?.SetParent(nodeEdgeData.LinkedElement); 
             }
             

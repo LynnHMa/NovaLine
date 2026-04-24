@@ -11,10 +11,10 @@ namespace NovaLine.Script.Editor.Window.Command
     {
         public List<IEdgeData> linkedDataList = new();
 
-        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, IEdgeData linkedData) : this(contextGuid, contextType, new List<IEdgeData>() { linkedData })
+        public RemoveEdgeCommand(string contextGUID, NovaElementType contextType, IEdgeData linkedData) : this(contextGUID, contextType, new List<IEdgeData>() { linkedData })
         {
         }
-        public RemoveEdgeCommand(string contextGuid, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGuid, contextType)
+        public RemoveEdgeCommand(string contextGUID, NovaElementType contextType, List<IEdgeData> linkedDataList) : base(contextGUID, contextType)
         {
             Type = CommandType.Remove_Edge;
             this.linkedDataList.AddRange(linkedDataList);

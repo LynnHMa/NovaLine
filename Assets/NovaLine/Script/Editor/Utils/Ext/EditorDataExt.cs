@@ -49,7 +49,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
                     RegisterContext(newContext);
                     
                     CommandRegistry.RegisterCommand(new AddNodeCommand(
-                        CurrentGraphView.LinkedElementGuid,
+                        CurrentGraphView.LinkedElementGUID,
                         CurrentGraphView.LinkedElement.Type,
                         rebindingNodeGraphViewData.StrongCopy() as IGraphViewNodeData));
                     
@@ -67,7 +67,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
                     RegisterContext(newEdgeContext);
                     
                     CommandRegistry.RegisterCommand(new AddEdgeCommand(
-                        CurrentGraphView.LinkedElementGuid,
+                        CurrentGraphView.LinkedElementGUID,
                         CurrentGraphView.LinkedElement.Type,
                         rebindingEdgeData.StrongCopy() as IEdgeData));
                     
@@ -82,7 +82,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
             {
                 if (beforeRebind.nodeGraphViewDataList.FirstOrDefault()?.Copy() is not IGraphViewNodeData afterData) return;
 
-                var beforeContext = GetContext(beforeElement.Guid, beforeElement.Type);
+                var beforeContext = GetContext(beforeElement.GUID, beforeElement.Type);
                 var beforeData = beforeContext?.LinkedData;
                 if (beforeData == null) return;
                 
@@ -102,7 +102,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
                 
                 if (replacingGraphView)
                 {
-                    if (GetContext(afterData.Guid, afterData.Type) is IGraphViewNodeContext afterContext)
+                    if (GetContext(afterData.GUID, afterData.Type) is IGraphViewNodeContext afterContext)
                     {
                         NovaWindow.LoadContextInWindow(afterContext);
                     }
@@ -145,14 +145,14 @@ namespace NovaLine.Script.Editor.Utils.Ext
                 if (oriEdgeData == null || rebindingEdgeData == null) continue;
 
                 var inputElementIndex = oriNodeGraphViewNodeDataList.FindIndex(oriNodeGraphViewData =>
-                    oriNodeGraphViewData.Guid.Equals(oriEdgeData.LinkedElement.InputElementGuid));
+                    oriNodeGraphViewData.GUID.Equals(oriEdgeData.LinkedElement.InputElementGUID));
                 var outputElementIndex = oriNodeGraphViewNodeDataList.FindIndex(oriNodeGraphViewData =>
-                    oriNodeGraphViewData.Guid.Equals(oriEdgeData.LinkedElement.OutputElementGuid));
+                    oriNodeGraphViewData.GUID.Equals(oriEdgeData.LinkedElement.OutputElementGUID));
                     
                 if(inputElementIndex < 0 || inputElementIndex >= oriNodeGraphViewNodeDataList.Count || outputElementIndex < 0 || outputElementIndex >= oriNodeGraphViewNodeDataList.Count) continue;
                     
-                rebindingEdgeData.LinkedElement.InputElementGuid = rebindingNodeGraphViewDataList[inputElementIndex]?.LinkedElement?.Guid;
-                rebindingEdgeData.LinkedElement.OutputElementGuid = rebindingNodeGraphViewDataList[outputElementIndex]?.LinkedElement?.Guid;
+                rebindingEdgeData.LinkedElement.InputElementGUID = rebindingNodeGraphViewDataList[inputElementIndex]?.LinkedElement?.GUID;
+                rebindingEdgeData.LinkedElement.OutputElementGUID = rebindingNodeGraphViewDataList[outputElementIndex]?.LinkedElement?.GUID;
 
                 RebindEdgeDataParent(rebindingEdgeData, currentGraphView.LinkedElement as NovaElement);
                     
@@ -218,24 +218,24 @@ namespace NovaLine.Script.Editor.Utils.Ext
         
         public InstantiatableData(IEnumerable<GraphElement> selectedElements)
         {
-            linkedContextInfo = new(CurrentGraphViewNodeContext.Guid, CurrentGraphViewNodeContext.Type);
+            linkedContextInfo = new(CurrentGraphViewNodeContext.GUID, CurrentGraphViewNodeContext.Type);
             if (selectedElements == null) return;
 
             var elements = selectedElements.OrderBy(e => e.GetPosition().y).ThenBy(e => e.GetPosition().x).ToList();
             if (elements.Count == 0) return;
             
-            var selectedNodeGuids = new HashSet<string>();
+            var selectedNodeGUIDs = new HashSet<string>();
             for (int i = 0; i < elements.Count(); i++)
             {
                 var element = elements[i];
                 switch (element)
                 {
                     case GraphNode graphNode:
-                        nodeGraphViewDataList.Add(FindGraphNodeLinkedData(graphNode.Guid,graphNode.Type) as IGraphViewNodeData);
-                        selectedNodeGuids.Add(graphNode.Guid);
+                        nodeGraphViewDataList.Add(FindGraphNodeLinkedData(graphNode.GUID,graphNode.Type) as IGraphViewNodeData);
+                        selectedNodeGUIDs.Add(graphNode.GUID);
                         break;
                     case IGraphEdge graphEdge:
-                        edgeDataList.Add(FindGraphNodeLinkedData(graphEdge.Guid,NovaElementType.Switcher) as IEdgeData);
+                        edgeDataList.Add(FindGraphNodeLinkedData(graphEdge.GUID,NovaElementType.Switcher) as IEdgeData);
                         break;
                 }
             }
@@ -248,7 +248,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
                     var sw = edgeData.LinkedElement;
                     if (sw == null) continue;
 
-                    if (selectedNodeGuids.Contains(sw.InputElementGuid) && selectedNodeGuids.Contains(sw.OutputElementGuid))
+                    if (selectedNodeGUIDs.Contains(sw.InputElementGUID) && selectedNodeGUIDs.Contains(sw.OutputElementGUID))
                     {
                         edgeDataList.Add(edgeData);
                     }
@@ -265,7 +265,7 @@ namespace NovaLine.Script.Editor.Utils.Ext
         }
         public InstantiatableData(IGraphViewNodeData linkedNodeData,Vector2 rootPos)
         {
-            linkedContextInfo = new(CurrentGraphViewNodeContext.Guid, CurrentGraphViewNodeContext.Type);
+            linkedContextInfo = new(CurrentGraphViewNodeContext.GUID, CurrentGraphViewNodeContext.Type);
             nodeGraphViewDataList.Add(linkedNodeData);
             this.rootPos = rootPos;
         }
@@ -279,9 +279,9 @@ namespace NovaLine.Script.Editor.Utils.Ext
             this.rootPos = rootPos;
         }
 
-        private INovaData FindGraphNodeLinkedData(string graphNodeGuid,NovaElementType type)
+        private INovaData FindGraphNodeLinkedData(string graphNodeGUID,NovaElementType type)
         {
-            return GetContext(graphNodeGuid,type)?.LinkedData;
+            return GetContext(graphNodeGUID,type)?.LinkedData;
         }
     }
 }

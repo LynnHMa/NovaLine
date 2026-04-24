@@ -1,50 +1,24 @@
 using System.Collections;
+using NovaLine.Script.Utils.Ext;
+using NovaLine.Script.Utils.Interface.Debounce;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace NovaLine.Script.UI.Container
 {
-    public class DialogContainerUI : MonoBehaviour
+    public class DialogContainerUI : NovaContainerUI,IGameObjectActiveDebounce
     {
         public static DialogContainerUI Instance { get; private set; }
-        public static Coroutine ShowingCoroutine { get; private set; }
-        public CanvasGroup CanvasGroup { get; private set; }
+        public Coroutine HideShowCoroutine { get; set; }
         public Image avatar;
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI contentText;
         
-        private void Awake()
+        protected override void Awake()
         {
             Instance = this;
-            CanvasGroup = GetComponent<CanvasGroup>();
-            CanvasGroup.alpha = 0f;
-        }
-
-        public IEnumerator ShowUI()
-        {
-            ClearContent();
-            CanvasGroup.alpha = 0f;
-            while (CanvasGroup.alpha < 1f)
-            {
-                CanvasGroup.alpha += Time.deltaTime * 1f / NovaPlayer.Instance.fadeInDuration;
-                yield return null;
-            }
-            CanvasGroup.alpha = 1f;
-        }
-        public IEnumerator HideUI()
-        {
-            if (ShowingCoroutine != null)
-            {
-                StopCoroutine(ShowingCoroutine);
-            }
-            while (CanvasGroup.alpha > 0f)
-            {
-                CanvasGroup.alpha -= Time.deltaTime * 1f / NovaPlayer.Instance.fadeOutDuration;
-                yield return null;
-            }
-            CanvasGroup.alpha = 0f;
-            ClearContent();
+            base.Awake();
         }
 
         public void ClearContent()
@@ -56,7 +30,7 @@ namespace NovaLine.Script.UI.Container
 
         public IEnumerator ShowDialogueCoroutine(Sprite avatarSprite, string name, string content,float showingSpeed = 0)
         {
-            if(CanvasGroup.alpha < 1f) yield return ShowUI();
+            if (CanvasGroup.alpha < 1f) yield return HideShowDebounceRoutine(true);
             
             avatar.sprite = avatarSprite;
             nameText.text = name;
@@ -86,6 +60,40 @@ namespace NovaLine.Script.UI.Container
             }
             
             yield return null;
+        }
+        public void InactiveDebounce()
+        {
+            HideShowCoroutine.StopCoroutine();
+            HideShowDebounceRoutine(false).StartCoroutine();
+        }
+
+        public void ActiveDebounce()
+        {
+            HideShowCoroutine.StopCoroutine();
+            HideShowDebounceRoutine(true).StartCoroutine();
+        }
+
+        public IEnumerator HideShowDebounceRoutine(bool isActive)
+        {
+            var isFade = isActive ? NovaPlayer.Instance.fadeIn : NovaPlayer.Instance.fadeOut;
+            var fadeDuration = isActive ? NovaPlayer.Instance.fadeInDuration : NovaPlayer.Instance.fadeOutDuration;
+            
+            yield return new WaitForSeconds(fadeDuration + 0.05f);
+            
+            if(isActive) ClearContent();
+            
+            if (isFade)
+            {
+                CanvasGroup.alpha = isActive ? 0f : 1f;
+                while (CanvasGroup.alpha < 1f)
+                {
+                    CanvasGroup.alpha += Time.deltaTime * (isActive ? 1f : -1f) / fadeDuration;
+                    yield return null;
+                }
+            }
+
+            CanvasGroup.alpha = isActive ? 1f : 0f;
+            if(!isActive) ClearContent();
         }
     }
 }

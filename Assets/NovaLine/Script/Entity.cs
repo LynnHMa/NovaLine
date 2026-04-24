@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using NovaLine.Script.Anim.Entity;
 using NovaLine.Script.Utils;
+using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface.Debounce;
 using UnityEngine;
 
@@ -22,18 +23,14 @@ namespace NovaLine.Script
         
         public void InactiveDebounce()
         {
-            var player = NovaPlayer.Instance;
-            if (player == null) return;
-            if(this != null && HideShowCoroutine != null) player.StopCoroutine(HideShowCoroutine);
-            HideShowCoroutine = player.StartCoroutine(HideShowDebounceRoutine(false));
+            HideShowCoroutine.StopCoroutine();
+            HideShowDebounceRoutine(false).StartCoroutine();
         }
 
         public void ActiveDebounce()
         {
-            var player = NovaPlayer.Instance;
-            if (player == null) return;
-            if(this != null && HideShowCoroutine != null) player.StopCoroutine(HideShowCoroutine);
-            HideShowCoroutine = player.StartCoroutine(HideShowDebounceRoutine(true));
+            HideShowCoroutine.StopCoroutine();
+            HideShowDebounceRoutine(true).StartCoroutine();
         }
 
         public IEnumerator HideShowDebounceRoutine(bool isActive)
@@ -60,7 +57,7 @@ namespace NovaLine.Script
                 var animWrapper = anims[i];
                 var anim = animWrapper.Value;
                 anim.LinkedEntity = LinkedEntity;
-                yield return anim?.Play();
+                yield return anim.Play();
             }
         }
     }

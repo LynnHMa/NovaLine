@@ -10,10 +10,10 @@ namespace NovaLine.Script.Editor.Window.Command
     public class MoveNodeCommand : Command
     {
         public List<KeyValue<NovaElement,PosKeyValue>> movedGraphNodeInfo = new();
-        public MoveNodeCommand(string contextGuid, NovaElementType contextType, KeyValue<NovaElement, PosKeyValue> situation) : this(contextGuid, contextType, new List<KeyValue<NovaElement, PosKeyValue>>() { situation })
+        public MoveNodeCommand(string contextGUID, NovaElementType contextType, KeyValue<NovaElement, PosKeyValue> situation) : this(contextGUID, contextType, new List<KeyValue<NovaElement, PosKeyValue>>() { situation })
         {
         }
-        public MoveNodeCommand(string contextGuid, NovaElementType contextType, List<KeyValue<NovaElement, PosKeyValue>> situations) : base(contextGuid, contextType)
+        public MoveNodeCommand(string contextGUID, NovaElementType contextType, List<KeyValue<NovaElement, PosKeyValue>> situations) : base(contextGUID, contextType)
         {
             Type = CommandType.Move_Node;
             movedGraphNodeInfo = situations;
@@ -24,7 +24,7 @@ namespace NovaLine.Script.Editor.Window.Command
             foreach(var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.oldPos,false);
+                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.GUID, keyValue.oldPos,false);
             }
         }
         public override void OnRedo()
@@ -32,7 +32,7 @@ namespace NovaLine.Script.Editor.Window.Command
             foreach (var graphNodeInfo in movedGraphNodeInfo)
             {
                 var keyValue = graphNodeInfo.value;
-                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.Guid, keyValue.newPos,false);
+                ParentGraphView.MoveGraphNode(graphNodeInfo.key?.GUID, keyValue.newPos,false);
             }
         }
 

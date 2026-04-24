@@ -104,7 +104,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
             {
                 foreach (var checkingGraphEdge in actualGraphEdges)
                 {
-                    var context = GetContext(checkingGraphEdge.Guid, NovaElementType.Switcher);
+                    var context = GetContext(checkingGraphEdge.GUID, NovaElementType.Switcher);
                     if (context is not EdgeContext edgeContext) continue;
                     context.SaveData();
                     
@@ -127,7 +127,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
             {
                 foreach (var childNodeData in LinkedData.NodeDataList)
                 {
-                    var childContext = GetContext(childNodeData.Guid, childNodeData.LinkedElement.Type);
+                    var childContext = GetContext(childNodeData.GUID, childNodeData.LinkedElement.Type);
                     childContext?.SaveData();
                 }
             }
@@ -136,17 +136,17 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
             {
                 foreach (var childEdgeData in LinkedData.EdgeDataList)
                 {
-                    var childContext = GetContext(childEdgeData.Guid, NovaElementType.Switcher);
+                    var childContext = GetContext(childEdgeData.GUID, NovaElementType.Switcher);
                     childContext?.SaveData();
                 }
             }
         }
         protected virtual void SaveConditionData()
         {
-            ConditionData HandleConditionContext(string conditionGuid)
+            ConditionData HandleConditionContext(string conditionGUID)
             {
-                if (string.IsNullOrEmpty(conditionGuid)) return null;
-                if (GetContext(conditionGuid, NovaElementType.Condition) is not ConditionContext conditionContext) return null;
+                if (string.IsNullOrEmpty(conditionGUID)) return null;
+                if (GetContext(conditionGUID, NovaElementType.Condition) is not ConditionContext conditionContext) return null;
                 conditionContext.SaveData();
                 conditionContext.LinkedData.Pos = Vector2.zero;
                 return conditionContext.LinkedData;
@@ -159,8 +159,8 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
             
             if(beforeConditionData == null || afterConditionData == null) return;
             
-            aroundConditionData.ConditionBeforeInvokeData = HandleConditionContext(beforeConditionData.Guid);
-            aroundConditionData.ConditionAfterInvokeData = HandleConditionContext(afterConditionData.Guid);
+            aroundConditionData.ConditionBeforeInvokeData = HandleConditionContext(beforeConditionData.GUID);
+            aroundConditionData.ConditionAfterInvokeData = HandleConditionContext(afterConditionData.GUID);
         }
         
         public abstract void SaveNodeData(List<GraphNode> graphNodes = null);
@@ -194,7 +194,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
                     GraphView.AddGraphNode(graphNode);
                 }
             }
-            if(!string.IsNullOrEmpty(LinkedData?.LinkedElement?.FirstChildGuid)) GraphView.SetFirstNode(LinkedData.LinkedElement.FirstChildGuid,false);
+            if(!string.IsNullOrEmpty(LinkedData?.LinkedElement?.FirstChildGUID)) GraphView.SetFirstNode(LinkedData.LinkedElement.FirstChildGUID,false);
         }
         public virtual void DrawEdge()
         {
@@ -213,7 +213,7 @@ namespace NovaLine.Script.Editor.Window.Context.GraphViewNode
         {
             base.ReplaceLinkedData(linkedData);
             
-            if (GraphView != null && !CurrentGraphViewNodeContext.Guid.Equals(Guid))
+            if (GraphView != null && !CurrentGraphViewNodeContext.GUID.Equals(GUID))
             {
                 DisposeGraphView();
             }

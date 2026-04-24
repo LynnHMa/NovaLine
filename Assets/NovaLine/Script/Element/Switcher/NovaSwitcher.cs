@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections;
-using NovaLine.Script.UI.Container;
 using NovaLine.Script.Utils.Interface;
 using UnityEngine;
-using static NovaLine.Script.NovaElementRegistry;
+using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Element.Switcher
 {
     [Serializable]
     public class NovaSwitcher : NovaElement,INovaSwitcher
     {
-        [SerializeField, HideInInspector] private string _inputElementGuid;
-        [SerializeField, HideInInspector] private string _outputElementGuid;
+        [SerializeField, HideInInspector] private string _inputElementGUID;
+        [SerializeField, HideInInspector] private string _outputElementGUID;
 
         public override NovaElementType Type => NovaElementType.Switcher;
-        public string InputElementGuid  { get => _inputElementGuid;  set => _inputElementGuid  = value; }
-        public string OutputElementGuid { get => _outputElementGuid; set => _outputElementGuid = value; }
+        public string InputElementGUID  { get => _inputElementGUID;  set => _inputElementGUID  = value; }
+        public string OutputElementGUID { get => _outputElementGUID; set => _outputElementGUID = value; }
         
         public NovaSwitcher()
         {
@@ -31,20 +30,20 @@ namespace NovaLine.Script.Element.Switcher
             if (base.Copy() is not NovaSwitcher clone) return null;
             
             //Waiting to be written by CopyPasteHelper.
-            clone._inputElementGuid = null;
-            clone._outputElementGuid = null;
+            clone._inputElementGUID = null;
+            clone._outputElementGUID = null;
             
             return clone;
         }
 
         public virtual NovaElement TryToFindInputElement()
         {
-            return FindElement(InputElementGuid);
+            return FindElement(InputElementGUID);
         }
 
         public virtual NovaElement TryToFindOutputElement()
         {
-            return FindElement(OutputElementGuid);
+            return FindElement(OutputElementGUID);
         }
 
         public virtual IEnumerator Next()
@@ -54,7 +53,7 @@ namespace NovaLine.Script.Element.Switcher
 
         public override void SetParent(NovaElement parent)
         {
-            ParentGuid = parent != null ? parent.Guid : "";
+            ParentGUID = parent != null ? parent.GUID : "";
         }
     }
     public interface INovaSwitcher : IGUID

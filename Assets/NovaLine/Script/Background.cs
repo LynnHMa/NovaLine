@@ -1,5 +1,5 @@
-using System;
 using System.Collections;
+using NovaLine.Script.Utils.Ext;
 using NovaLine.Script.Utils.Interface.Debounce;
 using UnityEngine;
 
@@ -16,8 +16,8 @@ namespace NovaLine.Script
 
         public void SetSpriteDebounce(Sprite sprite)
         {
-            if(_setSpriteRoutine != null) StopCoroutine(_setSpriteRoutine);
-            _setSpriteRoutine = StartCoroutine(SetSpriteRoutine(sprite));
+            _setSpriteRoutine.StopCoroutine();
+            SetSpriteRoutine(sprite).StartCoroutine();
         }
 
         public IEnumerator SetSpriteRoutine(Sprite sprite)
