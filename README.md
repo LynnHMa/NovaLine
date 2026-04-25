@@ -1,13 +1,16 @@
 <div align="center">
 
+    
+<img width="1672" height="941" alt="NovaLine" src="https://github.com/user-attachments/assets/2bd76d42-bb95-41e5-9a63-7bac99e68260" />  
+  
 # NovaLine
-
-**一个基于节点图的 Unity 视觉小说 / 对话系统框架**
-
-**A node-graph based Visual Novel / Dialogue System framework for Unity**
-
+**一个基于节点图的 Unity 视觉小说 / 对话系统框架**  
+**A node-graph based Visual Novel / Dialogue System framework for Unity**  
 [简体中文](#简体中文) · [English](#english)
+  
+<img width="1099" height="723" alt="Example" src="https://github.com/user-attachments/assets/f8cdc710-b91c-4cc0-91b0-885bbe188b54" />
 
+  
 </div>
 
 ---
@@ -70,7 +73,7 @@ Script/
 
 ## 如何扩展
 
-> 注意：项目内置的事件仅为**示例**用途，功能并不完整，如有需要请自行扩展。
+> 注意：项目内置的 `Action`/`Event` 仅为**示例**用途，功能并不完整，如有需要请自行扩展。
 
 **自定义 Action**
 
