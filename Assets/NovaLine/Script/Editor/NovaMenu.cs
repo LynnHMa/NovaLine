@@ -25,7 +25,7 @@ namespace NovaLine.Script.Editor
             };
         }
 
-        [MenuItem("NovaLine/Create Player")]
+        [MenuItem("NovaLine/Create NovaPlayer")]
         public static void CreateNovaPlayer()
         {
             try

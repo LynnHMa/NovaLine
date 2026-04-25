@@ -107,6 +107,8 @@ namespace NovaLine.Script.Editor.Utils.Ext
                         NovaWindow.LoadContextInWindow(afterContext);
                     }
                 }
+                
+                afterData.LinkedElement.ShowInInspector();
             }
         }
         

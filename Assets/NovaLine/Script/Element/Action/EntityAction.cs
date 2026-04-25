@@ -26,6 +26,7 @@ namespace NovaLine.Script.Element.Action
         public EntityActionType entityActionType = EntityActionType.ShowDirectly;
 
         [ShowInInspectorIf(nameof(entityActionType), EntityActionType.ShowDirectly)]
+        [ShowInInspectorIf(nameof(entity),-1,ShowInInspectorIfAttribute.ValueCondition.MoreThan)]
         public TransformChecker showTransform;
         
         [ShowInInspectorIf(nameof(entityActionType), EntityActionType.Anim)]

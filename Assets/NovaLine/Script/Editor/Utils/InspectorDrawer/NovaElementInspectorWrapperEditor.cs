@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using NovaLine.Script.Action;
 using NovaLine.Script.Anim.Entity;
-using NovaLine.Script.Data;
-using NovaLine.Script.Data.NodeGraphView;
-using NovaLine.Script.Editor.File;
-using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Scope;
 using NovaLine.Script.Editor.Window;
 using NovaLine.Script.Element;
@@ -224,11 +220,8 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                         GUI.backgroundColor = buttonColor;
                         if (GUILayout.Button("Save As", GUILayout.Height(30)))
                         {
-                            SaveScope.RequireSave();
-                            if (GetContext(selectedElement.GUID,selectedElement.Type)?.LinkedData?.Copy() is IGraphViewNodeData linkedData)
-                            {
-                                EditorFileManager.SaveAsset(linkedData, null,"Save Asset",selectedElement.name,"Save Asset",true);
-                            }
+                            var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
+                            currentGraphView?.ExportGraphNodeAsset(selectedElement);
                         }
                         GUI.backgroundColor = Color.white;
                         
@@ -237,25 +230,8 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                         GUI.backgroundColor = buttonColor;
                         if (GUILayout.Button("Import From", GUILayout.Height(30)))
                         {
-                            Undo.RecordObject(selectedProp.serializedObject.targetObject, "ImportSave Asset");
-                                
-                            var openFilePath = EditorUtility.OpenFilePanel("ImportSave Asset",EditorFileManager.CurrentPath,EditorFileManager.GetExtension(selectedElement.Type));
-                                
-                            if (string.IsNullOrEmpty(openFilePath)) return;
-                                    
-                            var relativePath = FileUtil.GetProjectRelativePath(openFilePath);
-                                
-                            if (relativePath == null) return;
-                                
-                            var openDataAsset = AssetDatabase.LoadAssetAtPath<GraphViewNodeDataAsset>(relativePath);
-                                
-                            if (openDataAsset == null || !openDataAsset.data.Type.Equals(selectedElement.Type)) return;
-                                
-                            var currentGraphView = CurrentGraphViewNodeContext.GraphView;
-                                
-                            var instantiateAndRelinkData = new InstantiatableData(openDataAsset.data.StrongCopy() as IGraphViewNodeData, currentGraphView.MousePos);
-                            
-                            EditorDataExt.InstantiateDataToReplaceNodeGraphView(instantiateAndRelinkData,selectedElement);
+                            var currentGraphView = CurrentGraphViewNodeContext?.GraphView;
+                            currentGraphView?.ImportGraphNodeAsset(selectedElement);
                         }
                         GUI.backgroundColor = Color.white;
                             
@@ -562,8 +538,8 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
         private static void InterceptUndoRedo()
         {
             Event e = Event.current;
-
-            if (e.type == EventType.KeyDown && e.isKey)
+            
+            if (e.type == EventType.KeyDown && e.isKey && EditorGUI.actionKey)
             {
                 if (EditorGUIUtility.editingTextField)
                 {
@@ -574,15 +550,9 @@ namespace NovaLine.Script.Editor.Utils.InspectorDrawer
                 {
                     case KeyCode.Z:
                     {
-                        if (e.shift)
-                        {
-                            CommandRegistry.Redo();
-                        }
-                        else
-                        {
-                            CommandRegistry.Undo();
-                        }
-
+                        if (e.shift) CommandRegistry.Redo();
+                        else CommandRegistry.Undo(); 
+                    
                         e.Use();
                         break;
                     }

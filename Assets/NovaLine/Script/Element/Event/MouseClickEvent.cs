@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace NovaLine.Script.Element.Event
 {
+    /// <summary>
+    /// Only listen for mouse down events under all circumstances.
+    /// Override for custom listening logic.
+    /// </summary>
     [Serializable]
     public class MouseClickEvent : NovaEvent
     {
@@ -13,9 +17,7 @@ namespace NovaLine.Script.Element.Event
         {
             this.mouse = mouse;
         }
-
-        // Only listen for mouse down events under all circumstances.
-        // Override for custom listening logic.
+        
         public override IEnumerator OnEvent()
         {
             while (!Input.GetMouseButtonDown(mouse))

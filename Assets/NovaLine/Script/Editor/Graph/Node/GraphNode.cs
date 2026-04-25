@@ -11,6 +11,7 @@ using NovaLine.Script.Editor.Utils;
 using NovaLine.Script.Editor.Utils.Ext;
 using NovaLine.Script.Editor.Utils.Interface;
 using NovaLine.Script.Editor.Utils.Scope;
+using UnityEditor.Experimental.GraphView;
 using static NovaLine.Script.Registry.NovaElementRegistry;
 
 namespace NovaLine.Script.Editor.Graph.Node
@@ -270,11 +271,23 @@ namespace NovaLine.Script.Editor.Graph.Node
 
         public void OnClick(PointerDownEvent evt)
         {
-            if (evt.clickCount == 2)
+            switch (evt.button)
             {
-                OnDoubleClick(evt);
-                evt.StopPropagation();
-                evt.PreventDefault();
+                case 1:
+                {
+                    if (CurrentGraphViewNodeContext?.GraphView is GraphView gv && !selected)
+                    {
+                        gv.ClearSelection();
+                        gv.AddToSelection(this);
+                    }
+
+                    break;
+                }
+                case 0 when evt.clickCount == 2:
+                    OnDoubleClick(evt);
+                    evt.StopPropagation();
+                    evt.PreventDefault();
+                    break;
             }
         }
         public virtual void OnDoubleClick(PointerDownEvent evt)

@@ -11,6 +11,7 @@
  using static NovaLine.Script.Registry.NovaElementRegistry;
  using System.Collections;
  using System.Collections.Generic;
+ using NovaLine.Script.Editor.File;
  using UnityEditor.Experimental.GraphView;
  using UnityEngine;
  using UnityEngine.UIElements;
@@ -18,6 +19,7 @@
  using NovaLine.Script.Element;
  using NovaLine.Script.Editor.Graph.Edge;
  using NovaLine.Script.Editor.Graph.Port;
+ using NovaLine.Script.Editor.Utils;
  using NovaLine.Script.Editor.Window.Command;
  using NovaLine.Script.Editor.Window;
  using static NovaLine.Script.Editor.Window.ContextRegistry;
@@ -528,7 +530,6 @@ namespace NovaLine.Script.Editor.Graph.View
             var graphEdge = SummonNewGraphEdge(switcherElement);
             AddGraphEdge(graphEdge);
         }
-
         public virtual void RemoveGraphEdgeByCommand(IEdgeData linkedData)
         {
             if (FindElement(linkedData.LinkedElement.GUID) is not TSwitcherElement switcherElement) return;
@@ -539,6 +540,7 @@ namespace NovaLine.Script.Editor.Graph.View
             
             UnregisterContext(linkedData.GUID, switcherElement.Type);
         }
+        
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             base.BuildContextualMenu(evt);
@@ -546,6 +548,22 @@ namespace NovaLine.Script.Editor.Graph.View
             Vector2 mousePosition = evt.localMousePosition;
             Vector2 graphMousePosition = contentViewContainer.WorldToLocal(mousePosition);
 
+            if (NovaWindow.SelectedGraphNode != null)
+            {
+                var selectedElement = InspectorHelper.InspectorNovaElementWrapper?.selectedElement;
+                if (selectedElement != null)
+                {
+                    evt.menu.AppendAction("Save As", _ =>
+                    {
+                        ExportGraphNodeAsset(selectedElement);
+                    });
+                    evt.menu.AppendAction("Import From", _ =>
+                    {
+                        ImportGraphNodeAsset(selectedElement);
+                    });
+                }
+            }
+            
             evt.menu.AppendAction("Add Graph Node", _ =>
             {
                 var e = SummonNewGraphNode(graphMousePosition);
@@ -629,6 +647,38 @@ namespace NovaLine.Script.Editor.Graph.View
         {
             _backButton.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
+        public void ExportGraphNodeAsset(NovaElement graphNodeElement)
+        {
+            if (graphNodeElement == null) return;
+            
+            SaveScope.RequireSave();
+            if (GetContext(graphNodeElement.GUID,graphNodeElement.Type)?.LinkedData?.Copy() is IGraphViewNodeData linkedData)
+            {
+                EditorFileManager.SaveAsset(linkedData, null,"Save Asset",graphNodeElement.name,"Save Asset",true);
+            }
+        }
+        public void ImportGraphNodeAsset(NovaElement graphNodeElement)
+        {
+            if (graphNodeElement == null) return;
+            
+            Undo.RecordObject(InspectorHelper.InspectorNovaElementWrapper, "ImportSave Asset");
+            
+            var openFilePath = EditorUtility.OpenFilePanel("ImportSave Asset",EditorFileManager.CurrentPath,EditorFileManager.GetExtension(graphNodeElement.Type));
+                                
+            if (string.IsNullOrEmpty(openFilePath)) return;
+                                    
+            var relativePath = FileUtil.GetProjectRelativePath(openFilePath);
+                                
+            if (relativePath == null) return;
+                                
+            var openDataAsset = AssetDatabase.LoadAssetAtPath<GraphViewNodeDataAsset>(relativePath);
+                                
+            if (openDataAsset == null || !openDataAsset.data.Type.Equals(graphNodeElement.Type)) return;
+            
+            var instantiateAndRelinkData = new InstantiatableData(openDataAsset.data.StrongCopy() as IGraphViewNodeData, MousePos);
+                            
+            EditorDataExt.InstantiateDataToReplaceNodeGraphView(instantiateAndRelinkData,graphNodeElement);
+        }
     }
     public interface INovaGraphView
     {
@@ -668,6 +718,8 @@ namespace NovaLine.Script.Editor.Graph.View
         void AddGraphEdgeByCommand(IEdgeData linkedData);
         void RemoveGraphEdgeByCommand(IEdgeData linkedData);
         void SetBackButtonVisible(bool isVisible);
+        void ExportGraphNodeAsset(NovaElement graphNodeElement);
+        void ImportGraphNodeAsset(NovaElement graphNodeElement);
         string GetActualName();
         void Update();
     }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using NovaLine.Script.Action;
-using NovaLine.Script.UI;
 using NovaLine.Script.UI.Container;
 using NovaLine.Script.Utils.Attribute;
 using UnityEngine;

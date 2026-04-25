@@ -116,6 +116,8 @@ namespace NovaLine.Script.Editor.Utils
 
         public static void GlobalReplace(NovaElement beforeElement, NovaElement afterElement,bool registerCommand = true)
         {
+            if (beforeElement == null || afterElement == null) return;
+            
             var beforeData = elementDataCache[beforeElement.GUID];
             var afterData = beforeData.StrongCopy();
             afterData.LinkedElement = afterElement;
@@ -193,6 +195,12 @@ namespace NovaLine.Script.Editor.Utils
         
         private static void TryGlobalReplace(NovaElement beforeElement, NovaElement afterElement,bool registerCommand = true)
         {
+            if (beforeElement == null || afterElement == null) return;
+            if (!EditorGUIUtility.editingTextField)
+            {
+                ReplaceCoroutine?.ReplaceDirectly();
+                return;
+            }
             ReplaceCoroutine?.Start(beforeElement,afterElement, registerCommand);
         }
 

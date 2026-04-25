@@ -7,6 +7,9 @@ using NovaLine.Script.Utils.Attribute;
 
 namespace NovaLine.Script.Element.Event
 {
+    /// <summary>
+    /// Show a new button and listen for its click event.
+    /// </summary>
     [Serializable]
     public class ButtonClickedEvent : NovaEvent
     {
@@ -26,7 +29,6 @@ namespace NovaLine.Script.Element.Event
             this.displayName = displayName;
         }
         
-        // Show a new button and listen for its click event.
         public override IEnumerator OnEvent()
         {
             var listenedButton = ButtonRegistry.RegisterButton(displayName, buttonPrefab, defaultRectTransform ? null : rectTransformChecker);

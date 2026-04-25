@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace NovaLine.Script.Element.Event
 {
+    /// <summary>
+    /// Waiting a few seconds.
+    /// </summary>
     [Serializable]
     public class WaitingEvent : NovaEvent
     {

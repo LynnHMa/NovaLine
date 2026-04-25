@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace NovaLine.Script.Data
 {
-    [CreateAssetMenu]
     public class GraphViewNodeDataAsset : ScriptableObject
     {
         [SerializeReference]

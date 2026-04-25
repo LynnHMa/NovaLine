@@ -25,6 +25,8 @@ namespace NovaLine.Script
         
         [Header("Player")]
         public List<GraphViewNodeDataAsset> playList = new();
+        public Background background;
+        public AudioSource audioSource;
         
         [Header("Dialog")]
         public bool fadeIn;
@@ -42,20 +44,17 @@ namespace NovaLine.Script
         
         [Header("Misc")]
         public Transform entityStorage;
-        public Background background;
+
+        private void Awake()
+        {
+            Instance = this;
+            if (Application.isPlaying) DontDestroyOnLoad(gameObject);
+        }
 
         private void OnValidate()
         {
             UICanvas.renderMode = RenderMode.ScreenSpaceCamera;
-            if(UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
-            
-            Instance = this;
-            if (Application.isPlaying)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
-
-            //Background sprite renderer initialization
+            if (UICanvas.worldCamera == null) UICanvas.worldCamera = Camera.main;
             InitBackgroundLayer();
         }
 
@@ -92,9 +91,10 @@ namespace NovaLine.Script
 
         public static void InitBackgroundLayer(GameObject backgroundObj = null)
         {
+            if (Instance?.background == null) return;
             var actualBackgroundObj = backgroundObj ?? Instance.background.gameObject;
             var sp = actualBackgroundObj.GetComponent<SpriteRenderer>();
-            if (sp == null || Instance == null) return;
+            if (sp == null) return;
             sp.sortingLayerName = Instance.defaultBackgroundSortingLayer;
             sp.sortingOrder = Instance.defaultBackgroundOrderLayer;
         }

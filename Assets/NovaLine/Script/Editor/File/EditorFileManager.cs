@@ -99,7 +99,7 @@ namespace NovaLine.Script.Editor.File
                 CurrentAsset.data = RootGraphViewNodeContext.LinkedData;
             }
             
-            if (RootGraphViewNodeContext?.LinkedData == null || CurrentGraphViewNodeContext?.LinkedData == null)
+            if (RootGraphViewNodeContext?.LinkedData == null || CurrentGraphViewNodeContext?.LinkedData == null || string.IsNullOrEmpty(CurrentPath))
                 return;
             
             SaveAsset(RootGraphViewNodeContext.LinkedData, BeforeSave, "Save Asset",
@@ -177,6 +177,8 @@ namespace NovaLine.Script.Editor.File
             
             beforeSave?.Invoke(asset, path);
             
+            asset.data = data; 
+            
             string json = EditorJsonUtility.ToJson(asset, true);
 
             System.IO.File.WriteAllText(path, json);
@@ -213,6 +215,25 @@ namespace NovaLine.Script.Editor.File
         private static string GetProjectKey(string key)
         {
             return $"{Application.productName}_{key}";
+        }
+        public class NovaAssetDeleteHandler : UnityEditor.AssetModificationProcessor
+        {
+            public static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions options)
+            {
+                if (assetPath == CurrentPath)
+                {
+                    CurrentPath = string.Empty;
+                    CurrentAsset = null;
+                    ClearContexts();
+                    
+                    if (Instance != null)
+                    {
+                        Instance.rootVisualElement.Clear();
+                    }
+                }
+                
+                return AssetDeleteResult.DidNotDelete; 
+            }
         }
     }
 }

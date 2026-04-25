@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
-
-namespace NovaLine.Script.Anim.Entity
+﻿namespace NovaLine.Script.Anim.Entity
 {
     public class EntityAnim : NovaAnim
     {

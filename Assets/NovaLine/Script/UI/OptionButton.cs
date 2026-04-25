@@ -23,6 +23,7 @@ namespace NovaLine.Script.UI
                 gameObject.SetActive(false);
             }
             
+            text ??= GetComponent<TextMeshProUGUI>() ?? GetComponentInChildren<TextMeshProUGUI>();
             RectTransform = GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             Button = GetComponent<Button>() ?? gameObject.AddComponent<Button>();
             Image = GetComponent<Image>() ?? gameObject.AddComponent<Image>();
