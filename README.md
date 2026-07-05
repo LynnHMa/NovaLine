@@ -16,6 +16,11 @@
 ---
 
 # 简体中文
+  
+## 注意
+
+1. 当前该项目仅处于测试阶段，还未使用其正式开发过剧情系统游戏，请勿将其用于正式游戏生产，以免造成数据损失！
+2. 目前我正在使用这个工具制作Galgame，顺便排除严重BUG，一旦我成功制作出Galgame，这个工具将会发布一个正式版本，敬请期待我的新游戏以及NovaLine的正式版~
 
 ## 简介
 
@@ -148,6 +153,11 @@ public static class SaveManager
 
 # English
 
+## Notes
+
+1. This project is currently in the testing phase and has not been formally used to develop games with story systems. Do not apply it to official game production to avoid data loss!
+2. I am currently using this tool to develop a Galgame while fixing critical bugs. Once I finish the Galgame, an official version of this tool will be released. Stay tuned for my new game and the official release of NovaLine :D
+   
 ## Introduction
 
 1. NovaLine is a visual dialogue and story system for Unity. It uses a node-graph editor to orchestrate story flow, enabling branching dialogue, character animations, background transitions, and audio control — all without writing additional code. The system is extensible, supporting custom Actions, Events, and Conditions.
